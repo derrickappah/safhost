@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { IoArrowBack, IoClose, IoAdd, IoLocation, IoStar, IoWifi, IoWater, IoShieldCheckmark } from 'react-icons/io5'
 import styles from './page.module.css'
@@ -9,7 +9,7 @@ import Image from 'next/image'
 
 const MAX_COMPARE = 4
 
-export default function ComparePage() {
+function ComparePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialIds = searchParams.get('ids')?.split(',').filter(Boolean) || []
@@ -254,5 +254,17 @@ export default function ComparePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.container}>
+        <div className={styles.loading}>Loading...</div>
+      </div>
+    }>
+      <ComparePageContent />
+    </Suspense>
   )
 }
