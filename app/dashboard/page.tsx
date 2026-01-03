@@ -13,6 +13,9 @@ import { getRecentlyViewed } from '@/lib/actions/views'
 import { getHostels } from '@/lib/actions/hostels'
 import { getUnreadCount } from '@/lib/notifications/get'
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
+
 function DashboardPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
