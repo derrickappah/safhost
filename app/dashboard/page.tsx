@@ -26,6 +26,7 @@ function DashboardPageContent() {
   const [featuredHostels, setFeaturedHostels] = useState<any[]>([])
   const [recommendedHostels, setRecommendedHostels] = useState<any[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   const loadSubscription = async () => {
     const { data: subData, error } = await getActiveSubscription()
@@ -80,30 +81,38 @@ function DashboardPageContent() {
 
   // Check for payment success and reload subscription
   useEffect(() => {
-    const paymentStatus = searchParams.get('payment')
-    if (paymentStatus === 'success') {
-      setShowSuccessMessage(true)
-      // Immediately reload subscription
-      loadSubscription()
-      
-      // Reload subscription data multiple times with delays to ensure it's activated
-      const reloadInterval = setInterval(async () => {
-        await loadSubscription()
-      }, 2000)
-      
-      // Stop reloading after 15 seconds
-      setTimeout(() => {
-        clearInterval(reloadInterval)
-        // Final reload
-        loadSubscription()
-        // Remove query param from URL
-        router.replace('/dashboard')
-      }, 15000)
-      
-      // Hide success message after 5 seconds
-      setTimeout(() => {
-        setShowSuccessMessage(false)
-      }, 5000)
+    try {
+      const paymentStatus = searchParams.get('payment')
+      if (paymentStatus === 'success') {
+        setShowSuccessMessage(true)
+        // Immediately reload subscription
+        loadSubscription().catch(err => console.error('Error reloading subscription:', err))
+        
+        // Reload subscription data multiple times with delays to ensure it's activated
+        const reloadInterval = setInterval(async () => {
+          try {
+            await loadSubscription()
+          } catch (err) {
+            console.error('Error in subscription reload interval:', err)
+          }
+        }, 2000)
+        
+        // Stop reloading after 15 seconds
+        setTimeout(() => {
+          clearInterval(reloadInterval)
+          // Final reload
+          loadSubscription().catch(err => console.error('Error in final subscription reload:', err))
+          // Remove query param from URL
+          router.replace('/dashboard')
+        }, 15000)
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false)
+        }, 5000)
+      }
+    } catch (err) {
+      console.error('Error in payment status effect:', err)
     }
   }, [searchParams, router])
 
@@ -180,6 +189,44 @@ function DashboardPageContent() {
           color: 'var(--color-text-secondary)'
         }}>
           Loading...
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '18px', color: '#ef4444', marginBottom: '16px' }}>
+            Error loading dashboard
+          </p>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'var(--color-primary)',
+              color: '#fff',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
         </div>
       </div>
     )
