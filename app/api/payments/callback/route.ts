@@ -14,8 +14,11 @@ export async function GET(request: NextRequest) {
 
     console.log('Payment callback received:', { reference, status })
 
+    // Get the base URL from environment or request origin
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
+    
     if (!reference) {
-      return NextResponse.redirect(new URL('/subscribe?error=no_reference', request.url))
+      return NextResponse.redirect(new URL('/subscribe?error=no_reference', baseUrl))
     }
 
     if (status === 'success' || !status) {
@@ -24,7 +27,7 @@ export async function GET(request: NextRequest) {
       
       if (verifyError) {
         console.error('Payment verification error:', verifyError)
-        return NextResponse.redirect(new URL('/subscribe?error=verification_failed', request.url))
+        return NextResponse.redirect(new URL('/subscribe?error=verification_failed', baseUrl))
       }
       
       if (verification && verification.data.status === 'success') {
@@ -86,7 +89,7 @@ export async function GET(request: NextRequest) {
                     console.log('Subscription activated successfully:', { subscriptionId: activatedSubscription.id, status: activatedSubscription.status })
                   }
                   
-                  return NextResponse.redirect(new URL('/dashboard?payment=success', request.url))
+                  return NextResponse.redirect(new URL('/dashboard?payment=success', baseUrl))
                 }
               }
             }
@@ -105,7 +108,7 @@ export async function GET(request: NextRequest) {
           }
           
           console.error('Payment record not found for reference:', reference)
-          return NextResponse.redirect(new URL('/subscribe?error=payment_not_found', request.url))
+          return NextResponse.redirect(new URL('/subscribe?error=payment_not_found', baseUrl))
         }
         
         if (payment) {
@@ -156,15 +159,15 @@ export async function GET(request: NextRequest) {
           console.error('Payment record not found for reference:', reference)
         }
         
-        return NextResponse.redirect(new URL('/dashboard?payment=success', request.url))
+        return NextResponse.redirect(new URL('/dashboard?payment=success', baseUrl))
       } else {
-        return NextResponse.redirect(new URL('/subscribe?error=payment_not_verified', request.url))
+        return NextResponse.redirect(new URL('/subscribe?error=payment_not_verified', baseUrl))
       }
     } else {
-      return NextResponse.redirect(new URL('/subscribe?error=payment_failed', request.url))
+      return NextResponse.redirect(new URL('/subscribe?error=payment_failed', baseUrl))
     }
   } catch (error) {
     console.error('Callback error:', error)
-    return NextResponse.redirect(new URL('/subscribe?error=callback_error', request.url))
+    return NextResponse.redirect(new URL('/subscribe?error=callback_error', baseUrl))
   }
 }

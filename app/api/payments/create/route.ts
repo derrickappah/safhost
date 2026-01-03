@@ -65,7 +65,13 @@ export async function POST(request: NextRequest) {
         subscription_id: subscriptionId,
         promo_code: promoCode || undefined
       },
-      callback_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/payments/callback`
+      callback_url: (() => {
+        // Get the origin from the request
+        const origin = request.headers.get('origin') || request.nextUrl.origin
+        // Use environment variable if set, otherwise use request origin
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || origin
+        return `${baseUrl}/api/payments/callback`
+      })()
     })
 
     if (paystackError || !paystackData) {

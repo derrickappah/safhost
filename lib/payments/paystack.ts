@@ -38,7 +38,18 @@ export async function initializePayment(
         amount: input.amount, // Amount in pesewas
         phone: input.phone,
         metadata: input.metadata || {},
-        callback_url: input.callback_url || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/payments/callback`
+        callback_url: input.callback_url || (() => {
+          // Use environment variable if set
+          if (process.env.NEXT_PUBLIC_APP_URL) {
+            return `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback`
+          }
+          // In Vercel, use VERCEL_URL
+          if (process.env.VERCEL_URL) {
+            return `https://${process.env.VERCEL_URL}/api/payments/callback`
+          }
+          // Fallback to localhost for development
+          return 'http://localhost:3000/api/payments/callback'
+        })()
       })
     })
 
