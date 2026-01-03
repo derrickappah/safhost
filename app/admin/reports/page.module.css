@@ -1,0 +1,237 @@
+.container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: #f1f5f9;
+}
+
+.headerTitle {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  text-align: center;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.filterButton {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.filterButton:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.filterButtonActive {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.content {
+  padding: 24px;
+}
+
+.loading,
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.emptyState p {
+  font-size: 16px;
+  color: #64748b;
+}
+
+.reportsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reportCard {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.reportHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.reportTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.reportMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.reportType {
+  padding: 4px 8px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.reportDate {
+  color: #94a3b8;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statuspending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.statusreviewed {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.statusresolved {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.statusdismissed {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.reportDescription {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 12px 0;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.adminResponse {
+  font-size: 14px;
+  color: #1e293b;
+  margin: 12px 0;
+  padding: 12px;
+  background-color: #eff6ff;
+  border-left: 3px solid #2563eb;
+  border-radius: 4px;
+}
+
+.reportActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.resolveButton,
+.dismissButton,
+.reviewButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resolveButton {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.resolveButton:hover {
+  background-color: #bbf7d0;
+}
+
+.dismissButton {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.dismissButton:hover {
+  background-color: #fecaca;
+}
+
+.reviewButton {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.reviewButton:hover {
+  background-color: #e2e8f0;
+}

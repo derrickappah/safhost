@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #1e293b;
+  color: white;
+  padding: 24px;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebarHeader {
+  margin-bottom: 32px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navLink {
+  padding: 12px 16px;
+  color: #cbd5e1;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.navLink:hover {
+  background-color: #334155;
+  color: white;
+}
+
+.main {
+  flex: 1;
+  margin-left: 250px;
+  padding: 32px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .main {
+    margin-left: 200px;
+    padding: 16px;
+  }
+}

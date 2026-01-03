@@ -1,0 +1,147 @@
+.container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: #f1f5f9;
+}
+
+.headerTitle {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  text-align: center;
+}
+
+.content {
+  padding: 24px;
+}
+
+.loading,
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 16px;
+  color: #64748b;
+}
+
+.table {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.table thead {
+  background-color: #f8fafc;
+}
+
+.table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.statusBadge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusactive {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.statusexpired {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.statuspending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.statuscancelled {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.refundButton,
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.refundButton:hover {
+  background-color: #fee2e2;
+}
+
+.removeButton:hover {
+  background-color: #f1f5f9;
+}

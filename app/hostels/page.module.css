@@ -1,0 +1,648 @@
+.container {
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+  padding-top: env(safe-area-inset-top);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+}
+
+.headerTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.mapButton {
+  display: flex;
+  align-items: center;
+  background-color: #eff6ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.mapButtonText {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.compareModeButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #eff6ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compareModeButtonActive {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.compareBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #eff6ff;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.compareCount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.compareButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.compareButton:hover {
+  background-color: #1d4ed8;
+}
+
+.compareCheckbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 4px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchContainer {
+  display: flex;
+  padding: 0 20px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.searchBar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-primary);
+  border-radius: 12px;
+  padding: 0 14px;
+  height: 48px;
+  border: 1px solid var(--color-border);
+}
+
+.searchInput {
+  flex: 1;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  margin-left: 10px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.filterButton {
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-bg-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+
+.resultsCount {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.sortContainer {
+  position: relative;
+}
+
+.sortButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+.sortText {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.sortMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  min-width: 180px;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.sortOption {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sortOption:hover {
+  background-color: #f8fafc;
+}
+
+.sortOptionActive {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.listContainer {
+  padding: 0 20px;
+  padding-bottom: 100px;
+}
+
+.hostelCard {
+  background-color: var(--color-bg-primary);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  text-align: left;
+}
+
+.imageContainer {
+  position: relative;
+  height: 180px;
+}
+
+.hostelImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.newBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: var(--color-success);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.newBadgeText {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.saveButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardContent {
+  padding: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.hostelName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.ratingBadge {
+  display: flex;
+  align-items: center;
+  background-color: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.ratingText {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.reviewCount {
+  font-size: 11px;
+  color: #b45309;
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.distanceInfo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.distanceBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.distanceText {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.priceText {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.priceAmount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.amenitiesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.amenityTag {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-tertiary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.amenityText {
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.moreTag {
+  background-color: #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.moreText {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.filterSheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-bg-primary);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  max-height: 75vh;
+  overflow-y: auto;
+  z-index: 101;
+}
+
+.sheetHandle {
+  width: 40px;
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.sheetTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 20px;
+}
+
+.filterSection {
+  margin-bottom: 24px;
+}
+
+.filterLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.priceInputs {
+  display: flex;
+  align-items: center;
+}
+
+.priceInput {
+  flex: 1;
+  background-color: var(--color-bg-secondary);
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+}
+
+.priceInputLabel {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.priceInputValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.priceInputField {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  outline: none;
+  margin-top: 4px;
+}
+
+.rangeSlider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  outline: none;
+  margin-top: 12px;
+  -webkit-appearance: none;
+}
+
+.rangeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+}
+
+.rangeSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2563eb;
+  cursor: pointer;
+  border: none;
+}
+
+.distanceSliderContainer {
+  margin-top: 8px;
+}
+
+.distanceValue {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.genderOptions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.genderOption {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.genderOption:hover {
+  border-color: #2563eb;
+}
+
+.genderOptionActive {
+  background-color: #eff6ff;
+  border-color: #2563eb;
+}
+
+.genderOption span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.genderOptionActive span {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.availabilityOptions {
+  display: flex;
+  gap: 10px;
+}
+
+.availabilityOption {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.availabilityOption:hover {
+  border-color: #2563eb;
+}
+
+.availabilityOptionActive {
+  background-color: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.priceDivider {
+  width: 20px;
+  height: 2px;
+  background-color: var(--color-border);
+  margin: 0 10px;
+}
+
+.distanceOptions {
+  display: flex;
+  gap: 10px;
+}
+
+.distanceOption {
+  flex: 1;
+  background-color: var(--color-bg-secondary);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid var(--color-border);
+}
+
+.distanceOptionText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.amenitiesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.amenityOption {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-secondary);
+  padding: 10px 14px;
+  border-radius: 10px;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.amenityOptionActive {
+  background-color: #eff6ff;
+  border-color: var(--color-primary);
+}
+
+.amenityOptionText {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.amenityOptionTextActive {
+  color: var(--color-primary);
+}
+
+.applyButton {
+  background-color: var(--color-primary);
+  padding: 16px;
+  border-radius: 14px;
+  text-align: center;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.applyButtonText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}

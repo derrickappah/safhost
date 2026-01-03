@@ -1,0 +1,341 @@
+.container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding-bottom: 100px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: #f1f5f9;
+}
+
+.headerTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #eff6ff;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addButton:hover {
+  background-color: #dbeafe;
+}
+
+.loading,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 40px 20px;
+}
+
+.emptyText {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.comparisonContainer {
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.comparisonTable {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 800px;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 200px repeat(auto-fit, minmax(250px, 1fr));
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableHeader {
+  padding: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  background-color: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+}
+
+.tableLabel {
+  padding: 16px;
+  font-weight: 600;
+  color: #64748b;
+  background-color: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.hostelColumn {
+  padding: 16px;
+  text-align: center;
+  border-right: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.removeButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.removeButton:hover {
+  background-color: #e2e8f0;
+}
+
+.hostelImageContainer {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background-color: #f1f5f9;
+}
+
+.hostelImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hostelImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.hostelName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.tableCell {
+  padding: 16px;
+  border-right: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.priceValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.priceRange {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.pricePeriod {
+  font-size: 12px;
+  color: #64748b;
+  display: block;
+  margin-top: 4px;
+}
+
+.ratingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ratingValue {
+  font-weight: 600;
+  color: #92400e;
+}
+
+.reviewCount {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.distanceContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #64748b;
+}
+
+.addressText {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.amenitiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.amenityTag {
+  padding: 4px 8px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.roomTypesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roomTypeItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background-color: #f8fafc;
+  border-radius: 6px;
+}
+
+.roomType {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.roomPrice {
+  font-size: 12px;
+  color: #059669;
+  font-weight: 600;
+}
+
+.viewButton {
+  padding: 8px 16px;
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.viewButton:hover {
+  background-color: #1d4ed8;
+}
+
+.addColumn {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #e2e8f0;
+}
+
+.addColumnButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  background: none;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addColumnButton:hover {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.na {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .comparisonContainer {
+    padding: 12px;
+  }
+
+  .comparisonTable {
+    min-width: 600px;
+  }
+
+  .tableRow {
+    grid-template-columns: 150px repeat(auto-fit, minmax(200px, 1fr));
+  }
+}

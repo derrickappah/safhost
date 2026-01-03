@@ -1,0 +1,966 @@
+.container {
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+  position: relative;
+}
+
+.scrollContent {
+  padding-bottom: 120px;
+}
+
+.imageContainer {
+  position: relative;
+  height: 300px;
+}
+
+.imageCarousel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+}
+
+.imageCarousel:active {
+  cursor: grabbing;
+}
+
+.hostelImage {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  transition: opacity 0.3s ease-in-out;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.imageIndicators {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+}
+
+.indicatorActive {
+  background-color: #fff;
+  transform: scale(1.3);
+}
+
+.headerOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  padding-top: calc(8px + env(safe-area-inset-top));
+}
+
+.backButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.headerActions {
+  display: flex;
+  gap: 10px;
+}
+
+.actionButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.content {
+  padding: 20px;
+}
+
+.hostelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reportButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.reportButton:hover {
+  background-color: #f1f5f9;
+}
+
+.viewCount {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.headerLeft {
+  flex: 1;
+  margin-right: 12px;
+}
+
+.hostelName {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.locationRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.locationButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: opacity 0.2s;
+}
+
+.locationButton:hover {
+  opacity: 0.7;
+}
+
+.locationText {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+.ratingBox {
+  display: flex;
+  align-items: center;
+  background-color: #fef3c7;
+  padding: 6px 10px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.ratingValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.reviewCount {
+  font-size: 12px;
+  color: #b45309;
+}
+
+.priceDistanceSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.priceBox {
+  width: 100%;
+  background-color: #f0fdf4;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.priceLabel {
+  font-size: 12px;
+  color: #16a34a;
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.priceValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #15803d;
+  line-height: 1.2;
+}
+
+.pricePeriod {
+  font-size: 14px;
+  font-weight: 500;
+  color: #16a34a;
+}
+
+.distanceInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.distanceBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eff6ff;
+  border-radius: 20px;
+  padding: 6px 10px;
+  flex: 0 1 auto;
+}
+
+.distanceTextContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.distanceTextMain {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.distanceTextSub {
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.flagButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.flagButton:hover {
+  background-color: #fde68a;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.seeAllText {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.amenitiesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.amenityItem {
+  width: calc((100% - 24px) / 3);
+  text-align: center;
+  background-color: var(--color-bg-secondary);
+  padding: 16px 0;
+  border-radius: 12px;
+}
+
+.amenityIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background-color: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+}
+
+.amenityName {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.roomCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-bg-secondary);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.roomInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.roomType {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.roomAvailable {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.roomPrice {
+  font-size: 16px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.description {
+  font-size: 15px;
+  color: #475569;
+  line-height: 24px;
+}
+
+.reviewCard {
+  background-color: var(--color-bg-secondary);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.reviewUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reviewAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reviewAvatarText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.reviewName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.reviewDate {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.reviewActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.reviewActionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.reviewActionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.reviewActionButton:hover {
+  background-color: #f1f5f9;
+}
+
+.reviewRating {
+  display: flex;
+  gap: 2px;
+}
+
+.reviewComment {
+  font-size: 14px;
+  color: #475569;
+  line-height: 20px;
+}
+
+.bottomCTA {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  background-color: var(--color-bg-primary);
+  padding: 16px 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  border-top: 1px solid #f1f5f9;
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.ctaPrice {
+  margin-right: 16px;
+}
+
+.ctaPriceLabel {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  display: block;
+}
+
+.ctaPriceValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.contactButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  padding: 16px;
+  border-radius: 14px;
+  gap: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.contactButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.contactButtonText {
+  color: #fff;
+}
+
+/* Review Form Styles */
+.writeReviewButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.writeReviewButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.writeReviewButtonInline {
+  padding: 10px 16px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.writeReviewButtonInline:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.reviewModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.reviewModal {
+  background-color: var(--color-bg-primary);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.reviewModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.reviewModalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.reviewModalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  transition: background-color 0.2s;
+}
+
+.reviewModalClose:hover {
+  background-color: #f1f5f9;
+}
+
+.reviewModalContent {
+  padding: 20px;
+}
+
+.ratingSelector {
+  margin-bottom: 24px;
+}
+
+.ratingLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.starRating {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.starButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.starButton:hover {
+  transform: scale(1.1);
+}
+
+.starButton:active {
+  transform: scale(0.95);
+}
+
+.ratingText {
+  display: block;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.commentInput {
+  margin-bottom: 20px;
+}
+
+.commentLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.commentTextarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s;
+}
+
+.commentTextarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.commentCounter {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.reviewModalFooter {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.reviewCancelButton {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reviewCancelButton:hover:not(:disabled) {
+  background-color: #f1f5f9;
+}
+
+.reviewCancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reviewSubmitButton {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.reviewSubmitButton:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.reviewSubmitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Contact Modal Styles */
+.contactModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.contactModal {
+  background-color: var(--color-bg-primary);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.contactModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.contactModalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.contactModalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  transition: background-color 0.2s;
+}
+
+.contactModalClose:hover {
+  background-color: #f1f5f9;
+}
+
+.contactModalContent {
+  padding: 20px;
+}
+
+.landlordInfo {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 20px;
+}
+
+.landlordName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.phoneNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.contactOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactOption {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.contactOption:hover {
+  background-color: #f8fafc;
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.contactOptionIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contactOptionContent {
+  flex: 1;
+}
+
+.contactOptionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.contactOptionDesc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Contact Card Styles */
+.contactCard {
+  background-color: var(--color-bg-secondary);
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.contactCardHeader {
+  margin-bottom: 16px;
+}
+
+.contactCardName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.contactCardLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.contactCardPhone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.contactCardButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.contactCardButton:hover {
+  background-color: var(--color-primary-dark);
+}
