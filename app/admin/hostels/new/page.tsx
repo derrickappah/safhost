@@ -206,7 +206,9 @@ export default function NewHostelPage() {
       latitude: formData.latitude ? Number(formData.latitude) : undefined,
       longitude: formData.longitude ? Number(formData.longitude) : undefined,
       distance: formData.distance ? Number(formData.distance) : undefined,
-      gender_restriction: formData.gender_restriction || undefined,
+      gender_restriction: (formData.gender_restriction && ['male', 'female', 'mixed'].includes(formData.gender_restriction)) 
+        ? (formData.gender_restriction as 'male' | 'female' | 'mixed')
+        : undefined,
       is_available: formData.is_available,
       featured: formData.featured,
       amenities: formData.amenities,

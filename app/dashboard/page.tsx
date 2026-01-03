@@ -220,7 +220,7 @@ function DashboardPageContent() {
             onClick={() => router.push('/notifications')}
           >
             {unreadNotifications > 0 ? (
-              <IoNotifications size={24} color="#2563eb" />
+              <IoNotificationsOutline size={24} color="#2563eb" />
             ) : (
               <IoNotificationsOutline size={24} color="#1e293b" />
             )}
