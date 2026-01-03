@@ -7,15 +7,15 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
+  // Get the base URL from environment or request origin (needed in catch block)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
+  
   try {
     const searchParams = request.nextUrl.searchParams
     const reference = searchParams.get('reference') || searchParams.get('trxref')
     const status = searchParams.get('status')
 
     console.log('Payment callback received:', { reference, status })
-
-    // Get the base URL from environment or request origin
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
     
     if (!reference) {
       return NextResponse.redirect(new URL('/subscribe?error=no_reference', baseUrl))
