@@ -208,7 +208,7 @@ export const generateRecommendations = cache(async (limit: number = 10): Promise
     // Order by rating and view_count, limit to top 50 candidates (reduced for performance)
     candidateQuery = candidateQuery
       .order('rating', { ascending: false })
-      .order('view_count', { ascending: false, nullsLast: true })
+      .order('view_count', { ascending: false, nullsFirst: false })
       .limit(50)
     
     const { data: allHostels, error: hostelsError } = await candidateQuery
