@@ -1,4 +1,4 @@
-import { Suspense, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { getHostelById, getSimilarHostels } from '@/lib/actions/hostels'
 import { getHostelReviews, getUserReview } from '@/lib/actions/reviews'
 import { isFavorited } from '@/lib/actions/favorites'
