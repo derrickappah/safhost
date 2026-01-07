@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { getSchools } from '@/lib/actions/schools'
 
+// Revalidate every 60 seconds
+export const revalidate = 60
+
 export default async function AdminSchoolsPage() {
   const { data: schools } = await getSchools()
 

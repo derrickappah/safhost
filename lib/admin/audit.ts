@@ -1,5 +1,6 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
 
@@ -46,11 +47,12 @@ export async function logAuditAction(
 
 /**
  * Get audit logs
+ * Uses React cache() for request deduplication
  */
-export async function getAuditLogs(limit: number = 100): Promise<{
+export const getAuditLogs = cache(async (limit: number = 100): Promise<{
   data: any[] | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     
@@ -74,4 +76,4 @@ export async function getAuditLogs(limit: number = 100): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch audit logs',
     }
   }
-}
+})

@@ -14,51 +14,53 @@
 
 .modal {
   background-color: #fff;
-  border-radius: 16px;
+  border-radius: 0;
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px;
-  border-bottom: 1px solid #e2e8f0;
+  gap: 16px;
+  padding: 24px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .headerIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: #fee2e2;
+  width: 44px;
+  height: 44px;
+  border-radius: 0;
+  background-color: #fef2f2;
 }
 
 .title {
   flex: 1;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .closeButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  border-radius: 0;
+  transition: all 0.2s;
 }
 
 .closeButton:hover {
@@ -66,104 +68,162 @@
 }
 
 .form {
-  padding: 20px;
+  padding: 24px;
 }
 
 .section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .label {
   display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .option {
-  padding: 12px;
+  display: flex;
+  align-items: center;
+  padding: 16px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0;
   background-color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  color: #64748b;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
+  gap: 12px;
+  position: relative;
 }
 
 .option:hover {
   border-color: #2563eb;
   background-color: #f8fafc;
+  transform: translateX(4px);
+}
+
+.optionIcon {
+  color: #64748b;
+  transition: color 0.3s ease;
+}
+
+.optionLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: #475569;
+  flex: 1;
+  transition: color 0.3s ease;
+}
+
+.radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .optionActive {
   border-color: #2563eb;
   background-color: #eff6ff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.optionActive .optionIcon {
   color: #2563eb;
-  font-weight: 600;
+}
+
+.optionActive .optionLabel {
+  color: #1e40af;
+}
+
+.optionActive .radio {
+  border-color: #2563eb;
+  background-color: #fff;
+}
+
+.optionActive .radio::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #2563eb;
 }
 
 .textarea {
   width: 100%;
-  padding: 12px;
+  padding: 16px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 0;
+  font-size: 15px;
   font-family: inherit;
   color: #1e293b;
   resize: vertical;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+  background-color: #f8fafc;
 }
 
 .textarea:focus {
   border-color: #2563eb;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
 .errorMessage {
-  padding: 12px;
-  background-color: #fee2e2;
+  padding: 16px;
+  background-color: #fef2f2;
   color: #dc2626;
-  border-radius: 8px;
+  border-radius: 0;
   font-size: 14px;
-  margin-bottom: 16px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  border-left: 4px solid #ef4444;
 }
 
 .successMessage {
-  padding: 40px 20px;
+  padding: 48px 24px;
   text-align: center;
 }
 
 .successMessage p {
-  font-size: 16px;
+  font-size: 18px;
   color: #059669;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .actions {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 32px;
 }
 
 .cancelButton,
 .submitButton {
   flex: 1;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 16px;
+  border-radius: 0;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
 }
 
@@ -174,19 +234,29 @@
 
 .cancelButton:hover:not(:disabled) {
   background-color: #e2e8f0;
+  color: #1e293b;
 }
 
 .submitButton {
   background-color: #ef4444;
   color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .submitButton:hover:not(:disabled) {
   background-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.4);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .submitButton:disabled,
 .cancelButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

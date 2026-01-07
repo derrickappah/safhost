@@ -1,17 +1,34 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { IoHome, IoHomeOutline, IoSearch, IoSearchOutline, IoHeart, IoHeartOutline, IoPerson, IoPersonOutline } from 'react-icons/io5'
+import { IoHome, IoHomeOutline, IoSearch, IoSearchOutline, IoMegaphone, IoMegaphoneOutline, IoHeart, IoHeartOutline, IoPerson, IoPersonOutline } from 'react-icons/io5'
 import styles from './BottomNav.module.css'
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const [advertisementEnabled, setAdvertisementEnabled] = useState<boolean | null>(null)
 
   // Don't show bottom nav on these pages
-  const hiddenPaths = ['/subscribe', '/select-school', '/admin', '/auth']
+  const hiddenPaths = ['/subscribe', '/select-school', '/admin', '/auth', '/hostels/map']
   const shouldHide = pathname === '/' || hiddenPaths.some(path => pathname.startsWith(path))
+  
+  // Load advertisement setting
+  useEffect(() => {
+    async function loadSetting() {
+      try {
+        const response = await fetch('/api/settings/advertisement')
+        const data = await response.json()
+        setAdvertisementEnabled(data.enabled ?? true)
+      } catch (error) {
+        console.error('Error loading advertisement setting:', error)
+        // Default to enabled on error
+        setAdvertisementEnabled(true)
+      }
+    }
+    loadSetting()
+  }, [])
   
   useEffect(() => {
     if (shouldHide) {
@@ -41,6 +58,12 @@ export default function BottomNav() {
       icon: IoSearch,
       iconOutline: IoSearchOutline,
     },
+    ...(advertisementEnabled === true ? [{
+      name: 'Advertisement',
+      href: '/advertisement',
+      icon: IoMegaphone,
+      iconOutline: IoMegaphoneOutline,
+    }] : []),
     {
       name: 'Favorites',
       href: '/favorites',
@@ -61,6 +84,7 @@ export default function BottomNav() {
         const isActive = pathname === tab.href || 
           (tab.href === '/dashboard' && (pathname === '/' || pathname === '/dashboard')) ||
           (tab.href === '/hostels' && pathname.startsWith('/hostel')) ||
+          (tab.href === '/advertisement' && pathname.startsWith('/advertisement')) ||
           (tab.href === '/favorites' && pathname === '/favorites') ||
           (tab.href === '/profile' && pathname === '/profile')
         const Icon = isActive ? tab.icon : tab.iconOutline
@@ -71,9 +95,8 @@ export default function BottomNav() {
             className={`${styles.tabItem} ${isActive ? styles.tabItemActive : ''}`}
           >
             <div className={`${styles.iconContainer} ${isActive ? styles.iconContainerActive : ''}`}>
-              <Icon size={22} color={isActive ? '#2563eb' : '#94a3b8'} />
+              <Icon size={24} color={isActive ? '#2563eb' : '#94a3b8'} />
             </div>
-            <span className={styles.tabLabel}>{tab.name}</span>
           </Link>
         )
       })}

@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     question: 'How long does my subscription last?',
-    answer: 'Monthly subscriptions last for 30 days from the date of payment. Semester subscriptions last for 4 months. You will receive a reminder 3 days before your subscription expires.',
+    answer: 'Monthly subscriptions last for 30 days from the date of payment. Semester subscriptions last for 3 months. You will receive a reminder 3 days before your subscription expires.',
   },
   {
     question: 'Can I cancel my subscription?',
@@ -54,14 +54,6 @@ export default function HelpPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => router.back()}>
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
-        <h1 className={styles.headerTitle}>Help & Support</h1>
-        <div style={{ width: '40px' }} />
-      </header>
-
       <div className={styles.content}>
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { IoArrowBack, IoClose, IoAdd, IoLocation, IoStar, IoWifi, IoWater, IoShieldCheckmark } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getHostelById, type Hostel } from '@/lib/actions/hostels'
+import { getCurrentUser } from '@/lib/auth/client'
+import { getActiveSubscription } from '@/lib/actions/subscriptions'
 import Image from 'next/image'
 
 const MAX_COMPARE = 4
@@ -16,9 +18,33 @@ function ComparePageContent() {
 
   const [hostels, setHostels] = useState<(Hostel | null)[]>([])
   const [loading, setLoading] = useState(true)
+  const [checkingAccess, setCheckingAccess] = useState(true)
+
+  useEffect(() => {
+    async function checkAccess() {
+      // Check authentication and subscription
+      const { data: userData, error: userError } = await getCurrentUser()
+      if (userError || !userData?.user) {
+        router.push(`/auth/login?redirect=${encodeURIComponent('/compare')}`)
+        return
+      }
+      
+      const { data: subscription } = await getActiveSubscription()
+      if (!subscription) {
+        router.push(`/subscribe?redirect=${encodeURIComponent('/compare')}`)
+        return
+      }
+      
+      setCheckingAccess(false)
+    }
+    
+    checkAccess()
+  }, [router])
 
   useEffect(() => {
     async function loadHostels() {
+      if (checkingAccess) return
+      
       if (initialIds.length === 0) {
         setLoading(false)
         return
@@ -36,7 +62,7 @@ function ComparePageContent() {
     }
 
     loadHostels()
-  }, [initialIds])
+  }, [initialIds, checkingAccess])
 
   const removeHostel = (index: number) => {
     const newHostels = [...hostels]
@@ -58,7 +84,7 @@ function ComparePageContent() {
 
   const activeHostels = hostels.filter(h => h !== null) as Hostel[]
 
-  if (loading) {
+  if (checkingAccess || loading) {
     return (
       <div className={styles.container}>
         <div className={styles.loading}>Loading hostels...</div>
@@ -69,13 +95,6 @@ function ComparePageContent() {
   if (activeHostels.length === 0) {
     return (
       <div className={styles.container}>
-        <header className={styles.header}>
-          <button className={styles.backButton} onClick={() => router.back()}>
-            <IoArrowBack size={24} color="#1e293b" />
-          </button>
-          <h1 className={styles.headerTitle}>Compare Hostels</h1>
-          <div style={{ width: '40px' }} />
-        </header>
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>No hostels selected for comparison</p>
           <button className={styles.addButton} onClick={addHostel}>
@@ -89,21 +108,126 @@ function ComparePageContent() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => router.back()}>
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
-        <h1 className={styles.headerTitle}>Compare Hostels</h1>
+      {/* Mobile Card View */}
+      <div className={styles.mobileView}>
+        {activeHostels.map((hostel, index) => (
+          <div key={hostel.id} className={styles.hostelCard}>
+            <div className={styles.cardHeader}>
+              <div className={styles.hostelImageContainer}>
+                {hostel.images && hostel.images.length > 0 ? (
+                  <Image
+                    src={hostel.images[0]}
+                    alt={hostel.name}
+                    width={400}
+                    height={200}
+                    className={styles.hostelImage}
+                  />
+                ) : (
+                  <div className={styles.hostelImagePlaceholder}>No Image</div>
+                )}
+              </div>
+              <button
+                className={styles.removeButton}
+                onClick={() => removeHostel(index)}
+                aria-label="Remove hostel"
+              >
+                <IoClose size={20} color="#64748b" />
+              </button>
+            </div>
+            <h3 className={styles.hostelName}>{hostel.name}</h3>
+            
+            <div className={styles.cardDetails}>
+              <div className={styles.detailRow}>
+                <span className={styles.detailLabel}>Price</span>
+                <span className={styles.detailValue}>
+                  <span className={styles.priceValue}>GHS {hostel.price_min}</span>
+                  {hostel.price_max && hostel.price_max !== hostel.price_min && (
+                    <span className={styles.priceRange}> - GHS {hostel.price_max}</span>
+                  )}
+                  <span className={styles.pricePeriod}>/month</span>
+                </span>
+              </div>
+
+              <div className={styles.detailRow}>
+                <span className={styles.detailLabel}>Rating</span>
+                <div className={styles.ratingContainer}>
+                  <IoStar size={16} color="#fbbf24" fill="#fbbf24" />
+                  <span className={styles.ratingValue}>{Number(hostel.rating).toFixed(1)}</span>
+                  {hostel.review_count > 0 && (
+                    <span className={styles.reviewCount}>({hostel.review_count})</span>
+                  )}
+                </div>
+              </div>
+
+              {hostel.distance && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Distance</span>
+                  <div className={styles.distanceContainer}>
+                    <IoLocation size={14} color="#64748b" />
+                    <span>{hostel.distance}km</span>
+                  </div>
+                </div>
+              )}
+
+              {hostel.address && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Address</span>
+                  <span className={styles.addressText}>{hostel.address}</span>
+                </div>
+              )}
+
+              {hostel.amenities && hostel.amenities.length > 0 && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Amenities</span>
+                  <div className={styles.amenitiesList}>
+                    {hostel.amenities.slice(0, 5).map((amenity, idx) => (
+                      <span key={idx} className={styles.amenityTag}>
+                        {amenity}
+                      </span>
+                    ))}
+                    {hostel.amenities.length > 5 && (
+                      <span className={styles.moreAmenities}>+{hostel.amenities.length - 5}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {hostel.room_types && hostel.room_types.length > 0 && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Room Types</span>
+                  <div className={styles.roomTypesList}>
+                    {hostel.room_types.map((room: any, idx: number) => (
+                      <div key={idx} className={styles.roomTypeItem}>
+                        <span className={styles.roomType}>{room.type}</span>
+                        <span className={styles.roomPrice}>GHS {room.price}/mo</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              className={styles.viewButton}
+              onClick={() => router.push(`/hostel/${hostel.id}`)}
+            >
+              View Details
+            </button>
+          </div>
+        ))}
+        
         {activeHostels.length < MAX_COMPARE && (
-          <button className={styles.addButton} onClick={addHostel}>
-            <IoAdd size={20} color="#2563eb" />
-            <span>Add</span>
+          <button className={styles.addCardButton} onClick={addHostel}>
+            <IoAdd size={32} color="#2563eb" />
+            <span>Add Hostel to Compare</span>
           </button>
         )}
-      </header>
+      </div>
 
-      <div className={styles.comparisonContainer}>
-        <div className={styles.comparisonTable}>
+      {/* Desktop Table View */}
+      <div className={styles.desktopView}>
+        <div className={styles.comparisonContainer}>
+          <div className={styles.comparisonTable}>
           {/* Header Row */}
           <div className={styles.tableRow}>
             <div className={styles.tableHeader}>Property</div>
@@ -223,7 +347,7 @@ function ComparePageContent() {
               <div key={hostel.id} className={styles.tableCell}>
                 {hostel.room_types && hostel.room_types.length > 0 ? (
                   <div className={styles.roomTypesList}>
-                    {hostel.room_types.map((room, idx) => (
+                    {hostel.room_types.map((room: any, idx: number) => (
                       <div key={idx} className={styles.roomTypeItem}>
                         <span className={styles.roomType}>{room.type}</span>
                         <span className={styles.roomPrice}>GHS {room.price}/mo</span>
@@ -250,6 +374,7 @@ function ComparePageContent() {
                 </button>
               </div>
             ))}
+          </div>
           </div>
         </div>
       </div>

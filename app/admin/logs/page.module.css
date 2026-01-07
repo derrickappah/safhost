@@ -1,0 +1,256 @@
+.container {
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.backButton {
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.headerTitle {
+  flex: 1;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.filterButton {
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.filterButton:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.searchContainer {
+  position: relative;
+  margin-bottom: 16px;
+  background-color: var(--color-bg-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid var(--color-border);
+}
+
+.searchIcon {
+  margin-right: 12px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.filtersPanel {
+  margin-bottom: 16px;
+  padding: 16px;
+  background-color: var(--color-bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.filterInput,
+.filterSelect {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  outline: none;
+}
+
+.filterInput:focus,
+.filterSelect:focus {
+  border-color: var(--color-primary);
+}
+
+.resultsHeader {
+  margin-bottom: 12px;
+}
+
+.resultsCount {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.tableContainer {
+  background-color: var(--color-bg-primary);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: var(--color-bg-tertiary);
+}
+
+.table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subscriptionTag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.hostelId {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-family: monospace;
+}
+
+.detailsCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailItem {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.detailItem strong {
+  color: var(--color-text-primary);
+}
+
+.loadingState,
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  min-height: 60vh;
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.emptySubtitle {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.paginationButton {
+  padding: 10px 20px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationInfo {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}

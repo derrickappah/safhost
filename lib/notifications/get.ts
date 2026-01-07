@@ -1,5 +1,6 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
 import { getActiveSubscription } from '../actions/subscriptions'
@@ -49,11 +50,12 @@ export async function getNotifications(limit: number = 50): Promise<{
 
 /**
  * Get unread notification count
+ * Uses React cache() for request deduplication
  */
-export async function getUnreadCount(): Promise<{
+export const getUnreadCount = cache(async (): Promise<{
   data: number | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
@@ -87,7 +89,7 @@ export async function getUnreadCount(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch unread count'
     }
   }
-}
+})
 
 /**
  * Mark notification as read

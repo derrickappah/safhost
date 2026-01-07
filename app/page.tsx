@@ -1,21 +1,11 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { IoHome, IoCameraOutline, IoCashOutline, IoLocationOutline, IoStarOutline, IoCallOutline, IoLockClosed, IoCheckmarkCircle, IoArrowForward } from 'react-icons/io5'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import { IoHome, IoCameraOutline, IoCashOutline, IoLocationOutline, IoStarOutline, IoCallOutline, IoLockClosed, IoCheckmarkCircle, IoArrowForward, IoLogInOutline } from 'react-icons/io5'
 import styles from './page.module.css'
-import { getHostels } from '@/lib/actions/hostels'
-import { getCurrentUser } from '@/lib/auth/client'
-
-interface PreviewHostel {
-  id: string
-  name: string
-  price: number
-  rating: number
-  distance: string | null
-  image: string
-  amenities: string[]
-}
+import { getPublicHostelPreviews } from '@/lib/actions/hostels'
+import { getUser } from '@/lib/auth'
+import SubscribeButton from './SubscribeButton'
 
 const features = [
   { icon: IoCameraOutline, text: "Real Photos" },
@@ -25,44 +15,28 @@ const features = [
   { icon: IoCallOutline, text: "Direct Contact" },
 ]
 
-export default function LandingPage() {
-  const router = useRouter()
-  const [previewHostels, setPreviewHostels] = useState<PreviewHostel[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+// Static generation with revalidation
+export const revalidate = 3600 // Revalidate every hour
 
-  useEffect(() => {
-    async function loadData() {
-      // Check authentication
-      const { data, error } = await getCurrentUser()
-      setIsAuthenticated(!!(data?.user))
-      
-      // Load hostels
-      const { data: hostelsData, error: hostelsError } = await getHostels({ limit: 3 })
-      if (hostelsData) {
-        const formatted = hostelsData.map((hostel) => ({
-          id: hostel.id,
-          name: hostel.name,
-          price: hostel.price_min,
-          rating: Number(hostel.rating),
-          distance: hostel.distance ? `${hostel.distance}km` : null,
-          image: hostel.images && hostel.images.length > 0 ? hostel.images[0] : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400',
-          amenities: hostel.amenities || []
-        }))
-        setPreviewHostels(formatted)
-      }
-      setLoading(false)
-    }
-    loadData()
-  }, [])
-  
-  const handleSubscribe = () => {
-    if (isAuthenticated) {
-      router.push('/subscribe')
-    } else {
-      router.push('/auth/signup?redirect=/subscribe')
-    }
+export default async function LandingPage() {
+  // Check authentication - if logged in, redirect to dashboard
+  const user = await getUser()
+  if (user) {
+    redirect('/dashboard')
   }
+
+  // Load hostels for preview (public)
+  const { data: hostelsData } = await getPublicHostelPreviews(3)
+  
+  const previewHostels = hostelsData?.map((hostel) => ({
+    id: hostel.id,
+    name: hostel.name,
+    price: hostel.price_min,
+    rating: Number(hostel.rating),
+    distance: hostel.distance ? `${hostel.distance}km` : null,
+    image: hostel.images && hostel.images.length > 0 ? hostel.images[0] : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400',
+    amenities: hostel.amenities || []
+  })) || []
 
   return (
     <div className={styles.container}>
@@ -70,11 +44,19 @@ export default function LandingPage() {
         {/* Header */}
         <header className={styles.header}>
           <div className={styles.logoContainer}>
-            <div className={styles.logoIcon}>
-              <IoHome size={24} color="#fff" />
-            </div>
-            <h1 className={styles.logoText}>HostelFinder</h1>
+            <Image 
+              src="/20260101_2143_SafHostel Logo_simple_compose_01kdxr7e9gfrvrqba7hb1811ghjhvh.png" 
+              alt="SafHostel Logo" 
+              width={180}
+              height={52}
+              priority
+              className={styles.logoImage}
+            />
           </div>
+          <Link href="/auth/login" className={styles.signInButton}>
+            <IoLogInOutline size={20} />
+            <span>Sign In</span>
+          </Link>
         </header>
 
         {/* Hero Section */}
@@ -85,6 +67,14 @@ export default function LandingPage() {
           <p className={styles.heroSubtitle}>
             Browse 500+ student hostels across Ghana
           </p>
+          <div className={styles.heroCtas}>
+            <Link href="/auth/signup" className={styles.primaryCta}>
+              Get Started
+            </Link>
+            <Link href="#preview" className={styles.secondaryCta}>
+              Browse Hostels
+            </Link>
+          </div>
         </section>
 
         {/* Features Grid */}
@@ -103,7 +93,7 @@ export default function LandingPage() {
         </div>
 
         {/* Blurred Preview Section */}
-        <section className={styles.previewSection}>
+        <section id="preview" className={styles.previewSection}>
           <div className={styles.previewHeader}>
             <h3 className={styles.previewTitle}>Available Hostels</h3>
             <div className={styles.lockBadge}>
@@ -113,7 +103,7 @@ export default function LandingPage() {
           </div>
 
           {/* Blurred Hostel Cards */}
-          {loading ? (
+          {previewHostels.length === 0 ? (
             <div style={{ padding: '20px', textAlign: 'center' }}>Loading hostels...</div>
           ) : (
             previewHostels.map((hostel) => (
@@ -131,7 +121,12 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.cardContent}>
                   <div className={styles.cardHeader}>
-                    <h4 className={styles.hostelName}>{hostel.name}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h4 className={styles.hostelName} style={{ filter: 'blur(5px)', userSelect: 'none' }}>
+                        {hostel.name}
+                      </h4>
+                      <IoLockClosed size={14} color="#ef4444" style={{ opacity: 0.8 }} />
+                    </div>
                     <div className={styles.ratingBadge}>
                       <IoStarOutline size={12} color="#fbbf24" />
                       <span className={styles.ratingText}>{hostel.rating}</span>
@@ -192,13 +187,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <button
-              className={styles.subscribeButton}
-              onClick={handleSubscribe}
-            >
-              <span className={styles.subscribeButtonText}>Subscribe Now</span>
-              <IoArrowForward size={20} color="#fff" />
-            </button>
+            <SubscribeButton />
 
             {/* Payment Methods */}
             <div className={styles.paymentMethods}>

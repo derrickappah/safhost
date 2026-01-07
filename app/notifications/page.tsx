@@ -38,6 +38,13 @@ export default function NotificationsPage() {
       setLoading(false)
     }
     loadData()
+
+    // Listen for notifications update event
+    const handleUpdate = () => {
+      loadData()
+    }
+    window.addEventListener('notifications-updated', handleUpdate)
+    return () => window.removeEventListener('notifications-updated', handleUpdate)
   }, [router])
 
   const handleMarkAsRead = async (notificationId: string) => {
@@ -74,7 +81,9 @@ export default function NotificationsPage() {
   if (checkingAuth || loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading notifications...</div>
+        <div className={styles.content}>
+          <div className={styles.loading}>Loading notifications...</div>
+        </div>
       </div>
     )
   }
@@ -83,18 +92,6 @@ export default function NotificationsPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => router.back()}>
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
-        <h1 className={styles.headerTitle}>Notifications</h1>
-        {unreadCount > 0 && (
-          <button className={styles.markAllButton} onClick={handleMarkAllAsRead}>
-            Mark all read
-          </button>
-        )}
-      </header>
-
       <div className={styles.content}>
         {notifications.length === 0 ? (
           <div className={styles.emptyState}>

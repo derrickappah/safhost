@@ -26,7 +26,9 @@ export default function EditSchoolPage() {
     location: '',
     latitude: '',
     longitude: '',
+    logo_url: '',
   })
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -56,6 +58,7 @@ export default function EditSchoolPage() {
         location: schoolData.location || '',
         latitude: schoolData.latitude ? String(schoolData.latitude) : '',
         longitude: schoolData.longitude ? String(schoolData.longitude) : '',
+        logo_url: schoolData.logo_url || '',
       })
       
       setLoading(false)
@@ -66,6 +69,37 @@ export default function EditSchoolPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setError('')
+
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+      uploadFormData.append('folder', 'schools')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
+      }
+
+      const result = await response.json()
+      setFormData(prev => ({ ...prev, logo_url: result.url }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload logo')
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +119,7 @@ export default function EditSchoolPage() {
       location: formData.location,
       latitude: formData.latitude ? Number(formData.latitude) : undefined,
       longitude: formData.longitude ? Number(formData.longitude) : undefined,
+      logo_url: formData.logo_url || null as any, // Cast to any to handle potential Partial issues
     })
 
     if (updateError) {
@@ -155,6 +190,43 @@ export default function EditSchoolPage() {
       )}
 
       <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formSection}>
+          <h2 className={styles.sectionTitle}>School Logo</h2>
+          <div className={styles.formGroup}>
+            <div className={styles.imageUploadArea}>
+              <input
+                type="file"
+                id="logo-upload"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleLogoUpload}
+                className={styles.imageInput}
+                disabled={uploading}
+              />
+              <label htmlFor="logo-upload" className={styles.imageUploadLabel}>
+                {uploading ? 'Uploading...' : 'Choose Logo'}
+              </label>
+              <p className={styles.imageHint}>Upload a PNG or JPG logo (transparent background recommended)</p>
+            </div>
+            {formData.logo_url && (
+              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img 
+                  src={formData.logo_url} 
+                  alt="School logo preview" 
+                  style={{ width: '64px', height: '64px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #e2e8f0' }} 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))}
+                  className={styles.removeImageButton}
+                  style={{ position: 'static', padding: '4px 8px', fontSize: '12px' }}
+                >
+                  Remove Logo
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>School Information</h2>
           

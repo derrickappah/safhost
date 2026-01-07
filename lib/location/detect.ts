@@ -26,9 +26,9 @@ export async function getCurrentLocation(): Promise<{
         resolve(null)
       },
       {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+        enableHighAccuracy: false, // Set to false for faster/more reliable response on slow networks
+        timeout: 10000, // Increase to 10 seconds
+        maximumAge: 300000, // Cache for 30 seconds
       }
     )
   })

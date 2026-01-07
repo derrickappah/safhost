@@ -1,7 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getCachedAdminStatus, setCachedAdminStatus } from './lib/cache/admin'
+import { getCachedSubscription } from './lib/cache/subscription'
 
 export async function middleware(request: NextRequest) {
+  const startTime = Date.now()
+  const currentPath = request.nextUrl.pathname
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -27,52 +31,147 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired - required for Server Components
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Protect routes that require authentication
-  const protectedRoutes = ['/subscribe', '/dashboard', '/favorites', '/profile']
-  const currentPath = request.nextUrl.pathname
+  // Use getSession() for faster cookie-based checks (no network call)
+  // Only use getUser() when we actually need validated user data (admin routes)
+  const sessionStart = Date.now()
+  const { data: { session } } = await supabase.auth.getSession()
+  const sessionTime = Date.now() - sessionStart
+  const user = session?.user || null
   
-  if (protectedRoutes.includes(currentPath)) {
+  if (process.env.NODE_ENV === 'development' && sessionTime > 100) {
+    console.log(`[Middleware] getSession took ${sessionTime}ms for ${currentPath}`)
+  }
+
+  // Routes that require authentication only (no subscription)
+  const authOnlyRoutes = ['/subscribe', '/profile']
+  
+  if (authOnlyRoutes.includes(currentPath)) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/auth/login'
       url.searchParams.set('redirect', currentPath)
       return NextResponse.redirect(url)
     }
+    // User is authenticated, allow through
+    return supabaseResponse
   }
 
-  // Protect admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  // Routes that require active subscription
+  const subscriptionRoutes = [
+    '/hostels',
+    '/hostel',
+    '/dashboard',
+    '/favorites',
+    '/viewed',
+    '/contacted',
+    '/compare'
+  ]
+
+  // Check if current path requires subscription
+  const requiresSubscription = subscriptionRoutes.some(route => 
+    currentPath === route || currentPath.startsWith(`${route}/`)
+  )
+
+  if (requiresSubscription) {
+    // First check authentication
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      url.searchParams.set('redirect', currentPath)
+      return NextResponse.redirect(url)
+    }
+
+    // Check subscription status (use cache for performance)
+    const cachedSubscription = getCachedSubscription(user.id)
+    let hasSubscription = false
+
+    if (cachedSubscription !== null) {
+      // Use cached value - check if it's a valid subscription object
+      if (cachedSubscription && typeof cachedSubscription === 'object' && cachedSubscription.status === 'active') {
+        // Also check expiration if subscription exists
+        const now = new Date()
+        const expiresAt = cachedSubscription.expires_at ? new Date(cachedSubscription.expires_at) : null
+        hasSubscription = !expiresAt || expiresAt > now
+      } else {
+        // Cached null means no subscription
+        hasSubscription = false
+      }
+    } else {
+      // Cache miss - check database
+      const { data: subscriptions, error } = await supabase
+        .from('subscriptions')
+        .select('id, status, expires_at')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (subscriptions && subscriptions.length > 0) {
+        const subscription = subscriptions[0]
+        // Check if subscription is not expired
+        const now = new Date()
+        const expiresAt = subscription.expires_at ? new Date(subscription.expires_at) : null
+        hasSubscription = !expiresAt || expiresAt > now
+      }
+    }
+
+    if (!hasSubscription) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/subscribe'
+      url.searchParams.set('redirect', currentPath)
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Protect admin routes - need validated user for admin check
+  if (currentPath.startsWith('/admin')) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/'
       return NextResponse.redirect(url)
     }
     
-    // Check admin role - check profiles table first (source of truth), then user_metadata
-    let isAdmin = false
-    
-    // Check profiles table first - user can read their own profile
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    
-    if (!error && profile?.role === 'admin') {
-      isAdmin = true
-    } else if (user.user_metadata?.role === 'admin') {
-      // Fallback to user_metadata if profile check fails
-      isAdmin = true
+    // Check cache first
+    const cachedAdminStatus = getCachedAdminStatus(user.id)
+    if (cachedAdminStatus !== null) {
+      if (!cachedAdminStatus) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
+      // User is admin, allow access
+    } else {
+      // Not in cache, check database
+      let isAdmin = false
+      
+      // Check profiles table first - user can read their own profile
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      
+      if (!error && profile?.role === 'admin') {
+        isAdmin = true
+      } else if (user.user_metadata?.role === 'admin') {
+        // Fallback to user_metadata if profile check fails
+        isAdmin = true
+      }
+      
+      // Cache the result
+      setCachedAdminStatus(user.id, isAdmin)
+      
+      if (!isAdmin) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
     }
-    
-    if (!isAdmin) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
-    }
+  }
+
+  const totalTime = Date.now() - startTime
+  if (process.env.NODE_ENV === 'development' && totalTime > 200) {
+    console.warn(`[Middleware] Slow middleware execution: ${totalTime}ms for ${currentPath}`)
   }
 
   return supabaseResponse
@@ -81,13 +180,22 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - (tabs)/ (Expo Router route group - not used in Next.js)
-     * Feel free to modify this pattern to include more paths.
+     * Run middleware on protected routes
+     * Includes subscription-protected routes (hostels, dashboard, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|\\(tabs\\)|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/profile/:path*',
+    '/favorites/:path*',
+    '/subscribe/:path*',
+    '/viewed/:path*',
+    '/contacted/:path*',
+    '/notifications/:path*',
+    '/compare/:path*',
+    '/feedback/:path*',
+    '/support/:path*',
+    '/help/:path*',
+    '/hostels/:path*',
+    '/hostel/:path*',
   ],
 }

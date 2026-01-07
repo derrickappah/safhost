@@ -5,6 +5,7 @@
 }
 
 :root {
+  /* Colors */
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
   --color-success: #22c55e;
@@ -21,6 +22,51 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* Responsive Breakpoints */
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 375px;
+  --breakpoint-md: 414px;
+  --breakpoint-lg: 428px;
+
+  /* Minimum Touch Target Size (iOS/Android guidelines) */
+  --touch-target-min: 44px;
+
+  /* Fluid Typography Scale */
+  --font-size-xs: clamp(10px, 2.5vw, 11px);
+  --font-size-sm: clamp(11px, 2.5vw, 13px);
+  --font-size-base: clamp(14px, 3.5vw, 16px);
+  --font-size-md: clamp(15px, 3.8vw, 17px);
+  --font-size-lg: clamp(16px, 4vw, 18px);
+  --font-size-xl: clamp(18px, 4.5vw, 20px);
+  --font-size-2xl: clamp(20px, 5vw, 24px);
+  --font-size-3xl: clamp(24px, 6vw, 32px);
+
+  /* Responsive Spacing Scale */
+  --spacing-xs: clamp(4px, 1vw, 6px);
+  --spacing-sm: clamp(8px, 2vw, 10px);
+  --spacing-md: clamp(12px, 3vw, 16px);
+  --spacing-lg: clamp(16px, 4vw, 20px);
+  --spacing-xl: clamp(20px, 5vw, 24px);
+  --spacing-2xl: clamp(24px, 6vw, 32px);
+
+  /* Responsive Padding Scale */
+  --padding-xs: clamp(8px, 2vw, 10px);
+  --padding-sm: clamp(12px, 3vw, 14px);
+  --padding-md: clamp(16px, 4vw, 20px);
+  --padding-lg: clamp(20px, 5vw, 24px);
+  --padding-xl: clamp(24px, 6vw, 32px);
+
+  /* Responsive Container Padding */
+  --container-padding-xs: clamp(12px, 3vw, 16px);
+  --container-padding-sm: clamp(16px, 4vw, 20px);
+  --container-padding-md: clamp(20px, 5vw, 24px);
+
+  /* Border Radius */
+  --border-radius-button: 9999px;
+
+  /* Aspect Ratio */
+  --aspect-ratio-standard: 4 / 3;
 }
 
 body {
@@ -31,6 +77,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+/* Prevent horizontal overflow */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Ensure all images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Add padding when bottom nav is visible */
@@ -48,6 +108,7 @@ button {
   background: none;
   cursor: pointer;
   font-family: inherit;
+  border-radius: var(--border-radius-button);
 }
 
 input, textarea {

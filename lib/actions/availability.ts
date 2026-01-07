@@ -33,10 +33,12 @@ export async function flagHostelAvailability(
     
     if (user) {
       flagData.flagged_by_user_id = user.id
-    }
-    
-    if (subscription) {
+      flagData.flagged_by_subscription_id = null
+    } else if (subscription) {
       flagData.flagged_by_subscription_id = subscription.id
+      flagData.flagged_by_user_id = null
+    } else {
+      return { data: null, error: 'Authentication or active subscription required' }
     }
     
     const { data, error } = await supabase

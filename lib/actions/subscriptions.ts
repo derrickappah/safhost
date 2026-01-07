@@ -1,7 +1,9 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
+import { getCachedSubscription, setCachedSubscription, clearCachedSubscription } from '../cache/subscription'
 
 export interface Subscription {
   id: string
@@ -52,7 +54,7 @@ export async function createSubscription(input: CreateSubscriptionInput): Promis
     if (input.planType === 'monthly') {
       expiresAt.setMonth(expiresAt.getMonth() + 1)
     } else {
-      expiresAt.setMonth(expiresAt.getMonth() + 4) // 4 months for semester
+      expiresAt.setMonth(expiresAt.getMonth() + 3) // 3 months for semester
     }
     
     const subscriptionData: any = {
@@ -89,17 +91,24 @@ export async function createSubscription(input: CreateSubscriptionInput): Promis
 /**
  * Get active subscription for authenticated user only
  * Also checks for pending subscriptions with successful payments
+ * Uses React cache() for request deduplication
  */
-export async function getActiveSubscription(): Promise<{
+export const getActiveSubscription = cache(async (): Promise<{
   data: Subscription | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
     
     if (!user) {
       return { data: null, error: 'Authentication required' }
+    }
+    
+    // Check cache first
+    const cached = getCachedSubscription(user.id)
+    if (cached !== null) {
+      return { data: cached, error: null }
     }
     
     // First, check for active subscriptions
@@ -158,6 +167,8 @@ export async function getActiveSubscription(): Promise<{
       const { data: activated, error: activateError } = await activateSubscription(pendingSub.id, false)
       
       if (activated) {
+        // Cache the result
+        setCachedSubscription(user.id, activated)
         return { data: activated, error: null }
       } else {
         console.error('Failed to activate pending subscription:', activateError)
@@ -168,6 +179,8 @@ export async function getActiveSubscription(): Promise<{
       return { data: null, error: activeError.message }
     }
     
+    // Cache null result (no subscription) to avoid repeated queries
+    setCachedSubscription(user.id, null)
     return { data: null, error: null }
   } catch (error) {
     console.error('getActiveSubscription error:', error)
@@ -176,7 +189,7 @@ export async function getActiveSubscription(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to get subscription'
     }
   }
-}
+})
 
 /**
  * Check if user has active subscription
@@ -220,6 +233,12 @@ export async function activateSubscription(
     }
     
     console.log('Subscription activated:', { subscriptionId, status: data?.status })
+    
+    // Clear cache for this user so next getActiveSubscription call fetches fresh data
+    if (data?.user_id) {
+      clearCachedSubscription(data.user_id)
+    }
+    
     return { data: data as Subscription, error: null }
   } catch (error) {
     console.error('Subscription activation exception:', error)
@@ -290,7 +309,7 @@ export async function renewSubscription(
     if (planType === 'monthly') {
       newExpiry.setMonth(newExpiry.getMonth() + 1)
     } else {
-      newExpiry.setMonth(newExpiry.getMonth() + 4)
+      newExpiry.setMonth(newExpiry.getMonth() + 3)
     }
     
     const { data, error } = await supabase

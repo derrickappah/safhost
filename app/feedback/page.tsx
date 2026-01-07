@@ -25,15 +25,27 @@ export default function FeedbackPage() {
     const { getActiveSubscription } = await import('@/lib/actions/subscriptions')
     const { data: subscription } = await getActiveSubscription()
     
+    const feedbackData: any = {
+      feedback_type: feedbackType,
+      subject: subject || null,
+      message: message,
+    }
+
+    if (userData?.user?.id) {
+      feedbackData.user_id = userData.user.id
+      feedbackData.subscription_id = null
+    } else if (subscription?.id) {
+      feedbackData.subscription_id = subscription.id
+      feedbackData.user_id = null
+    } else {
+      alert('Authentication or subscription required to submit feedback')
+      setSubmitting(false)
+      return
+    }
+
     const { error } = await supabase
       .from('feedback')
-      .insert({
-        user_id: userData?.user?.id || null,
-        subscription_id: subscription?.id || null,
-        feedback_type: feedbackType,
-        subject: subject || null,
-        message: message,
-      })
+      .insert(feedbackData)
     
     if (error) {
       alert('Failed to submit feedback: ' + error.message)
@@ -52,14 +64,6 @@ export default function FeedbackPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => router.back()}>
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
-        <h1 className={styles.headerTitle}>Feedback</h1>
-        <div style={{ width: '40px' }} />
-      </header>
-
       <div className={styles.content}>
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Share Your Feedback</h2>

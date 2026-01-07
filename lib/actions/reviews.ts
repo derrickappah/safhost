@@ -1,5 +1,6 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
 import { getActiveSubscription } from './subscriptions'
@@ -26,11 +27,12 @@ export interface CreateReviewInput {
 
 /**
  * Get reviews for a hostel
+ * Uses React cache() for request deduplication
  */
-export async function getHostelReviews(hostelId: string): Promise<{
+export const getHostelReviews = cache(async (hostelId: string): Promise<{
   data: Review[] | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     
@@ -86,15 +88,16 @@ export async function getHostelReviews(hostelId: string): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch reviews'
     }
   }
-}
+})
 
 /**
  * Get user's review for a hostel (if exists)
+ * Uses React cache() for request deduplication
  */
-export async function getUserReview(hostelId: string): Promise<{
+export const getUserReview = cache(async (hostelId: string): Promise<{
   data: Review | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
@@ -125,7 +128,7 @@ export async function getUserReview(hostelId: string): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch user review'
     }
   }
-}
+})
 
 /**
  * Create a new review (requires authenticated user with active subscription)

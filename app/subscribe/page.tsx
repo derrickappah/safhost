@@ -27,7 +27,7 @@ const plans = [
     id: "semester",
     name: "Semester",
     price: 50,
-    period: "4 months",
+    period: "3 months",
     popular: false,
     savings: "Save GHS 30",
     features: [
@@ -129,7 +129,8 @@ export default function SubscribePage() {
     return Math.max(0, basePrice - getDiscountAmount())
   }
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (e?: React.MouseEvent) => {
+    e?.preventDefault()
     if (!user) {
       setError("You must be logged in to subscribe")
       return
@@ -218,18 +219,6 @@ export default function SubscribePage() {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <header className={styles.header}>
-        <button
-          className={styles.closeButton}
-          onClick={() => router.back()}
-        >
-          <IoClose size={24} color="#1e293b" />
-        </button>
-        <h1 className={styles.headerTitle}>Subscribe</h1>
-        <div style={{ width: '44px' }} />
-      </header>
-
       <div className={styles.scrollContent}>
         {/* Hero */}
         <section className={styles.hero}>

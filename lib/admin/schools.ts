@@ -9,6 +9,7 @@ export interface CreateSchoolInput {
   location: string
   latitude?: number
   longitude?: number
+  logo_url?: string
 }
 
 /**
@@ -34,6 +35,7 @@ export async function createSchool(input: CreateSchoolInput): Promise<{
         location: input.location,
         latitude: input.latitude || null,
         longitude: input.longitude || null,
+        logo_url: input.logo_url || null,
       })
       .select()
       .single()
@@ -87,6 +89,7 @@ export async function updateSchool(
     if (input.location !== undefined) updateData.location = input.location
     if (input.latitude !== undefined) updateData.latitude = input.latitude
     if (input.longitude !== undefined) updateData.longitude = input.longitude
+    if (input.logo_url !== undefined) updateData.logo_url = input.logo_url
 
     const { data, error } = await supabase
       .from('schools')

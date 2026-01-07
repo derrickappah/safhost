@@ -23,6 +23,10 @@ export async function createReport(input: CreateReportInput): Promise<{
     const user = await getUser()
     const { data: subscription } = await getActiveSubscription()
     
+    if (input.hostelId && input.reviewId) {
+      return { data: null, error: 'Cannot report both a hostel and a review at the same time' }
+    }
+    
     if (!input.hostelId && !input.reviewId) {
       return { data: null, error: 'Either hostel_id or review_id is required' }
     }
@@ -34,18 +38,20 @@ export async function createReport(input: CreateReportInput): Promise<{
     
     if (input.hostelId) {
       reportData.hostel_id = input.hostelId
-    }
-    
-    if (input.reviewId) {
+      reportData.review_id = null
+    } else {
       reportData.review_id = input.reviewId
+      reportData.hostel_id = null
     }
     
     if (user) {
       reportData.user_id = user.id
-    }
-    
-    if (subscription) {
+      reportData.subscription_id = null
+    } else if (subscription) {
       reportData.subscription_id = subscription.id
+      reportData.user_id = null
+    } else {
+      return { data: null, error: 'Authentication or active subscription required to report' }
     }
     
     const { data, error } = await supabase

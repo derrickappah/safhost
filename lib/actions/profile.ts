@@ -1,15 +1,17 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
 
 /**
  * Get user profile
+ * Uses React cache() for request deduplication
  */
-export async function getProfile(): Promise<{
+export const getProfile = cache(async (): Promise<{
   data: any | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
@@ -55,7 +57,7 @@ export async function getProfile(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch profile',
     }
   }
-}
+})
 
 /**
  * Update user profile (name, email, phone, school)
@@ -76,10 +78,34 @@ export async function updateProfile(
       return { error: 'Authentication required' }
     }
     
+    // Build update data only for provided values
+    const updateData: any = {}
+    let hasUpdates = false
+    
+    if (name !== undefined) {
+      updateData.full_name = name
+      hasUpdates = true
+    }
+    
+    if (phone !== undefined) {
+      updateData.phone = phone
+      hasUpdates = true
+    }
+    
+    if (schoolId !== undefined) {
+      updateData.school_id = schoolId
+      hasUpdates = true
+    }
+    
+    // Only proceed if there are actual updates to make
+    if (!hasUpdates && (email === undefined || email === user.email)) {
+      return { error: null } // No updates needed
+    }
+    
     // Ensure profile exists
     const { data: existingProfile } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, full_name, phone, school_id')
       .eq('id', user.id)
       .single()
     
@@ -98,23 +124,15 @@ export async function updateProfile(
       if (insertError) {
         return { error: insertError.message }
       }
-    } else {
-      // Update profile
-      const updateData: any = {}
+    } else if (hasUpdates) {
+      // Only update if there are actual changes
+      // Check if values actually changed to avoid unnecessary updates
+      const needsUpdate = 
+        (name !== undefined && name !== existingProfile.full_name) ||
+        (phone !== undefined && phone !== existingProfile.phone) ||
+        (schoolId !== undefined && schoolId !== existingProfile.school_id)
       
-      if (name !== undefined) {
-        updateData.full_name = name
-      }
-      
-      if (phone !== undefined) {
-        updateData.phone = phone
-      }
-      
-      if (schoolId !== undefined) {
-        updateData.school_id = schoolId
-      }
-      
-      if (Object.keys(updateData).length > 0) {
+      if (needsUpdate) {
         const { error: updateError } = await supabase
           .from('profiles')
           .update(updateData)
@@ -126,7 +144,7 @@ export async function updateProfile(
       }
     }
     
-    // Update email in auth if provided
+    // Update email in auth if provided and different
     if (email !== undefined && email !== user.email) {
       const { error: emailError } = await supabase.auth.updateUser({
         email,
@@ -147,11 +165,12 @@ export async function updateProfile(
 
 /**
  * Get payment history for current user
+ * Uses React cache() for request deduplication
  */
-export async function getPaymentHistory(): Promise<{
+export const getPaymentHistory = cache(async (): Promise<{
   data: any[] | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
@@ -186,4 +205,4 @@ export async function getPaymentHistory(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch payment history',
     }
   }
-}
+})

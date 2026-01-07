@@ -3,8 +3,9 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { IoArrowBack, IoPerson, IoMailOutline, IoLockClosed, IoCallOutline, IoCheckmarkCircle } from 'react-icons/io5'
+import { IoPerson, IoMailOutline, IoLockClosed, IoCallOutline, IoCheckmarkCircle } from 'react-icons/io5'
 import { signUp } from '@/lib/auth/user'
+import { getProfile } from '@/lib/actions/profile'
 import styles from '../page.module.css'
 
 function SignUpPageContent() {
@@ -56,8 +57,8 @@ function SignUpPageContent() {
       }
       
       if (data?.user) {
-        // Redirect to the intended page or dashboard
-        router.push(redirect)
+        // New users should always select a school first
+        router.push('/select-school')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account')
@@ -68,14 +69,7 @@ function SignUpPageContent() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button
-          className={styles.backButton}
-          onClick={() => router.back()}
-        >
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
         <h1 className={styles.headerTitle}>Sign Up</h1>
-        <div style={{ width: '44px' }} />
       </header>
 
       <div className={styles.scrollContent}>

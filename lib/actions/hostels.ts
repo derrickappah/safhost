@@ -1,7 +1,10 @@
 'use server'
 
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { createClient } from '../supabase/server'
 import { revalidatePath } from 'next/cache'
+import { checkSubscriptionAccess } from '../auth/subscription'
 
 export interface HostelFilters {
   schoolId?: string
@@ -35,41 +38,65 @@ export interface Hostel {
   longitude: number | null
   images: string[]
   amenities: string[]
-  room_types: Array<{
-    type: string
-    price: number
-    available: number
-  }>
+  room_types: any
   is_active: boolean
   created_at: string
   updated_at: string
-  gender_restriction?: 'male' | 'female' | 'mixed' | null
-  is_available?: boolean
-  view_count?: number
-  featured?: boolean
-  categories?: string[]
+  view_count: number | null
+  gender_restriction: string | null
+  is_available: boolean
+  featured: boolean
+  categories: string[]
   school?: {
     id: string
     name: string
     location: string
+    latitude: number | null
+    longitude: number | null
+    logo_url: string | null
   }
 }
 
 /**
  * Get all hostels with optional filters
+ * Uses React cache() for request deduplication and unstable_cache for time-based caching
  */
-export async function getHostels(filters: HostelFilters = {}): Promise<{
+const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
   data: Hostel[] | null
   error: string | null
-}> {
+}> => {
   try {
+    // Check subscription access
+    const { hasAccess } = await checkSubscriptionAccess()
+    if (!hasAccess) {
+      return { data: null, error: 'Subscription required to view hostels' }
+    }
+
     const supabase = await createClient()
     
+    // Optimized query - only fetch essential fields for list view
     let query = supabase
       .from('hostels')
       .select(`
-        *,
-        school:schools(id, name, location)
+        id,
+        school_id,
+        name,
+        price_min,
+        price_max,
+        rating,
+        review_count,
+        distance,
+        images,
+        amenities,
+        is_active,
+        created_at,
+        view_count,
+        gender_restriction,
+        is_available,
+        featured,
+        latitude,
+        longitude,
+        school:schools(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
     
@@ -160,7 +187,19 @@ export async function getHostels(filters: HostelFilters = {}): Promise<{
       return { data: null, error: error.message }
     }
     
-    return { data: data as Hostel[], error: null }
+    // Type assertion and numeric conversion for coordinates
+    const formattedData = (data || []).map(hostel => ({
+      ...hostel,
+      latitude: hostel.latitude ? Number(hostel.latitude) : null,
+      longitude: hostel.longitude ? Number(hostel.longitude) : null,
+      price_min: Number(hostel.price_min),
+      price_max: hostel.price_max ? Number(hostel.price_max) : null,
+      rating: Number(hostel.rating),
+      // Handle school being returned as array or object
+      school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
+    }))
+
+    return { data: formattedData as unknown as Hostel[], error: null }
   } catch (error) {
     return {
       data: null,
@@ -169,21 +208,120 @@ export async function getHostels(filters: HostelFilters = {}): Promise<{
   }
 }
 
+export const getHostels = cache(getHostelsImpl)
+
 /**
- * Get a single hostel by ID
+ * Get cached hostels with time-based revalidation (60 seconds)
+ * Use this for public pages that don't need real-time data
  */
-export async function getHostelById(id: string): Promise<{
-  data: Hostel | null
+export const getCachedHostels = unstable_cache(
+  async (filters: HostelFilters = {}) => {
+    return getHostels(filters)
+  },
+  ['hostels-list'],
+  { revalidate: 60 }
+)
+
+/**
+ * Get featured hostels
+ * Uses React cache() for request deduplication
+ */
+export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
+  data: Hostel[] | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     
     const { data, error } = await supabase
       .from('hostels')
       .select(`
-        *,
-        school:schools(id, name, location)
+        id,
+        school_id,
+        name,
+        price_min,
+        price_max,
+        rating,
+        review_count,
+        distance,
+        images,
+        amenities,
+        is_active,
+        created_at,
+        view_count,
+        gender_restriction,
+        is_available,
+        featured,
+        latitude,
+        longitude,
+        school:schools(id, name, location, latitude, longitude, logo_url)
+      `)
+      .eq('is_active', true)
+      .eq('featured', true)
+      .eq('is_available', true)
+      .order('rating', { ascending: false })
+      .order('view_count', { ascending: false, nullsFirst: false })
+      .limit(limit)
+    
+    if (error) {
+      return { data: null, error: error.message }
+    }
+    
+    return { data: data as unknown as Hostel[], error: null }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to fetch featured hostels'
+    }
+  }
+})
+
+/**
+ * Get a single hostel by ID
+ * Uses React cache() for request deduplication
+ */
+export const getHostelById = cache(async (id: string): Promise<{
+  data: Hostel | null
+  error: string | null
+}> => {
+  try {
+    // Check subscription access
+    const { hasAccess } = await checkSubscriptionAccess()
+    if (!hasAccess) {
+      return { data: null, error: 'Subscription required to view hostel details' }
+    }
+
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+      .from('hostels')
+      .select(`
+        id,
+        school_id,
+        name,
+        description,
+        price_min,
+        price_max,
+        rating,
+        review_count,
+        distance,
+        address,
+        landlord_name,
+        landlord_phone,
+        latitude,
+        longitude,
+        images,
+        amenities,
+        room_types,
+        is_active,
+        created_at,
+        updated_at,
+        view_count,
+        gender_restriction,
+        is_available,
+        featured,
+        categories,
+        school:schools(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('id', id)
       .single()
@@ -192,78 +330,300 @@ export async function getHostelById(id: string): Promise<{
       return { data: null, error: error.message }
     }
     
-    return { data: data as Hostel, error: null }
+    // Convert string coordinates/prices to numbers
+    const formattedHostel = {
+      ...data,
+      latitude: data.latitude ? Number(data.latitude) : null,
+      longitude: data.longitude ? Number(data.longitude) : null,
+      price_min: Number(data.price_min),
+      price_max: data.price_max ? Number(data.price_max) : null,
+      rating: Number(data.rating),
+    }
+
+    return { data: formattedHostel as unknown as Hostel, error: null }
   } catch (error) {
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Failed to fetch hostel'
     }
   }
-}
+})
 
 /**
  * Get hostels by school ID
+ * Uses React cache() for request deduplication
  */
-export async function getHostelsBySchool(schoolId: string): Promise<{
+export const getHostelsBySchool = cache(async (schoolId: string): Promise<{
   data: Hostel[] | null
   error: string | null
-}> {
+}> => {
   return getHostels({ schoolId })
-}
+})
 
 /**
- * Search hostels
+ * Get similar hostels based on a reference hostel
+ * Uses React cache() for request deduplication
  */
-export async function searchHostels(searchQuery: string, filters: HostelFilters = {}): Promise<{
+export const getSimilarHostels = cache(async (hostelId: string, limit: number = 6): Promise<{
   data: Hostel[] | null
   error: string | null
-}> {
-  return getHostels({ ...filters, search: searchQuery })
-}
-
-/**
- * Autocomplete search for hostels and schools
- */
-export async function autocompleteSearch(query: string, limit: number = 5): Promise<{
-  data: { type: 'hostel' | 'school'; id: string; name: string; location?: string }[] | null
-  error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     
-    if (!query || query.length < 2) {
+    // First, get the reference hostel
+    const { data: referenceHostel, error: refError } = await supabase
+      .from('hostels')
+      .select('school_id, price_min, price_max, address, amenities, rating')
+      .eq('id', hostelId)
+      .single()
+    
+    if (refError || !referenceHostel) {
       return { data: [], error: null }
     }
     
-    // Search hostels
-    const { data: hostels, error: hostelsError } = await supabase
+    // Build query for similar hostels (excluding the current one)
+    let query = supabase
       .from('hostels')
-      .select('id, name, address')
-      .ilike('name', `%${query}%`)
+      .select(`
+        id,
+        school_id,
+        name,
+        description,
+        price_min,
+        price_max,
+        rating,
+        review_count,
+        distance,
+        address,
+        landlord_name,
+        landlord_phone,
+        latitude,
+        longitude,
+        images,
+        amenities,
+        room_types,
+        is_active,
+        created_at,
+        updated_at,
+        view_count,
+        gender_restriction,
+        is_available,
+        featured,
+        categories,
+        school:schools(id, name, location, latitude, longitude, logo_url)
+      `)
       .eq('is_active', true)
-      .limit(limit)
+      .neq('id', hostelId)
     
-    // Search schools
-    const { data: schools, error: schoolsError } = await supabase
-      .from('schools')
-      .select('id, name, location')
-      .ilike('name', `%${query}%`)
-      .limit(limit)
-    
-    if (hostelsError || schoolsError) {
-      return { data: null, error: hostelsError?.message || schoolsError?.message || 'Search failed' }
+    // Filter by same school (highest priority)
+    if (referenceHostel.school_id) {
+      query = query.eq('school_id', referenceHostel.school_id)
     }
     
-    const results = [
-      ...(hostels || []).map(h => ({ type: 'hostel' as const, id: h.id, name: h.name, location: h.address })),
-      ...(schools || []).map(s => ({ type: 'school' as const, id: s.id, name: s.name, location: s.location }))
-    ]
+    // Filter by similar price range (±30%)
+    if (referenceHostel.price_min) {
+      const priceRange = referenceHostel.price_min * 0.3
+      query = query
+        .gte('price_min', referenceHostel.price_min - priceRange)
+        .lte('price_min', referenceHostel.price_min + priceRange)
+    }
     
+    // Order by: same school first, then by rating, then by view_count
+    query = query
+      .order('rating', { ascending: false, nullsFirst: false })
+      .order('view_count', { ascending: false, nullsFirst: false })
+      .limit(limit)
+    
+    const { data, error } = await query
+    
+    if (error) {
+      return { data: null, error: error.message }
+    }
+    
+    // If we don't have enough results, get more from featured hostels
+    if (data && data.length < limit) {
+      const remaining = limit - data.length
+      const existingIds = new Set([hostelId, ...data.map(h => h.id)])
+      
+      // Try to get featured hostels
+      const { data: allFeatured } = await supabase
+        .from('hostels')
+        .select(`
+          *,
+          school:schools(id, name, location, latitude, longitude, logo_url)
+        `)
+        .eq('is_active', true)
+        .eq('featured', true)
+        .order('rating', { ascending: false })
+        .limit(remaining * 2) // Get more to filter
+      
+      if (allFeatured) {
+        const additionalData = allFeatured
+          .filter(h => !existingIds.has(h.id))
+          .slice(0, remaining)
+        
+        if (additionalData.length > 0) {
+          data.push(...additionalData)
+        }
+      }
+    }
+    
+    // Type assertion: Supabase returns school as array but it's actually a single object in practice
+    return { data: (data || []) as unknown as Hostel[], error: null }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to fetch similar hostels'
+    }
+  }
+})
+
+/**
+ * Search hostels
+ * Uses React cache() for request deduplication
+ */
+const searchHostelsImpl = async (searchQuery: string, filters: HostelFilters = {}): Promise<{
+  data: Hostel[] | null
+  error: string | null
+}> => {
+  return getHostels({ ...filters, search: searchQuery })
+}
+
+export const searchHostels = cache(searchHostelsImpl)
+
+/**
+ * Get public hostel previews for landing page
+ * No subscription check required - shows featured hostels publicly
+ */
+export const getPublicHostelPreviews = cache(async (limit: number = 10): Promise<{
+  data: Hostel[] | null
+  error: string | null
+}> => {
+  try {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('hostels')
+      .select(`
+        id,
+        school_id,
+        name,
+        price_min,
+        price_max,
+        rating,
+        review_count,
+        distance,
+        images,
+        amenities,
+        is_active,
+        created_at,
+        view_count,
+        gender_restriction,
+        is_available,
+        featured,
+        latitude,
+        longitude,
+        school:schools(id, name, location, latitude, longitude, logo_url)
+      `)
+      .eq('is_active', true)
+      .eq('featured', true)
+      .eq('is_available', true)
+      .order('rating', { ascending: false })
+      .order('view_count', { ascending: false, nullsFirst: false })
+      .limit(limit)
+
+    if (error) {
+      return { data: null, error: error.message }
+    }
+
+    return { data: data as unknown as Hostel[], error: null }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to fetch hostel previews'
+    }
+  }
+})
+
+/**
+ * Autocomplete search for hostels and schools
+ * Returns combined results for quick search suggestions
+ */
+export interface AutocompleteResult {
+  type: 'hostel' | 'school'
+  id: string
+  name: string
+  location?: string
+}
+
+export const autocompleteSearch = cache(async (
+  query: string,
+  limit: number = 5
+): Promise<{
+  data: AutocompleteResult[] | null
+  error: string | null
+}> => {
+  try {
+    if (!query || query.length < 2) {
+      return { data: [], error: null }
+    }
+
+    const supabase = await createClient()
+    const results: AutocompleteResult[] = []
+
+    // Search hostels
+    const hostelLimit = Math.ceil(limit / 2)
+    const { data: hostels, error: hostelError } = await supabase
+      .from('hostels')
+      .select(`
+        id,
+        name,
+        address,
+        school:schools(location)
+      `)
+      .eq('is_active', true)
+      .or(`name.ilike.%${query}%,address.ilike.%${query}%`)
+      .limit(hostelLimit)
+
+    if (!hostelError && hostels) {
+      hostels.forEach((hostel: any) => {
+        results.push({
+          type: 'hostel',
+          id: hostel.id,
+          name: hostel.name,
+          location: hostel.school?.location || hostel.address,
+        })
+      })
+    }
+
+    // Search schools
+    const schoolLimit = limit - results.length
+    if (schoolLimit > 0) {
+      const { data: schools, error: schoolError } = await supabase
+        .from('schools')
+        .select('id, name, location')
+        .or(`name.ilike.%${query}%,location.ilike.%${query}%`)
+        .limit(schoolLimit)
+
+      if (!schoolError && schools) {
+        schools.forEach((school: any) => {
+          results.push({
+            type: 'school',
+            id: school.id,
+            name: school.name,
+            location: school.location,
+          })
+        })
+      }
+    }
+
+    // Limit total results
     return { data: results.slice(0, limit), error: null }
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to search'
+      error: error instanceof Error ? error.message : 'Failed to perform autocomplete search',
     }
   }
-}
+})

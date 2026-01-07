@@ -1,27 +1,33 @@
-import { createClient } from '@/lib/supabase/server'
 import { generateAnalytics } from '@/lib/analytics/generate'
 import { isAdmin } from '@/lib/auth/middleware'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import ExportButtonsClient from './ExportButtons'
+import ExportButtons from './ExportButtons'
+
+// Revalidate every 60 seconds for fresh analytics
+export const revalidate = 60
 
 export default async function AdminDashboard() {
-  // Check admin access
-  const admin = await isAdmin()
-  if (!admin) {
-    redirect('/')
-  }
-  
-  const { data: analytics, error } = await generateAnalytics()
-  
-  if (error || !analytics) {
-    return (
-      <div style={{ padding: '40px' }}>
-        <h1>Admin Dashboard</h1>
-        <p style={{ color: '#ef4444' }}>Error loading analytics: {error}</p>
-      </div>
-    )
-  }
+  try {
+    // Check admin access
+    const admin = await isAdmin()
+    if (!admin) {
+      redirect('/')
+    }
+    
+    const { data: analytics, error } = await generateAnalytics()
+    
+    if (error || !analytics) {
+      console.error('Analytics generation error:', error)
+      return (
+        <div style={{ padding: '40px' }}>
+          <h1>Admin Dashboard</h1>
+          <p style={{ color: '#ef4444', marginBottom: '16px' }}>Error loading analytics: {error || 'Unknown error'}</p>
+          <p style={{ color: '#64748b', fontSize: '14px' }}>
+            Please check the server logs for more details. This might be due to missing data or database connection issues.
+          </p>
+        </div>
+      )
+    }
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -29,7 +35,7 @@ export default async function AdminDashboard() {
         <h1 style={{ fontSize: '32px', fontWeight: 700, margin: 0 }}>
           Admin Dashboard
         </h1>
-        <ExportButtonsClient />
+        <ExportButtons />
       </div>
       
       {/* Stats Grid */}
@@ -106,6 +112,20 @@ export default async function AdminDashboard() {
           </h3>
           <p style={{ fontSize: '32px', fontWeight: 700, color: '#1e293b' }}>
             {analytics.hostelViews}
+          </p>
+        </div>
+        
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>
+            Total Contacts
+          </h3>
+          <p style={{ fontSize: '32px', fontWeight: 700, color: '#1e293b' }}>
+            {analytics.totalContacts || 0}
           </p>
         </div>
         
@@ -286,6 +306,146 @@ export default async function AdminDashboard() {
         </div>
       </div>
       
+      {/* Views per User */}
+      {analytics.viewsPerUser && analytics.viewsPerUser.length > 0 && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          marginBottom: '32px'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px' }}>
+            Top Users by Views
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>User</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Total Views</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Unique Hostels</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.viewsPerUser.map((user) => (
+                <tr key={user.userId} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '12px', fontSize: '14px', fontWeight: 600 }}>
+                    {user.userEmail}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{user.views}</td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{user.uniqueHostels}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Contacts per User */}
+      {analytics.contactsPerUser && analytics.contactsPerUser.length > 0 && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          marginBottom: '32px'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px' }}>
+            Top Users by Contacts
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>User</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Total Contacts</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Unique Hostels</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.contactsPerUser.map((user) => (
+                <tr key={user.userId} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '12px', fontSize: '14px', fontWeight: 600 }}>
+                    {user.userEmail}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{user.contacts}</td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{user.uniqueHostels}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Views Over Time */}
+      {analytics.viewsOverTime && analytics.viewsOverTime.length > 0 && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          marginBottom: '32px'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px' }}>
+            Views Over Time (Last 30 Days)
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Date</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Total Views</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Unique Views</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.viewsOverTime.slice(-10).map((item) => (
+                <tr key={item.date} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>
+                    {new Date(item.date).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{item.views}</td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{item.uniqueViews}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Contacts Over Time */}
+      {analytics.contactsOverTime && analytics.contactsOverTime.length > 0 && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '24px',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          marginBottom: '32px'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px' }}>
+            Contacts Over Time (Last 30 Days)
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Date</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Total Contacts</th>
+                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px', color: '#64748b' }}>Unique Contacts</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.contactsOverTime.slice(-10).map((item) => (
+                <tr key={item.date} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>
+                    {new Date(item.date).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{item.contacts}</td>
+                  <td style={{ padding: '12px', fontSize: '14px' }}>{item.uniqueContacts}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Recent Payments */}
       <div style={{
         backgroundColor: 'white',
@@ -339,5 +499,19 @@ export default async function AdminDashboard() {
         )}
       </div>
     </div>
-  )
+    )
+  } catch (error) {
+    console.error('Admin dashboard error:', error)
+    return (
+      <div style={{ padding: '40px' }}>
+        <h1>Admin Dashboard</h1>
+        <p style={{ color: '#ef4444', marginBottom: '16px' }}>
+          An error occurred while loading the dashboard
+        </p>
+        <p style={{ color: '#64748b', fontSize: '14px' }}>
+          {error instanceof Error ? error.message : 'Unknown error'}
+        </p>
+      </div>
+    )
+  }
 }

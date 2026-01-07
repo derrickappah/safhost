@@ -6,6 +6,8 @@ import { IoSchool, IoSearch, IoCloseCircle, IoLocation, IoCheckmark, IoNavigate 
 import styles from './page.module.css'
 import { getSchools } from '@/lib/actions/schools'
 import { getCurrentLocation, calculateDistance } from '@/lib/location/detect'
+import { updateProfile } from '@/lib/actions/profile'
+import { getCurrentUser } from '@/lib/auth/client'
 
 interface School {
   id: string
@@ -90,8 +92,23 @@ export default function SelectSchoolPage() {
     }
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedSchool) {
+      // Check if user is authenticated
+      const { data: userData } = await getCurrentUser()
+      
+      if (userData?.user) {
+        // Save school to user profile
+        const { error } = await updateProfile(undefined, undefined, undefined, selectedSchool)
+        if (error) {
+          console.error('Error saving school:', error)
+          // Still continue even if save fails
+        }
+      }
+      
+      // Store in localStorage as fallback
+      localStorage.setItem('selectedSchool', selectedSchool)
+      
       router.replace('/dashboard')
     }
   }

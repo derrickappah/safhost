@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { IoClose, IoAlertCircle } from 'react-icons/io5'
+import { IoClose, IoAlertCircle, IoShieldOutline, IoInformationCircleOutline, IoWarningOutline, IoEllipsisHorizontalCircleOutline } from 'react-icons/io5'
 import { createReport } from '@/lib/actions/reports'
 import styles from './ReportModal.module.css'
 
@@ -83,20 +83,25 @@ export default function ReportModal({
               <label className={styles.label}>Report Type</label>
               <div className={styles.options}>
                 {[
-                  { value: 'inappropriate', label: 'Inappropriate Content' },
-                  { value: 'spam', label: 'Spam' },
-                  { value: 'fake', label: 'Fake Listing' },
-                  { value: 'other', label: 'Other' },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={`${styles.option} ${reportType === option.value ? styles.optionActive : ''}`}
-                    onClick={() => setReportType(option.value as any)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+                  { value: 'inappropriate', label: 'Inappropriate Content', icon: IoShieldOutline },
+                  { value: 'spam', label: 'Spam', icon: IoInformationCircleOutline },
+                  { value: 'fake', label: 'Fake Listing', icon: IoWarningOutline },
+                  { value: 'other', label: 'Other', icon: IoEllipsisHorizontalCircleOutline },
+                ].map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`${styles.option} ${reportType === option.value ? styles.optionActive : ''}`}
+                      onClick={() => setReportType(option.value as any)}
+                    >
+                      <Icon className={styles.optionIcon} size={20} />
+                      <span className={styles.optionLabel}>{option.label}</span>
+                      <div className={styles.radio} />
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

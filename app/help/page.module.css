@@ -1,18 +1,28 @@
 .container {
   min-height: 100vh;
   background-color: #f8fafc;
+  padding-top: calc(76px + env(safe-area-inset-top));
 }
 
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  background-color: #fff;
-  border-bottom: 1px solid #e2e8f0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  padding: 0 var(--container-padding-md);
+  padding-top: env(safe-area-inset-top);
+  height: calc(76px + env(safe-area-inset-top));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 1000;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .backButton {
@@ -21,28 +31,33 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: none;
-  background: none;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background-color: #ffffff;
   cursor: pointer;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .backButton:hover {
-  background-color: #f1f5f9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: #2563eb;
 }
 
 .headerTitle {
   flex: 1;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0;
   text-align: center;
+  letter-spacing: -0.03em;
 }
 
 .content {
   padding: 24px;
+  padding-top: 36px;
 }
 
 .section {

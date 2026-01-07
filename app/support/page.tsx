@@ -13,7 +13,8 @@ export default function SupportPage() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (e?: React.MouseEvent) => {
+    e?.preventDefault()
     if (!message.trim()) return
     
     setSending(true)
@@ -32,14 +33,6 @@ export default function SupportPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <button className={styles.backButton} onClick={() => router.back()}>
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
-        <h1 className={styles.headerTitle}>Support</h1>
-        <div style={{ width: '40px' }} />
-      </header>
-
       <div className={styles.content}>
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Contact Us</h2>

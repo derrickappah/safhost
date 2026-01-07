@@ -1,0 +1,84 @@
+'use client'
+
+import { useState } from 'react'
+import { addFavorite, removeFavorite } from '@/lib/actions/favorites'
+import { type Hostel } from '@/lib/actions/hostels'
+import HostelCard from './HostelCard'
+import styles from './page.module.css'
+
+interface HostelsListProps {
+  initialHostels: Hostel[]
+  initialFavorited?: Set<string>
+  compareMode?: boolean
+  selectedHostels?: Set<string>
+  onToggleSelection?: (id: string, e: React.MouseEvent) => void
+}
+
+export default function HostelsList({ 
+  initialHostels, 
+  initialFavorited,
+  compareMode = false,
+  selectedHostels = new Set(),
+  onToggleSelection
+}: HostelsListProps) {
+  const [hostels] = useState(initialHostels)
+  const [favoritedHostels, setFavoritedHostels] = useState<Set<string>>(initialFavorited || new Set())
+
+  const toggleSave = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const isFav = favoritedHostels.has(id)
+    
+    if (isFav) {
+      const { error } = await removeFavorite(id)
+      if (error) {
+        console.error('Failed to remove favorite:', error)
+        alert('Failed to remove from favorites: ' + error)
+      } else {
+        setFavoritedHostels(prev => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+      }
+    } else {
+      const { error } = await addFavorite(id)
+      if (error) {
+        console.error('Failed to add favorite:', error)
+        if (error === 'Authentication required') {
+          alert('Please log in to save favorites')
+        } else if (error === 'Active subscription required') {
+          alert('An active subscription is required to save favorites')
+        } else {
+          alert('Failed to add to favorites: ' + error)
+        }
+      } else {
+        setFavoritedHostels(prev => new Set(prev).add(id))
+      }
+    }
+  }
+
+  if (hostels.length === 0) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <p>No hostels found. Try adjusting your filters.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.listContainer}>
+      {hostels.map((hostel) => (
+        <HostelCard
+          key={hostel.id}
+          hostel={hostel}
+          isFavorited={favoritedHostels.has(hostel.id)}
+          onToggleFavorite={toggleSave}
+          compareMode={compareMode}
+          isSelected={selectedHostels.has(hostel.id)}
+          onToggleSelection={onToggleSelection}
+        />
+      ))}
+      <div style={{ height: '100px' }} />
+    </div>
+  )
+}

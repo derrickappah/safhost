@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/lib/auth/client'
 import { isAdmin } from '@/lib/auth/middleware'
 import { getSchools } from '@/lib/actions/schools'
 import { createHostel } from '@/lib/admin/hostels'
+import { updateSchool } from '@/lib/admin/schools'
 import styles from './page.module.css'
 
 const commonAmenities = [
@@ -58,6 +59,8 @@ export default function NewHostelPage() {
 
   const [images, setImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [schoolLogo, setSchoolLogo] = useState('')
 
   useEffect(() => {
     async function checkAccess() {
@@ -91,6 +94,46 @@ export default function NewHostelPage() {
       setFormData(prev => ({ ...prev, [name]: checked }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
+      
+      // Update local school logo if school changes
+      if (name === 'school_id') {
+        const selectedSchool = schools.find(s => s.id === value)
+        setSchoolLogo(selectedSchool?.logo_url || '')
+      }
+    }
+  }
+
+  const handleSchoolLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !formData.school_id) return
+
+    setUploadingLogo(true)
+    setError('')
+
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+      uploadFormData.append('folder', 'schools')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
+      }
+
+      const result = await response.json()
+      setSchoolLogo(result.url)
+      
+      // Immediately update school in DB
+      await updateSchool(formData.school_id, { logo_url: result.url })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload school logo')
+    } finally {
+      setUploadingLogo(false)
     }
   }
 
@@ -321,6 +364,52 @@ export default function NewHostelPage() {
               ))}
             </select>
           </div>
+
+          {formData.school_id && (
+            <div className={styles.formGroup} style={{ border: '1px dashed #e2e8f0', padding: '12px', borderRadius: '8px', marginTop: '8px' }}>
+              <label className={styles.label} style={{ fontSize: '12px', color: '#64748b' }}>School Logo</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+                {schoolLogo ? (
+                  <img 
+                    src={schoolLogo} 
+                    alt="School logo" 
+                    style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #e2e8f0' }} 
+                  />
+                ) : (
+                  <div style={{ width: '48px', height: '48px', backgroundColor: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>No Logo</span>
+                  </div>
+                )}
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="file"
+                    id="school-logo-upload"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleSchoolLogoUpload}
+                    style={{ display: 'none' }}
+                    disabled={uploadingLogo}
+                  />
+                  <label 
+                    htmlFor="school-logo-upload" 
+                    style={{ 
+                      display: 'inline-block',
+                      padding: '6px 12px',
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      color: '#1e293b'
+                    }}
+                  >
+                    {uploadingLogo ? 'Uploading...' : schoolLogo ? 'Change School Logo' : 'Upload School Logo'}
+                  </label>
+                  <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>Updating this logo will affect all hostels for this school</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={styles.formGroup}>
             <label className={styles.label}>

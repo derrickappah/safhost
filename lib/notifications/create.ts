@@ -36,10 +36,10 @@ export async function createNotification(input: CreateNotificationInput): Promis
     
     if (input.userId) {
       notificationData.user_id = input.userId
-    }
-    
-    if (input.subscriptionId) {
+      notificationData.subscription_id = null
+    } else if (input.subscriptionId) {
       notificationData.subscription_id = input.subscriptionId
+      notificationData.user_id = null
     }
     
     const { data, error } = await supabase

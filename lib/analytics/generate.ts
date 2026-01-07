@@ -1,5 +1,6 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 
 export interface AnalyticsData {
@@ -22,25 +23,36 @@ export interface AnalyticsData {
   filtersUsed: number
   reviewsCount: number
   promoCodeUsage: Array<{ code: string; uses: number; discount: number }>
+  viewsPerUser: Array<{ userId: string; userEmail: string; views: number; uniqueHostels: number }>
+  contactsPerUser: Array<{ userId: string; userEmail: string; contacts: number; uniqueHostels: number }>
+  viewsOverTime: Array<{ date: string; views: number; uniqueViews: number }>
+  contactsOverTime: Array<{ date: string; contacts: number; uniqueContacts: number }>
+  totalContacts: number
 }
 
 /**
  * Generate comprehensive analytics for admin dashboard
+ * Uses React cache() for request deduplication
  */
-export async function generateAnalytics(): Promise<{
+export const generateAnalytics = cache(async (): Promise<{
   data: AnalyticsData | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     
-    // Basic counts
-    const [hostelsCount, schoolsCount, subscriptionsCount, paymentsCount] = await Promise.all([
+    // Basic counts - handle errors gracefully
+    const [hostelsResult, schoolsResult, subscriptionsResult, paymentsResult] = await Promise.all([
       supabase.from('hostels').select('id', { count: 'exact', head: true }),
       supabase.from('schools').select('id', { count: 'exact', head: true }),
       supabase.from('subscriptions').select('id', { count: 'exact', head: true }),
       supabase.from('payments').select('id', { count: 'exact', head: true }),
     ])
+    
+    const hostelsCount = hostelsResult.error ? { count: 0 } : hostelsResult
+    const schoolsCount = schoolsResult.error ? { count: 0 } : schoolsResult
+    const subscriptionsCount = subscriptionsResult.error ? { count: 0 } : subscriptionsResult
+    const paymentsCount = paymentsResult.error ? { count: 0 } : paymentsResult
     
     // Active subscriptions
     const { count: activeSubscriptions } = await supabase
@@ -51,18 +63,26 @@ export async function generateAnalytics(): Promise<{
     
     // Total revenue (successful payments only)
     // Get all successful payments first to ensure accurate total
-    const { data: allPayments } = await supabase
+    const { data: allPayments, error: allPaymentsError } = await supabase
       .from('payments')
       .select('amount')
       .eq('status', 'success')
     
+    if (allPaymentsError) {
+      console.error('Error fetching all payments:', allPaymentsError)
+    }
+    
     const totalRevenue = allPayments?.reduce((sum, p) => sum + Number(p.amount || 0), 0) || 0
     
     // Get payments with subscription and school data for breakdowns
-    const { data: payments } = await supabase
+    const { data: payments, error: paymentsError } = await supabase
       .from('payments')
       .select('amount, subscription:subscriptions(school:schools(id, name, location))')
       .eq('status', 'success')
+    
+    if (paymentsError) {
+      console.error('Error fetching payments with subscriptions:', paymentsError)
+    }
     
     // Revenue per school
     const revenuePerSchoolMap = new Map<string, { schoolName: string; revenue: number }>()
@@ -186,6 +206,120 @@ export async function generateAnalytics(): Promise<{
       discount: data.discount,
     }))
     
+    // Views per user
+    const { data: viewsWithUsers } = await supabase
+      .from('hostel_views')
+      .select('user_id, hostel_id, viewed_at')
+      .not('user_id', 'is', null)
+    
+    const userViewsMap = new Map<string, { views: number; uniqueHostels: Set<string> }>()
+    viewsWithUsers?.forEach((view: any) => {
+      if (view.user_id) {
+        const existing = userViewsMap.get(view.user_id) || { views: 0, uniqueHostels: new Set<string>() }
+        existing.views += 1
+        existing.uniqueHostels.add(view.hostel_id)
+        userViewsMap.set(view.user_id, existing)
+      }
+    })
+    
+    // Get user emails for views per user
+    const viewsPerUserData = await Promise.all(
+      Array.from(userViewsMap.entries()).slice(0, 10).map(async ([userId, data]) => {
+        const { data: user } = await supabase.auth.admin.getUserById(userId).catch(() => ({ data: { user: null } }))
+        return {
+          userId,
+          userEmail: user?.user?.email || 'Unknown',
+          views: data.views,
+          uniqueHostels: data.uniqueHostels.size
+        }
+      })
+    )
+    const viewsPerUser = viewsPerUserData.sort((a, b) => b.views - a.views).slice(0, 5)
+    
+    // Contacts per user
+    const { data: contactsWithUsers } = await supabase
+      .from('contact_logs')
+      .select('user_id, hostel_id, created_at')
+      .not('user_id', 'is', null)
+    
+    const userContactsMap = new Map<string, { contacts: number; uniqueHostels: Set<string> }>()
+    contactsWithUsers?.forEach((contact: any) => {
+      if (contact.user_id) {
+        const existing = userContactsMap.get(contact.user_id) || { contacts: 0, uniqueHostels: new Set<string>() }
+        existing.contacts += 1
+        existing.uniqueHostels.add(contact.hostel_id)
+        userContactsMap.set(contact.user_id, existing)
+      }
+    })
+    
+    // Get user emails for contacts per user
+    const contactsPerUserData = await Promise.all(
+      Array.from(userContactsMap.entries()).slice(0, 10).map(async ([userId, data]) => {
+        const { data: user } = await supabase.auth.admin.getUserById(userId).catch(() => ({ data: { user: null } }))
+        return {
+          userId,
+          userEmail: user?.user?.email || 'Unknown',
+          contacts: data.contacts,
+          uniqueHostels: data.uniqueHostels.size
+        }
+      })
+    )
+    const contactsPerUser = contactsPerUserData.sort((a, b) => b.contacts - a.contacts).slice(0, 5)
+    
+    // Total contacts
+    const { count: totalContacts } = await supabase
+      .from('contact_logs')
+      .select('id', { count: 'exact', head: true })
+    
+    // Views over time (last 30 days)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    const { data: recentViews } = await supabase
+      .from('hostel_views')
+      .select('viewed_at, hostel_id')
+      .gte('viewed_at', thirtyDaysAgo.toISOString())
+    
+    const viewsByDate = new Map<string, { views: number; uniqueHostels: Set<string> }>()
+    recentViews?.forEach((view: any) => {
+      const date = new Date(view.viewed_at).toISOString().split('T')[0]
+      const existing = viewsByDate.get(date) || { views: 0, uniqueHostels: new Set<string>() }
+      existing.views += 1
+      existing.uniqueHostels.add(view.hostel_id)
+      viewsByDate.set(date, existing)
+    })
+    
+    const viewsOverTime = Array.from(viewsByDate.entries())
+      .map(([date, data]) => ({
+        date,
+        views: data.views,
+        uniqueViews: data.uniqueHostels.size
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+    
+    // Contacts over time (last 30 days)
+    const { data: recentContacts } = await supabase
+      .from('contact_logs')
+      .select('created_at, hostel_id')
+      .gte('created_at', thirtyDaysAgo.toISOString())
+    
+    const contactsByDate = new Map<string, { contacts: number; uniqueHostels: Set<string> }>()
+    recentContacts?.forEach((contact: any) => {
+      const date = new Date(contact.created_at).toISOString().split('T')[0]
+      const existing = contactsByDate.get(date) || { contacts: 0, uniqueHostels: new Set<string>() }
+      existing.contacts += 1
+      existing.uniqueHostels.add(contact.hostel_id)
+      contactsByDate.set(date, existing)
+    })
+    
+    const contactsOverTime = Array.from(contactsByDate.entries())
+      .map(([date, data]) => ({
+        date,
+        contacts: data.contacts,
+        uniqueContacts: data.uniqueHostels.size
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+    
     return {
       data: {
         totalHostels: hostelsCount.count || 0,
@@ -202,6 +336,11 @@ export async function generateAnalytics(): Promise<{
         filtersUsed: 0, // Would need to track this separately
         reviewsCount: reviewsCount || 0,
         promoCodeUsage,
+        viewsPerUser,
+        contactsPerUser,
+        viewsOverTime,
+        contactsOverTime,
+        totalContacts: totalContacts || 0,
       },
       error: null,
     }
@@ -211,7 +350,7 @@ export async function generateAnalytics(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to generate analytics',
     }
   }
-}
+})
 
 function pesewasToGhs(pesewas: number): number {
   return pesewas / 100

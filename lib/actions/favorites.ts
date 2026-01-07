@@ -1,5 +1,6 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
 import { getActiveSubscription } from './subscriptions'
@@ -16,32 +17,38 @@ export interface Favorite {
     price_min: number
     rating: number
     images: string[]
+    amenities?: string[]
+    address?: string
   }
 }
 
 /**
  * Get all favorites for authenticated user
+ * Uses React cache() for request deduplication
  */
-export async function getFavorites(): Promise<{
+export const getFavorites = cache(async (): Promise<{
   data: Favorite[] | null
   error: string | null
-}> {
+}> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
     
     if (!user) {
-      return { data: [], error: null } // Return empty array if not authenticated
+      return { data: null, error: 'Authentication required' }
     }
     
-    // Get active subscription
+    // Get active subscription - required for favorites
     const { data: subscription } = await getActiveSubscription()
+    if (!subscription) {
+      return { data: null, error: 'Active subscription required' }
+    }
     
     let query = supabase
       .from('favorites')
       .select(`
         *,
-        hostel:hostels(id, name, price_min, rating, images)
+        hostel:hostels(id, name, price_min, rating, images, amenities, address)
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -59,7 +66,7 @@ export async function getFavorites(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch favorites'
     }
   }
-}
+})
 
 /**
  * Add a hostel to favorites (requires authenticated user)
@@ -109,7 +116,7 @@ export async function addFavorite(
       .insert(favoriteData)
       .select(`
         *,
-        hostel:hostels(id, name, price_min, rating, images)
+        hostel:hostels(id, name, price_min, rating, images, amenities, address)
       `)
       .single()
     
@@ -162,10 +169,11 @@ export async function removeFavorite(
 
 /**
  * Check if a hostel is favorited (requires authenticated user)
+ * Uses React cache() for request deduplication
  */
-export async function isFavorited(
+export const isFavorited = cache(async (
   hostelId: string
-): Promise<boolean> {
+): Promise<boolean> => {
   try {
     const supabase = await createClient()
     const user = await getUser()
@@ -185,4 +193,36 @@ export async function isFavorited(
   } catch {
     return false
   }
-}
+})
+
+/**
+ * Check which hostels from a list are favorited (batch operation to avoid N+1 queries)
+ * Returns a Set of favorited hostel IDs
+ * Uses React cache() for request deduplication
+ */
+export const areFavorited = cache(async (
+  hostelIds: string[]
+): Promise<Set<string>> => {
+  try {
+    const supabase = await createClient()
+    const user = await getUser()
+    
+    if (!user || hostelIds.length === 0) {
+      return new Set()
+    }
+    
+    const { data, error } = await supabase
+      .from('favorites')
+      .select('hostel_id')
+      .eq('user_id', user.id)
+      .in('hostel_id', hostelIds)
+    
+    if (error || !data) {
+      return new Set()
+    }
+    
+    return new Set(data.map(fav => fav.hostel_id))
+  } catch {
+    return new Set()
+  }
+})

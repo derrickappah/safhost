@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/middleware'
 import Link from 'next/link'
+import Image from 'next/image'
 import styles from './layout.module.css'
 
 export default async function AdminLayout({
@@ -18,7 +19,14 @@ export default async function AdminLayout({
     <div className={styles.container}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <h1 className={styles.logo}>Admin Panel</h1>
+          <Image 
+            src="/20260101_2143_SafHostel Logo_simple_compose_01kdxr7e9gfrvrqba7hb1811ghjhvh.png" 
+            alt="SafHostel Logo" 
+            width={140}
+            height={40}
+            className={styles.logoImage}
+          />
+          <p className={styles.logoSubtext}>Admin Panel</p>
         </div>
         <nav className={styles.nav}>
           <Link href="/admin/dashboard" className={styles.navLink}>
@@ -47,6 +55,12 @@ export default async function AdminLayout({
           </Link>
           <Link href="/admin/audit" className={styles.navLink}>
             Audit Log
+          </Link>
+          <Link href="/admin/logs" className={styles.navLink}>
+            View & Contact Logs
+          </Link>
+          <Link href="/admin/settings" className={styles.navLink}>
+            Settings
           </Link>
         </nav>
       </aside>

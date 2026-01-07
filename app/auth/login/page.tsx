@@ -3,8 +3,9 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { IoArrowBack, IoMailOutline, IoLockClosed, IoArrowForward } from 'react-icons/io5'
+import { IoMailOutline, IoLockClosed, IoArrowForward } from 'react-icons/io5'
 import { signIn } from '@/lib/auth/user'
+import { getProfile } from '@/lib/actions/profile'
 import styles from '../page.module.css'
 
 function LoginPageContent() {
@@ -47,6 +48,15 @@ function LoginPageContent() {
       }
       
       if (data?.user) {
+        // Check if user has selected a school
+        const { data: profile } = await getProfile()
+        
+        // If user doesn't have a school_id, redirect to select school
+        if (!profile?.school_id) {
+          router.push('/select-school')
+          return
+        }
+        
         // Redirect to the intended page or dashboard
         router.push(redirect)
       }
@@ -59,14 +69,7 @@ function LoginPageContent() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button
-          className={styles.backButton}
-          onClick={() => router.back()}
-        >
-          <IoArrowBack size={24} color="#1e293b" />
-        </button>
         <h1 className={styles.headerTitle}>Log In</h1>
-        <div style={{ width: '44px' }} />
       </header>
 
       <div className={styles.scrollContent}>
