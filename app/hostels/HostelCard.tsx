@@ -117,7 +117,7 @@ export default function HostelCard({
 
         <div className={styles.cardMeta}>
           <span className={styles.priceText}>
-            From <strong className={styles.priceAmount}>GHS {hostel.price_min}</strong>/mo
+            From <strong className={styles.priceAmount}>GHS {hostel.price_min}</strong>/sem
           </span>
         </div>
         

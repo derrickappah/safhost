@@ -38,9 +38,10 @@ export default function SimilarHostels({ similarHostels }: SimilarHostelsProps) 
                 <Image
                   src={mainImage}
                   alt={similarHostel.name}
-                  width={150}
-                  height={100}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                   className={styles.similarHostelImage}
+                  quality={90}
                 />
               </div>
               <div className={styles.similarHostelInfo}>
@@ -58,7 +59,7 @@ export default function SimilarHostels({ similarHostels }: SimilarHostelsProps) 
                   )}
                 </div>
                 <div className={styles.similarHostelPrice}>
-                  GHS {similarHostel.price_min || 0}/mo
+                  GHS {similarHostel.price_min || 0}/sem
                 </div>
               </div>
             </button>

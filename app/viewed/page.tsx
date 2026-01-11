@@ -247,7 +247,7 @@ export default function ViewedPage() {
                     </div>
                     <div className={styles.cardFooter}>
                       <span className={styles.priceText}>
-                        GHS {hostel.price_min || 0}/mo
+                        GHS {hostel.price_min || 0}/sem
                       </span>
                     </div>
                   </div>

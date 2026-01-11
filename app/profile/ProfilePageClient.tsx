@@ -43,6 +43,7 @@ export default function ProfilePageClient({
   const [editName, setEditName] = useState('')
   const [editEmail, setEditEmail] = useState('')
   const [editing, setEditing] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   // Load selected school from localStorage on mount
   useEffect(() => {
@@ -77,6 +78,71 @@ export default function ProfilePageClient({
   const getUserPhone = () => {
     if (profile?.phone) return profile.phone
     return user?.user_metadata?.phone || 'No phone number'
+  }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      alert('File size exceeds 5MB limit')
+      return
+    }
+
+    setUploadingAvatar(true)
+
+    try {
+      // Upload file to API
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'avatars')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to upload avatar')
+      }
+
+      // Update profile with new avatar URL
+      const { error } = await updateProfile(
+        profile?.full_name,
+        user?.email,
+        profile?.phone,
+        profile?.school_id,
+        data.url
+      )
+
+      if (error) {
+        throw new Error(error)
+      }
+
+      // Refresh profile data
+      const { data: profileData } = await getProfile()
+      if (profileData) {
+        setProfile(profileData)
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to upload avatar')
+    } finally {
+      setUploadingAvatar(false)
+      // Reset input so same file can be selected again
+      e.target.value = ''
+    }
   }
 
   const getSubscriptionDaysLeft = () => {
@@ -172,17 +238,39 @@ export default function ProfilePageClient({
         <div className={styles.heroSection}>
           <div className={styles.heroContent}>
             <div className={styles.avatarWrapper}>
-              <div className={styles.avatar}>
-                <IoPerson size={36} color="#94a3b8" />
-              </div>
+              <label htmlFor="avatar-upload" className={styles.avatarLabel}>
+                <div className={styles.avatar}>
+                  {profile?.avatar_url ? (
+                    <img 
+                      src={profile.avatar_url} 
+                      alt="Profile" 
+                      className={styles.avatarImage}
+                    />
+                  ) : (
+                    <IoPerson size={36} color="#94a3b8" />
+                  )}
+                  {uploadingAvatar && (
+                    <div className={styles.avatarLoading}>
+                      <div className={styles.avatarSpinner}></div>
+                    </div>
+                  )}
+                </div>
+              </label>
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleAvatarUpload}
+                className={styles.avatarInput}
+                disabled={uploadingAvatar}
+              />
               <button 
                 className={styles.editAvatarButton}
                 onClick={() => {
-                  setEditName(getUserName())
-                  setEditEmail(getUserEmail())
-                  setShowEditModal(true)
+                  document.getElementById('avatar-upload')?.click()
                 }}
-                aria-label="Edit profile"
+                aria-label="Change profile picture"
+                disabled={uploadingAvatar}
               >
                 <IoCreateOutline size={14} color="#fff" />
               </button>
@@ -244,7 +332,9 @@ export default function ProfilePageClient({
                   <IoDiamond size={24} color="#fff" />
                 </div>
                 <div className={styles.subscriptionInfo}>
-                  <h3 className={styles.subscriptionTitle}>Premium Active</h3>
+                  <h3 className={styles.subscriptionTitle}>
+                    {subscription.plan_type === 'semester' ? 'Premium Active' : 'Standard Active'}
+                  </h3>
                   <p className={styles.subscriptionSubtitle}>
                     {daysLeft !== null ? `${daysLeft} days remaining` : 'Active subscription'}
                   </p>

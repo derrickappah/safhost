@@ -53,7 +53,7 @@ export default function BulkUploadPage() {
           <h2>Upload Instructions</h2>
           <ol>
             <li>Download the template CSV file (if available)</li>
-            <li>Fill in hostel data: name, school_id, price_min, address, landlord_name, landlord_phone, etc.</li>
+            <li>Fill in hostel data: name, school_id, price_min, address, hostel_manager_name, hostel_manager_phone, etc.</li>
             <li>Upload the CSV file</li>
             <li>Review any duplicate warnings or errors</li>
           </ol>

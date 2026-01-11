@@ -12,6 +12,7 @@ export interface Review {
   subscription_id: string | null
   rating: number
   comment: string | null
+  status: 'pending' | 'approved' | 'rejected'
   created_at: string
   updated_at: string
   user?: {
@@ -40,6 +41,7 @@ export const getHostelReviews = cache(async (hostelId: string): Promise<{
       .from('reviews')
       .select('*')
       .eq('hostel_id', hostelId)
+      .eq('status', 'approved') // Only show approved reviews
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -150,6 +152,11 @@ export async function createReview(input: CreateReviewInput): Promise<{
       return { data: null, error: 'Rating must be between 1 and 5' }
     }
     
+    // Validate comment requirement for ratings less than 2
+    if (input.rating < 2 && (!input.comment || input.comment.trim() === '')) {
+      return { data: null, error: 'A review comment is required for ratings below 2 stars' }
+    }
+    
     // Try to get subscription for better error messages, but don't block if RLS will handle it
     // The RLS policy is the source of truth, so we'll let it enforce the check
     const { data: subscription } = await getActiveSubscription()
@@ -161,10 +168,12 @@ export async function createReview(input: CreateReviewInput): Promise<{
     // For authenticated users, set user_id and leave subscription_id as NULL
     // The table constraint requires either user_id OR subscription_id, not both
     // The RLS policy will verify the user has an active subscription
+    // Set status: 'pending' for ratings < 2, 'approved' for ratings >= 2
     const reviewData: any = {
       hostel_id: input.hostelId,
       rating: input.rating,
       comment: input.comment || null,
+      status: input.rating < 2 ? 'pending' : 'approved',
       user_id: user.id, // For authenticated users, use user_id
       subscription_id: null // Leave NULL for authenticated users (constraint requirement)
     }
@@ -260,11 +269,20 @@ export async function updateReview(
       return { data: null, error: 'Rating must be between 1 and 5' }
     }
     
+    // Validate comment requirement for ratings less than 2
+    if (rating < 2 && (!comment || comment.trim() === '')) {
+      return { data: null, error: 'A review comment is required for ratings below 2 stars' }
+    }
+    
+    // Set status: 'pending' for ratings < 2, 'approved' for ratings >= 2
+    const status = rating < 2 ? 'pending' : 'approved'
+    
     const { data, error } = await supabase
       .from('reviews')
       .update({
         rating,
         comment: comment || null,
+        status,
         updated_at: new Date().toISOString()
       })
       .eq('id', reviewId)

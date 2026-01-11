@@ -18,7 +18,7 @@ const plans = [
     popular: true,
     features: [
       "Full access to all hostels",
-      "Contact landlords directly",
+      "Contact hostel managers directly",
       "Save favorites",
       "View all photos & details",
     ],

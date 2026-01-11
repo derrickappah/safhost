@@ -31,8 +31,8 @@ const faqs = [
     answer: 'Yes! Click the heart icon on any hostel listing to save it to your favorites. You can access all your saved hostels from the Favorites tab.',
   },
   {
-    question: 'How do I contact a landlord?',
-    answer: 'Once you have an active subscription, click the "Contact Landlord" button on any hostel detail page. This will reveal the landlord\'s phone number and email.',
+    question: 'How do I contact a hostel manager?',
+    answer: 'Once you have an active subscription, click the "Contact Hostel Manager" button on any hostel detail page. This will reveal the hostel manager\'s phone number and email.',
   },
   {
     question: 'Can I leave reviews?',
@@ -84,13 +84,13 @@ export default function HelpPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Contact Support</h2>
           <div className={styles.contactOptions}>
-            <a href="mailto:support@hostelfinder.com" className={styles.contactOption}>
+            <a href="mailto:safhost247@gmail.com" className={styles.contactOption}>
               <span className={styles.contactLabel}>Email</span>
-              <span className={styles.contactValue}>support@hostelfinder.com</span>
+              <span className={styles.contactValue}>safhost247@gmail.com</span>
             </a>
-            <a href="tel:+233123456789" className={styles.contactOption}>
+            <a href="tel:+233556438703" className={styles.contactOption}>
               <span className={styles.contactLabel}>Phone</span>
-              <span className={styles.contactValue}>+233 123 456 789</span>
+              <span className={styles.contactValue}>+233 556 438 703</span>
             </a>
             <button
               className={styles.contactOption}

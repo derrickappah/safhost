@@ -6,7 +6,7 @@ import { getUser } from '../auth'
 import { getActiveSubscription } from './subscriptions'
 
 /**
- * Log a contact click (when user clicks "Contact Landlord")
+ * Log a contact click (when user clicks "Contact Hostel Manager")
  */
 export async function logContactClick(hostelId: string): Promise<{
   error: string | null

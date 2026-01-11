@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { addFavorite, removeFavorite } from '@/lib/actions/favorites'
 import { type Hostel } from '@/lib/actions/hostels'
 import HostelCard from './HostelCard'
@@ -21,8 +21,19 @@ export default function HostelsList({
   selectedHostels = new Set(),
   onToggleSelection
 }: HostelsListProps) {
-  const [hostels] = useState(initialHostels)
+  const [hostels, setHostels] = useState(initialHostels)
   const [favoritedHostels, setFavoritedHostels] = useState<Set<string>>(initialFavorited || new Set())
+
+  // Update hostels and favorited when props change (e.g., when filters/sort change)
+  useEffect(() => {
+    setHostels(initialHostels)
+  }, [initialHostels])
+
+  useEffect(() => {
+    if (initialFavorited) {
+      setFavoritedHostels(initialFavorited)
+    }
+  }, [initialFavorited])
 
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()

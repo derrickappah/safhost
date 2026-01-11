@@ -52,6 +52,12 @@ export default function ReviewsSection({
       return
     }
 
+    // Validate comment requirement for ratings less than 2
+    if (reviewRating < 2 && (!reviewComment || reviewComment.trim() === '')) {
+      alert('A review comment is required for ratings below 2 stars')
+      return
+    }
+
     setSubmittingReview(true)
     
     try {
@@ -234,15 +240,23 @@ export default function ReviewsSection({
               </div>
 
               <div className={styles.commentInput}>
-                <label className={styles.commentLabel}>Your Review (Optional)</label>
+                <label className={styles.commentLabel}>
+                  Your Review {reviewRating > 0 && reviewRating < 2 ? '(Required)' : '(Optional)'}
+                </label>
                 <textarea
                   className={styles.commentTextarea}
-                  placeholder="Share your experience with this hostel..."
+                  placeholder={reviewRating > 0 && reviewRating < 2 ? "Please provide a comment explaining your low rating..." : "Share your experience with this hostel..."}
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   rows={5}
                   maxLength={500}
+                  required={reviewRating > 0 && reviewRating < 2}
                 />
+                {reviewRating > 0 && reviewRating < 2 && (!reviewComment || reviewComment.trim() === '') && (
+                  <span style={{ color: '#ef4444', fontSize: '14px', marginTop: '4px', display: 'block' }}>
+                    A comment is required for ratings below 2 stars
+                  </span>
+                )}
                 <span className={styles.commentCounter}>
                   {reviewComment.length}/500
                 </span>
@@ -260,7 +274,7 @@ export default function ReviewsSection({
               <button
                 className={styles.reviewSubmitButton}
                 onClick={handleSubmitReview}
-                disabled={submittingReview || reviewRating === 0}
+                disabled={submittingReview || reviewRating === 0 || (reviewRating < 2 && (!reviewComment || reviewComment.trim() === ''))}
               >
                 {submittingReview ? 'Submitting...' : userReview ? 'Update Review' : 'Submit Review'}
               </button>

@@ -106,7 +106,7 @@ export default function FavoritesList({ initialFavorites }: FavoritesListProps) 
                 )}
                 <div className={styles.cardFooter}>
                   <span className={styles.priceText}>GHS {hostel.price_min}</span>
-                  <span className={styles.pricePeriod}>/month</span>
+                  <span className={styles.pricePeriod}>/sem</span>
                 </div>
               </div>
             </div>

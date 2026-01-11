@@ -7,11 +7,11 @@ import styles from './page.module.css'
 interface ContactModalProps {
   isOpen: boolean
   onClose: () => void
-  landlordName: string
+  hostelManagerName: string
   phone: string
 }
 
-export default function ContactModal({ isOpen, onClose, landlordName, phone }: ContactModalProps) {
+export default function ContactModal({ isOpen, onClose, hostelManagerName, phone }: ContactModalProps) {
   const [copiedPhone, setCopiedPhone] = useState(false)
 
   if (!isOpen) return null
@@ -45,7 +45,7 @@ export default function ContactModal({ isOpen, onClose, landlordName, phone }: C
     <div className={styles.contactModalOverlay} onClick={onClose}>
       <div className={styles.contactModal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.contactModalHeader}>
-          <h2 className={styles.contactModalTitle}>Contact Landlord</h2>
+          <h2 className={styles.contactModalTitle}>Contact Hostel Manager</h2>
           <button
             className={styles.contactModalClose}
             onClick={onClose}
@@ -55,8 +55,8 @@ export default function ContactModal({ isOpen, onClose, landlordName, phone }: C
         </div>
         
         <div className={styles.contactModalContent}>
-          <div className={styles.landlordInfo}>
-            <h3 className={styles.landlordName}>{landlordName}</h3>
+          <div className={styles.hostelManagerInfo}>
+            <h3 className={styles.hostelManagerName}>{hostelManagerName}</h3>
             <div className={styles.phoneNumber}>
               <IoCall size={18} color="#64748b" />
               <span>{phone}</span>

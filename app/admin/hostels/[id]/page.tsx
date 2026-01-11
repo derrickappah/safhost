@@ -43,8 +43,8 @@ export default function EditHostelPage() {
     price_min: '',
     price_max: '',
     address: '',
-    landlord_name: '',
-    landlord_phone: '',
+    hostel_manager_name: '',
+    hostel_manager_phone: '',
     latitude: '',
     longitude: '',
     distance: '',
@@ -100,8 +100,8 @@ export default function EditHostelPage() {
         price_min: String(hostelData.price_min || ''),
         price_max: hostelData.price_max ? String(hostelData.price_max) : '',
         address: hostelData.address || '',
-        landlord_name: hostelData.landlord_name || '',
-        landlord_phone: hostelData.landlord_phone || '',
+        hostel_manager_name: hostelData.hostel_manager_name || '',
+        hostel_manager_phone: hostelData.hostel_manager_phone || '',
         latitude: hostelData.latitude ? String(hostelData.latitude) : '',
         longitude: hostelData.longitude ? String(hostelData.longitude) : '',
         distance: hostelData.distance ? String(hostelData.distance) : '',
@@ -230,7 +230,7 @@ export default function EditHostelPage() {
     setSaving(true)
 
     // Validate required fields
-    if (!formData.school_id || !formData.name || !formData.price_min || !formData.address || !formData.landlord_name || !formData.landlord_phone) {
+    if (!formData.school_id || !formData.name || !formData.price_min || !formData.address || !formData.hostel_manager_name || !formData.hostel_manager_phone) {
       setError('Please fill in all required fields')
       setSaving(false)
       return
@@ -249,8 +249,8 @@ export default function EditHostelPage() {
       price_min: Number(formData.price_min),
       price_max: formData.price_max ? Number(formData.price_max) : undefined,
       address: formData.address,
-      landlord_name: formData.landlord_name,
-      landlord_phone: formData.landlord_phone,
+      hostel_manager_name: formData.hostel_manager_name,
+      hostel_manager_phone: formData.hostel_manager_phone,
       latitude: formData.latitude ? Number(formData.latitude) : undefined,
       longitude: formData.longitude ? Number(formData.longitude) : undefined,
       distance: formData.distance ? Number(formData.distance) : undefined,
@@ -509,32 +509,32 @@ export default function EditHostelPage() {
         </div>
 
         <div className={styles.formSection}>
-          <h2 className={styles.sectionTitle}>Landlord Information</h2>
+          <h2 className={styles.sectionTitle}>Hostel Manager Information</h2>
           
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Landlord Name <span className={styles.required}>*</span>
+                Hostel Manager Name <span className={styles.required}>*</span>
               </label>
               <input
                 type="text"
-                name="landlord_name"
-                value={formData.landlord_name}
+                name="hostel_manager_name"
+                value={formData.hostel_manager_name}
                 onChange={handleInputChange}
                 className={styles.input}
-                placeholder="Enter landlord name"
+                placeholder="Enter hostel manager name"
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Landlord Phone <span className={styles.required}>*</span>
+                Hostel Manager Phone <span className={styles.required}>*</span>
               </label>
               <input
                 type="tel"
-                name="landlord_phone"
-                value={formData.landlord_phone}
+                name="hostel_manager_phone"
+                value={formData.hostel_manager_phone}
                 onChange={handleInputChange}
                 className={styles.input}
                 placeholder="Enter phone number"

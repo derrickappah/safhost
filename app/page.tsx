@@ -139,7 +139,7 @@ export default async function LandingPage() {
                       </span>
                     )}
                     <span className={styles.priceText}>
-                      From GHS {hostel.price}/mo
+                      From GHS {hostel.price}/sem
                     </span>
                   </div>
                   <div className={styles.amenitiesRow}>

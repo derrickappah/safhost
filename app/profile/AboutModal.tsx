@@ -32,7 +32,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
           </div>
           <div style={{ marginTop: '24px' }}>
             <p style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', margin: '0 0 12px 0' }}>
-              Find verified hostels near your school campus. Connect with landlords, save favorites, and make informed decisions about your accommodation.
+              Find verified hostels near your school campus. Connect with hostel managers, save favorites, and make informed decisions about your accommodation.
             </p>
             <p style={{ fontSize: '12px', color: '#94a3b8', margin: '16px 0 0 0' }}>
               © 2025 Hostel Student Finder. All rights reserved.

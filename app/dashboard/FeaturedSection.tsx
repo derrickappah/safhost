@@ -115,7 +115,7 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
                     </span>
                   )}
                 </div>
-                <span className={styles.favoritePrice}>GHS {hostel.price || 0}/mo</span>
+                <span className={styles.favoritePrice}>GHS {hostel.price || 0}/sem</span>
               </div>
               <button 
                 className={styles.heartButton}

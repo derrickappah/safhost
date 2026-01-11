@@ -1331,14 +1331,14 @@
   padding: var(--container-padding-md);
 }
 
-.landlordInfo {
+.hostelManagerInfo {
   text-align: center;
   padding: var(--container-padding-md) 0;
   border-bottom: 1px solid #f1f5f9;
   margin-bottom: var(--container-padding-md);
 }
 
-.landlordName {
+.hostelManagerName {
   font-size: var(--font-size-xl);
   font-weight: 700;
   color: var(--color-text-primary);

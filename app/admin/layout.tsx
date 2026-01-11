@@ -50,6 +50,9 @@ export default async function AdminLayout({
           <Link href="/admin/reports" className={styles.navLink}>
             Reports
           </Link>
+          <Link href="/admin/reviews" className={styles.navLink}>
+            Reviews
+          </Link>
           <Link href="/admin/users" className={styles.navLink}>
             Users
           </Link>

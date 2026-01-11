@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { IoOptionsOutline, IoMan, IoWoman, IoPeople, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoBarbell, IoShirt, IoSnow, IoCar, IoBook } from 'react-icons/io5'
 import styles from './page.module.css'
@@ -46,6 +46,18 @@ export default function FiltersSheet({ isOpen, onClose, initialFilters }: Filter
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(initialFilters.roomTypes)
   const [genderRestriction, setGenderRestriction] = useState<string>(initialFilters.genderRestriction)
   const [isAvailable, setIsAvailable] = useState<boolean | undefined>(initialFilters.isAvailable)
+
+  // Sync state with initialFilters when the sheet opens to load current URL params
+  useEffect(() => {
+    if (isOpen) {
+      setPriceRange([initialFilters.minPrice, initialFilters.maxPrice])
+      setDistanceRange(initialFilters.distance)
+      setSelectedAmenities(initialFilters.amenities)
+      setSelectedRoomTypes(initialFilters.roomTypes)
+      setGenderRestriction(initialFilters.genderRestriction)
+      setIsAvailable(initialFilters.isAvailable)
+    }
+  }, [isOpen]) // Only sync when sheet opens, initialFilters are passed as props from server
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>

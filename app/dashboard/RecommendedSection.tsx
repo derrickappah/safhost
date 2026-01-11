@@ -98,7 +98,7 @@ export default function RecommendedSection({ recommendedHostels, loading }: Reco
                     </div>
                   )}
                 </div>
-                <div className={styles.hostelPrice}>GHS {hostel.price_min || 0}/mo</div>
+                <div className={styles.hostelPrice}>GHS {hostel.price_min || 0}/sem</div>
               </div>
             </button>
           )

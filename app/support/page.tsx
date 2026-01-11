@@ -41,24 +41,24 @@ export default function SupportPage() {
           </p>
 
           <div className={styles.contactMethods}>
-            <a href="mailto:support@hostelfinder.com" className={styles.contactCard}>
+            <a href="mailto:safhost247@gmail.com" className={styles.contactCard}>
               <div className={styles.contactIcon} style={{ backgroundColor: '#fee2e2' }}>
                 <IoMailOutline size={24} color="#dc2626" />
               </div>
               <div className={styles.contactInfo}>
                 <h3 className={styles.contactTitle}>Email</h3>
-                <p className={styles.contactValue}>support@hostelfinder.com</p>
+                <p className={styles.contactValue}>safhost247@gmail.com</p>
                 <span className={styles.contactHint}>We'll respond within 24 hours</span>
               </div>
             </a>
 
-            <a href="tel:+233123456789" className={styles.contactCard}>
+            <a href="tel:+233556438703" className={styles.contactCard}>
               <div className={styles.contactIcon} style={{ backgroundColor: '#dcfce7' }}>
                 <IoCallOutline size={24} color="#16a34a" />
               </div>
               <div className={styles.contactInfo}>
                 <h3 className={styles.contactTitle}>Phone</h3>
-                <p className={styles.contactValue}>+233 123 456 789</p>
+                <p className={styles.contactValue}>+233 556 438 703</p>
                 <span className={styles.contactHint}>Mon-Fri, 9AM-5PM GMT</span>
               </div>
             </a>

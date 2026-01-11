@@ -32,8 +32,8 @@ export interface Hostel {
   review_count: number
   distance: number | null
   address: string
-  landlord_name: string
-  landlord_phone: string
+  hostel_manager_name: string
+  hostel_manager_phone: string
   latitude: number | null
   longitude: number | null
   images: string[]
@@ -306,8 +306,8 @@ export const getHostelById = cache(async (id: string): Promise<{
         review_count,
         distance,
         address,
-        landlord_name,
-        landlord_phone,
+        hostel_manager_name,
+        hostel_manager_phone,
         latitude,
         longitude,
         images,
@@ -396,8 +396,8 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
         review_count,
         distance,
         address,
-        landlord_name,
-        landlord_phone,
+        hostel_manager_name,
+        hostel_manager_phone,
         latitude,
         longitude,
         images,

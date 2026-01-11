@@ -301,7 +301,7 @@ function MapPageContent() {
                     )}
                     <div className={styles.listItemMeta}>
                       <span className={styles.listItemPrice}>
-                        GHS {hostel.price_min}/mo
+                        GHS {hostel.price_min}/sem
                       </span>
                       {hostel.distance && (
                         <span className={styles.listItemDistance}>
@@ -351,7 +351,7 @@ function MapPageContent() {
             <div style={{ flex: 1 }}>
               <h3 className={styles.infoCardName}>{selectedHostel.name}</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <div className={styles.infoCardPrice} style={{ marginBottom: 0 }}>GHS {selectedHostel.price_min}/mo</div>
+                <div className={styles.infoCardPrice} style={{ marginBottom: 0 }}>GHS {selectedHostel.price_min}/sem</div>
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 

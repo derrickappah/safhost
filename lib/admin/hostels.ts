@@ -11,8 +11,8 @@ export interface CreateHostelInput {
   price_min: number
   price_max?: number
   address: string
-  landlord_name: string
-  landlord_phone: string
+  hostel_manager_name: string
+  hostel_manager_phone: string
   latitude?: number
   longitude?: number
   distance?: number
@@ -69,8 +69,8 @@ export async function createHostel(input: CreateHostelInput): Promise<{
         price_min: input.price_min,
         price_max: input.price_max || null,
         address: input.address,
-        landlord_name: input.landlord_name,
-        landlord_phone: input.landlord_phone,
+        hostel_manager_name: input.hostel_manager_name,
+        hostel_manager_phone: input.hostel_manager_phone,
         latitude: input.latitude || null,
         longitude: input.longitude || null,
         distance: input.distance || null,
@@ -137,8 +137,8 @@ export async function updateHostel(
     if (input.price_min !== undefined) updateData.price_min = input.price_min
     if (input.price_max !== undefined) updateData.price_max = input.price_max
     if (input.address !== undefined) updateData.address = input.address
-    if (input.landlord_name !== undefined) updateData.landlord_name = input.landlord_name
-    if (input.landlord_phone !== undefined) updateData.landlord_phone = input.landlord_phone
+    if (input.hostel_manager_name !== undefined) updateData.hostel_manager_name = input.hostel_manager_name
+    if (input.hostel_manager_phone !== undefined) updateData.hostel_manager_phone = input.hostel_manager_phone
     if (input.latitude !== undefined) updateData.latitude = input.latitude
     if (input.longitude !== undefined) updateData.longitude = input.longitude
     if (input.distance !== undefined) updateData.distance = input.distance

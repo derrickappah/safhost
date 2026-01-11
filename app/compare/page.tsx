@@ -118,9 +118,10 @@ function ComparePageContent() {
                   <Image
                     src={hostel.images[0]}
                     alt={hostel.name}
-                    width={400}
-                    height={200}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className={styles.hostelImage}
+                    quality={90}
                   />
                 ) : (
                   <div className={styles.hostelImagePlaceholder}>No Image</div>
@@ -144,7 +145,7 @@ function ComparePageContent() {
                   {hostel.price_max && hostel.price_max !== hostel.price_min && (
                     <span className={styles.priceRange}> - GHS {hostel.price_max}</span>
                   )}
-                  <span className={styles.pricePeriod}>/month</span>
+                  <span className={styles.pricePeriod}>/sem</span>
                 </span>
               </div>
 
@@ -199,7 +200,7 @@ function ComparePageContent() {
                     {hostel.room_types.map((room: any, idx: number) => (
                       <div key={idx} className={styles.roomTypeItem}>
                         <span className={styles.roomType}>{room.type}</span>
-                        <span className={styles.roomPrice}>GHS {room.price}/mo</span>
+                        <span className={styles.roomPrice}>GHS {room.price}/sem</span>
                       </div>
                     ))}
                   </div>
@@ -244,9 +245,10 @@ function ComparePageContent() {
                     <Image
                       src={hostel.images[0]}
                       alt={hostel.name}
-                      width={200}
-                      height={120}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className={styles.hostelImage}
+                      quality={90}
                     />
                   ) : (
                     <div className={styles.hostelImagePlaceholder}>No Image</div>
@@ -350,7 +352,7 @@ function ComparePageContent() {
                     {hostel.room_types.map((room: any, idx: number) => (
                       <div key={idx} className={styles.roomTypeItem}>
                         <span className={styles.roomType}>{room.type}</span>
-                        <span className={styles.roomPrice}>GHS {room.price}/mo</span>
+                        <span className={styles.roomPrice}>GHS {room.price}/sem</span>
                       </div>
                     ))}
                   </div>

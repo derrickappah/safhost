@@ -118,14 +118,29 @@ export default function HostelDetailContent({
   }
 
   const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${hostel.name} on HostelFinder`,
-          text: `Check out ${hostel.name}! From GHS ${hostel.price_min}/month`,
+          text: `Check out ${hostel.name}! From GHS ${hostel.price_min}/sem`,
+          url: url,
         })
       } catch (error) {
-        console.log(error)
+        // User cancelled or error occurred, ignore
+        if ((error as Error).name !== 'AbortError') {
+          console.log(error)
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(url)
+        alert('Link copied to clipboard!')
+      } catch (error) {
+        console.error('Failed to copy link:', error)
+        alert('Failed to share. Please copy the URL manually.')
       }
     }
   }
@@ -349,7 +364,7 @@ export default function HostelDetailContent({
                       </span>
                     )}
                   </div>
-                  <span className={styles.roomPrice}>GHS {room.price}/mo</span>
+                  <span className={styles.roomPrice}>GHS {room.price}/sem</span>
                 </div>
               ))}
             </section>
@@ -396,8 +411,8 @@ export default function HostelDetailContent({
               <div className={styles.contactCard}>
                 <div className={styles.contactCardHeader}>
                   <div>
-                    <h3 className={styles.contactCardName}>{hostel.landlord_name}</h3>
-                    <p className={styles.contactCardLabel}>Landlord</p>
+                    <h3 className={styles.contactCardName}>{hostel.hostel_manager_name}</h3>
+                    <p className={styles.contactCardLabel}>Hostel Manager</p>
                   </div>
                 </div>
                 <button
@@ -405,7 +420,7 @@ export default function HostelDetailContent({
                   onClick={handleContact}
                 >
                   <IoCall size={18} />
-                  <span>Contact Landlord</span>
+                  <span>Contact Hostel Manager</span>
                 </button>
               </div>
             </section>
@@ -456,13 +471,13 @@ export default function HostelDetailContent({
       <div className={styles.bottomCTA}>
         <div className={styles.ctaPrice}>
           <span className={styles.ctaPriceLabel}>From</span>
-          <span className={styles.ctaPriceValue}>GHS {hostel.price_min}/mo</span>
+          <span className={styles.ctaPriceValue}>GHS {hostel.price_min}/sem</span>
         </div>
         <button
           className={styles.contactButton}
           onClick={handleContact}
-          title="Contact Landlord"
-          aria-label="Contact Landlord"
+          title="Contact Hostel Manager"
+          aria-label="Contact Hostel Manager"
         >
           <IoCall size={22} color="#fff" />
         </button>
@@ -480,8 +495,8 @@ export default function HostelDetailContent({
       <ContactModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
-        landlordName={hostel.landlord_name}
-        phone={hostel.landlord_phone}
+        hostelManagerName={hostel.hostel_manager_name}
+        phone={hostel.hostel_manager_phone}
       />
     </div>
   )

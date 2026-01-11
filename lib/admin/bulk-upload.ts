@@ -10,8 +10,8 @@ interface HostelRow {
   price_min: number
   price_max?: number
   address: string
-  landlord_name: string
-  landlord_phone: string
+  hostel_manager_name: string
+  hostel_manager_phone: string
   latitude?: number
   longitude?: number
   distance?: number
@@ -45,8 +45,8 @@ async function parseCSV(file: File): Promise<HostelRow[]> {
       price_min: Number(row.price_min || row.price || 0),
       price_max: row.price_max ? Number(row.price_max) : undefined,
       address: row.address || row.location || '',
-      landlord_name: row.landlord_name || row.landlord || '',
-      landlord_phone: row.landlord_phone || row.phone || '',
+      hostel_manager_name: row.hostel_manager_name || row.hostel_manager || row.landlord_name || row.landlord || '',
+      hostel_manager_phone: row.hostel_manager_phone || row.manager_phone || row.landlord_phone || row.phone || '',
       latitude: row.latitude ? Number(row.latitude) : undefined,
       longitude: row.longitude ? Number(row.longitude) : undefined,
       distance: row.distance ? Number(row.distance) : undefined,
@@ -113,7 +113,7 @@ export async function bulkUploadHostels(file: File): Promise<{
     for (const row of rows) {
       try {
         // Validate required fields
-        if (!row.name || !row.address || !row.landlord_name || !row.landlord_phone || !row.price_min) {
+        if (!row.name || !row.address || !row.hostel_manager_name || !row.hostel_manager_phone || !row.price_min) {
           errors.push(`Row "${row.name || 'Unknown'}": Missing required fields`)
           continue
         }
@@ -158,8 +158,8 @@ export async function bulkUploadHostels(file: File): Promise<{
             price_min: row.price_min,
             price_max: row.price_max || null,
             address: row.address,
-            landlord_name: row.landlord_name,
-            landlord_phone: row.landlord_phone,
+            hostel_manager_name: row.hostel_manager_name,
+            hostel_manager_phone: row.hostel_manager_phone,
             latitude: row.latitude || null,
             longitude: row.longitude || null,
             distance: row.distance || null,

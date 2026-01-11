@@ -1,4 +1,4 @@
--- Contact logs table for tracking "Contact Landlord" clicks
+-- Contact logs table for tracking "Contact Hostel Manager" clicks
 CREATE TABLE IF NOT EXISTS contact_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   hostel_id UUID NOT NULL REFERENCES hostels(id) ON DELETE CASCADE,

@@ -60,13 +60,14 @@ export const getProfile = cache(async (): Promise<{
 })
 
 /**
- * Update user profile (name, email, phone, school)
+ * Update user profile (name, email, phone, school, avatar_url)
  */
 export async function updateProfile(
   name?: string,
   email?: string,
   phone?: string,
-  schoolId?: string | null
+  schoolId?: string | null,
+  avatarUrl?: string | null
 ): Promise<{
   error: string | null
 }> {
@@ -97,6 +98,11 @@ export async function updateProfile(
       hasUpdates = true
     }
     
+    if (avatarUrl !== undefined) {
+      updateData.avatar_url = avatarUrl
+      hasUpdates = true
+    }
+    
     // Only proceed if there are actual updates to make
     if (!hasUpdates && (email === undefined || email === user.email)) {
       return { error: null } // No updates needed
@@ -105,7 +111,7 @@ export async function updateProfile(
     // Ensure profile exists
     const { data: existingProfile } = await supabase
       .from('profiles')
-      .select('id, full_name, phone, school_id')
+      .select('id, full_name, phone, school_id, avatar_url')
       .eq('id', user.id)
       .single()
     
@@ -118,9 +124,10 @@ export async function updateProfile(
           full_name: name || user.user_metadata?.name || user.user_metadata?.full_name || null,
           phone: phone || user.user_metadata?.phone || null,
           school_id: schoolId || null,
+          avatar_url: avatarUrl || null,
           role: user.user_metadata?.role || 'user',
         })
-      
+        
       if (insertError) {
         return { error: insertError.message }
       }
@@ -130,7 +137,8 @@ export async function updateProfile(
       const needsUpdate = 
         (name !== undefined && name !== existingProfile.full_name) ||
         (phone !== undefined && phone !== existingProfile.phone) ||
-        (schoolId !== undefined && schoolId !== existingProfile.school_id)
+        (schoolId !== undefined && schoolId !== existingProfile.school_id) ||
+        (avatarUrl !== undefined && avatarUrl !== existingProfile.avatar_url)
       
       if (needsUpdate) {
         const { error: updateError } = await supabase
