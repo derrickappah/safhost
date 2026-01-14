@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/middleware'
-import { getUsers, getBannedUsers } from '@/lib/admin/users'
+import { getUsers, getBannedUsers, getUserRoles } from '@/lib/admin/users'
 import UsersList from './UsersList'
 import AdminPageHeader from '../AdminPageHeader'
 import styles from './page.module.css'
@@ -24,6 +24,11 @@ export default async function AdminUsersPage() {
   const users = usersResult.data || []
   const bannedUsers = bannedResult.data || new Set<string>()
 
+  // Get user roles for all users
+  const userIds = users.map(u => u.id)
+  const rolesResult = await getUserRoles(userIds).catch(() => ({ data: new Map<string, 'user' | 'admin'>(), error: null }))
+  const userRoles = rolesResult.data || new Map<string, 'user' | 'admin'>()
+
   return (
     <div className={styles.container}>
       <AdminPageHeader title="User Management" />
@@ -31,6 +36,7 @@ export default async function AdminUsersPage() {
         <UsersList 
           initialUsers={users} 
           initialBannedUsers={bannedUsers}
+          initialUserRoles={userRoles}
         />
       </div>
     </div>
