@@ -1,13 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { IoArrowBack } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getNotifications, markAllAsRead } from '@/lib/notifications/get'
 
 export default function NotificationsHeader() {
-  const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -34,9 +31,6 @@ export default function NotificationsHeader() {
 
   return (
     <header className={styles.header}>
-      <button className={styles.backButton} onClick={() => router.back()}>
-        <IoArrowBack size={24} color="#1e293b" />
-      </button>
       <h1 className={styles.headerTitle}>Notifications</h1>
       {unreadCount > 0 && (
         <button className={styles.markAllButton} onClick={handleMarkAllAsRead}>
