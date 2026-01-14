@@ -500,13 +500,52 @@
   color: #92400e;
 }
 
+/* Admin Panel Button */
+.adminButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 40px var(--container-padding-md) 16px var(--container-padding-md);
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 10px 15px -3px rgba(37, 99, 235, 0.1);
+}
+
+.adminButton:hover {
+  background: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 20px 25px -5px rgba(37, 99, 235, 0.1),
+    0 10px 10px -5px rgba(37, 99, 235, 0.04);
+}
+
+.adminButton:active {
+  transform: translateY(0);
+}
+
+.adminButtonText {
+  font-size: 15px;
+  font-weight: 800;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 /* Sign Out Button */
 .signOutButton {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin: 40px var(--container-padding-md);
+  margin: 16px var(--container-padding-md) 40px var(--container-padding-md);
   padding: 16px;
   background: #fff;
   border: 1px solid #fee2e2;

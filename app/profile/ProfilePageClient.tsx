@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { IoPerson, IoCardOutline, IoSchoolOutline, IoNotificationsOutline, IoHelpCircleOutline, IoInformationCircleOutline, IoCreateOutline, IoDiamond, IoChevronForward, IoLogOutOutline, IoCheckmarkCircle, IoCloseCircle, IoHeart, IoEye, IoCall } from 'react-icons/io5'
+import { IoPerson, IoCardOutline, IoSchoolOutline, IoNotificationsOutline, IoHelpCircleOutline, IoInformationCircleOutline, IoCreateOutline, IoDiamond, IoChevronForward, IoLogOutOutline, IoCheckmarkCircle, IoCloseCircle, IoHeart, IoEye, IoCall, IoShieldCheckmark } from 'react-icons/io5'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile, getProfile } from '@/lib/actions/profile'
 import { getCurrentUser } from '@/lib/auth/client'
@@ -21,6 +21,7 @@ interface ProfilePageClientProps {
   schools: any[]
   profile: any
   selectedSchool: string | null
+  isAdmin?: boolean
 }
 
 export default function ProfilePageClient({
@@ -32,7 +33,8 @@ export default function ProfilePageClient({
   paymentHistory,
   schools,
   profile: initialProfile,
-  selectedSchool: initialSelectedSchool
+  selectedSchool: initialSelectedSchool,
+  isAdmin = false
 }: ProfilePageClientProps) {
   const { navigate, router } = useInstantNavigation()
   const [profile, setProfile] = useState(initialProfile)
@@ -478,6 +480,17 @@ export default function ProfilePageClient({
               ))}
             </div>
           </div>
+        )}
+
+        {/* Admin Panel Button - Only visible to admins */}
+        {isAdmin && (
+          <button 
+            className={styles.adminButton} 
+            onClick={() => router.push('/admin')}
+          >
+            <IoShieldCheckmark size={22} color="#2563eb" />
+            <span className={styles.adminButtonText}>Admin Panel</span>
+          </button>
         )}
 
         {/* Sign Out */}

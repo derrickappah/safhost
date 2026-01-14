@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/auth'
+import { isAdmin } from '@/lib/auth/middleware'
 import { getActiveSubscription } from '@/lib/actions/subscriptions'
 import { getFavorites } from '@/lib/actions/favorites'
 import { getViewedCount } from '@/lib/actions/views'
@@ -45,6 +46,9 @@ export default async function ProfilePage() {
   const schools = schoolsResult.data || []
   const profile = profileResult.data
   const selectedSchool = profile?.school_id || null
+  
+  // Check if user is admin
+  const isUserAdmin = await isAdmin()
 
   return (
     <ProfilePageClient
@@ -57,6 +61,7 @@ export default async function ProfilePage() {
       schools={schools}
       profile={profile}
       selectedSchool={selectedSchool}
+      isAdmin={isUserAdmin}
     />
   )
 }

@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import { getHostels } from '@/lib/actions/hostels'
+import { getAllHostels } from '@/lib/admin/hostels'
 
 // Revalidate every 60 seconds
 export const revalidate = 60
 
 export default async function AdminHostelsPage() {
-  const { data: hostels } = await getHostels({ limit: 100 })
+  const { data: hostels } = await getAllHostels(100)
 
   return (
     <div>

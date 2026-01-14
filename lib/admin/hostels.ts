@@ -255,3 +255,74 @@ export async function deleteHostel(id: string): Promise<{
     }
   }
 }
+
+/**
+ * Get all hostels for admin (no subscription check, includes inactive)
+ */
+export async function getAllHostels(limit?: number): Promise<{
+  data: any[] | null
+  error: string | null
+}> {
+  try {
+    const admin = await isAdmin()
+    if (!admin) {
+      return { data: null, error: 'Admin access required' }
+    }
+
+    // Use service role client to bypass RLS (admin status already verified)
+    const supabase = createServiceRoleClient()
+    
+    let query = supabase
+      .from('hostels')
+      .select(`
+        id,
+        school_id,
+        name,
+        price_min,
+        price_max,
+        rating,
+        review_count,
+        distance,
+        images,
+        amenities,
+        is_active,
+        created_at,
+        view_count,
+        gender_restriction,
+        is_available,
+        featured,
+        latitude,
+        longitude,
+        school:schools(id, name, location, latitude, longitude, logo_url)
+      `)
+      .order('created_at', { ascending: false })
+    
+    if (limit) {
+      query = query.limit(limit)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) {
+      return { data: null, error: error.message }
+    }
+    
+    // Format data
+    const formattedData = (data || []).map(hostel => ({
+      ...hostel,
+      latitude: hostel.latitude ? Number(hostel.latitude) : null,
+      longitude: hostel.longitude ? Number(hostel.longitude) : null,
+      price_min: Number(hostel.price_min),
+      price_max: hostel.price_max ? Number(hostel.price_max) : null,
+      rating: Number(hostel.rating),
+      school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
+    }))
+    
+    return { data: formattedData, error: null }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to fetch hostels',
+    }
+  }
+}
