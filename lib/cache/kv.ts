@@ -39,7 +39,7 @@ const kvAvailable = isKVConfigured()
 export async function getCached<T = any>(key: string): Promise<T | null> {
   try {
     if (kvAvailable && kv) {
-      const value = await kv.get<T>(key)
+      const value = await kv.get(key) as T
       return value
     } else {
       // Fallback to in-memory cache
@@ -80,7 +80,7 @@ export async function getCachedWithStale<T = any>(
 ): Promise<{ value: T | null; isStale: boolean }> {
   try {
     if (kvAvailable && kv) {
-      const value = await kv.get<T>(key)
+      const value = await kv.get(key) as T
       // With KV, we can't easily track stale state, so assume not stale if found
       return { value, isStale: false }
     } else {
