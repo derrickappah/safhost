@@ -38,33 +38,63 @@ export default function HostelsList({
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const isFav = favoritedHostels.has(id)
+    const previousState = favoritedHostels.has(id)
     
+    // Optimistic update
     if (isFav) {
-      const { error } = await removeFavorite(id)
-      if (error) {
-        console.error('Failed to remove favorite:', error)
-        alert('Failed to remove from favorites: ' + error)
-      } else {
-        setFavoritedHostels(prev => {
-          const next = new Set(prev)
-          next.delete(id)
-          return next
-        })
-      }
+      setFavoritedHostels(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
     } else {
-      const { error } = await addFavorite(id)
-      if (error) {
-        console.error('Failed to add favorite:', error)
-        if (error === 'Authentication required') {
-          alert('Please log in to save favorites')
-        } else if (error === 'Active subscription required') {
-          alert('An active subscription is required to save favorites')
-        } else {
-          alert('Failed to add to favorites: ' + error)
+      setFavoritedHostels(prev => new Set(prev).add(id))
+    }
+    
+    // API call
+    try {
+      if (isFav) {
+        const { error } = await removeFavorite(id)
+        if (error) {
+          // Rollback
+          setFavoritedHostels(prev => {
+            const next = new Set(prev)
+            if (previousState) next.add(id)
+            else next.delete(id)
+            return next
+          })
+          console.error('Failed to remove favorite:', error)
+          alert('Failed to remove from favorites: ' + error)
         }
       } else {
-        setFavoritedHostels(prev => new Set(prev).add(id))
+        const { error } = await addFavorite(id)
+        if (error) {
+          // Rollback
+          setFavoritedHostels(prev => {
+            const next = new Set(prev)
+            if (previousState) next.add(id)
+            else next.delete(id)
+            return next
+          })
+          console.error('Failed to add favorite:', error)
+          if (error === 'Authentication required') {
+            alert('Please log in to save favorites')
+          } else if (error === 'Active subscription required') {
+            alert('An active subscription is required to save favorites')
+          } else {
+            alert('Failed to add to favorites: ' + error)
+          }
+        }
       }
+    } catch (error) {
+      // Rollback on unexpected errors
+      setFavoritedHostels(prev => {
+        const next = new Set(prev)
+        if (previousState) next.add(id)
+        else next.delete(id)
+        return next
+      })
+      alert('An unexpected error occurred')
     }
   }
 

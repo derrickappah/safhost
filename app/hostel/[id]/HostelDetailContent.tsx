@@ -88,32 +88,44 @@ export default function HostelDetailContent({
       return
     }
     
-    if (isSaved) {
-      const { removeFavorite } = await import('@/lib/actions/favorites')
-      const { error } = await removeFavorite(hostel.id)
-      if (error) {
-        console.error('Failed to remove favorite:', error)
-        alert('Failed to remove from favorites: ' + error)
-      } else {
-        setIsSaved(false)
-      }
-    } else {
-      const { addFavorite } = await import('@/lib/actions/favorites')
-      const { error } = await addFavorite(hostel.id)
-      if (error) {
-        console.error('Failed to add favorite:', error)
-        if (error.includes('check constraint')) {
-          alert('Failed to add to favorites. Please try again.')
-        } else if (error === 'Authentication required') {
-          alert('Please log in to save favorites')
-        } else if (error === 'Active subscription required') {
-          alert('An active subscription is required to save favorites')
-        } else {
-          alert('Failed to add to favorites: ' + error)
+    const previousState = isSaved
+    
+    // Optimistic update
+    setIsSaved(!isSaved)
+    
+    // API call
+    try {
+      if (previousState) {
+        const { removeFavorite } = await import('@/lib/actions/favorites')
+        const { error } = await removeFavorite(hostel.id)
+        if (error) {
+          // Rollback
+          setIsSaved(previousState)
+          console.error('Failed to remove favorite:', error)
+          alert('Failed to remove from favorites: ' + error)
         }
       } else {
-        setIsSaved(true)
+        const { addFavorite } = await import('@/lib/actions/favorites')
+        const { error } = await addFavorite(hostel.id)
+        if (error) {
+          // Rollback
+          setIsSaved(previousState)
+          console.error('Failed to add favorite:', error)
+          if (error.includes('check constraint')) {
+            alert('Failed to add to favorites. Please try again.')
+          } else if (error === 'Authentication required') {
+            alert('Please log in to save favorites')
+          } else if (error === 'Active subscription required') {
+            alert('An active subscription is required to save favorites')
+          } else {
+            alert('Failed to add to favorites: ' + error)
+          }
+        }
       }
+    } catch (error) {
+      // Rollback on unexpected errors
+      setIsSaved(previousState)
+      alert('An unexpected error occurred')
     }
   }
 

@@ -45,21 +45,61 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const isFavorited = favoritedIds.has(hostelId)
+    const previousState = favoritedIds.has(hostelId)
     
+    // Optimistic update
     if (isFavorited) {
-      // Remove from favorites
-      await removeFavorite(hostelId)
       setFavoritedIds(prev => {
         const newSet = new Set(prev)
         newSet.delete(hostelId)
         return newSet
       })
     } else {
-      // Add to favorites
-      const { data } = await addFavorite(hostelId)
-      if (data) {
-        setFavoritedIds(prev => new Set(prev).add(hostelId))
+      setFavoritedIds(prev => new Set(prev).add(hostelId))
+    }
+    
+    // API call
+    try {
+      if (isFavorited) {
+        const { error } = await removeFavorite(hostelId)
+        if (error) {
+          // Rollback
+          setFavoritedIds(prev => {
+            const newSet = new Set(prev)
+            if (previousState) newSet.add(hostelId)
+            else newSet.delete(hostelId)
+            return newSet
+          })
+          alert('Failed to remove favorite: ' + error)
+        }
+      } else {
+        const { error } = await addFavorite(hostelId)
+        if (error) {
+          // Rollback
+          setFavoritedIds(prev => {
+            const newSet = new Set(prev)
+            if (previousState) newSet.add(hostelId)
+            else newSet.delete(hostelId)
+            return newSet
+          })
+          if (error === 'Authentication required') {
+            alert('Please log in to save favorites')
+          } else if (error === 'Active subscription required') {
+            alert('An active subscription is required to save favorites')
+          } else {
+            alert('Failed to add favorite: ' + error)
+          }
+        }
       }
+    } catch (error) {
+      // Rollback on unexpected errors
+      setFavoritedIds(prev => {
+        const newSet = new Set(prev)
+        if (previousState) newSet.add(hostelId)
+        else newSet.delete(hostelId)
+        return newSet
+      })
+      alert('An unexpected error occurred')
     }
   }
 

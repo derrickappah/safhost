@@ -17,11 +17,23 @@ export default function FavoritesList({ initialFavorites }: FavoritesListProps) 
 
   const handleRemoveFavorite = async (favoriteId: string, hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    const { error } = await removeFavorite(hostelId)
-    if (error) {
-      alert('Failed to remove from favorites: ' + error)
-    } else {
-      setFavorites(favorites.filter(f => f.id !== favoriteId))
+    const previousFavorites = favorites
+    
+    // Optimistic update: remove from list immediately
+    setFavorites(favorites.filter(f => f.id !== favoriteId))
+    
+    // API call
+    try {
+      const { error } = await removeFavorite(hostelId)
+      if (error) {
+        // Rollback
+        setFavorites(previousFavorites)
+        alert('Failed to remove from favorites: ' + error)
+      }
+    } catch (error) {
+      // Rollback on unexpected errors
+      setFavorites(previousFavorites)
+      alert('An unexpected error occurred')
     }
   }
 

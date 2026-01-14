@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { IoStar, IoHeart, IoLocation, IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
-import { removeFavorite, addFavorite, getFavorites } from '@/lib/actions/favorites'
+import { removeFavorite, addFavorite } from '@/lib/actions/favorites'
 
 interface Favorite {
   id: string
@@ -29,28 +29,43 @@ export default function FavoritesSection({ favorites: initialFavorites }: Favori
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const favorite = favorites.find(f => f.id === hostelId)
+    const previousFavorites = favorites
     
     if (favorite) {
-      // Remove from favorites
-      await removeFavorite(hostelId)
+      // Optimistic update: remove from favorites immediately
       setFavorites(favorites.filter(f => f.id !== hostelId))
-    } else {
-      // Add to favorites
-      const { data } = await addFavorite(hostelId)
-      if (data) {
-        // Reload favorites to get full data
-        const { data: favoritesData } = await getFavorites()
-        if (favoritesData) {
-          setFavorites(favoritesData.map(fav => ({
-            id: fav.hostel?.id || fav.hostel_id,
-            name: fav.hostel?.name || 'Unknown',
-            price: fav.hostel?.price_min || 0,
-            rating: fav.hostel?.rating || 0,
-            distance: null,
-            image: fav.hostel?.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400',
-            favoriteId: fav.id
-          })))
+      
+      // API call
+      try {
+        const { error } = await removeFavorite(hostelId)
+        if (error) {
+          // Rollback
+          setFavorites(previousFavorites)
+          alert('Failed to remove from favorites: ' + error)
         }
+      } catch (error) {
+        // Rollback on unexpected errors
+        setFavorites(previousFavorites)
+        alert('An unexpected error occurred')
+      }
+    } else {
+      // Add to favorites (edge case - shouldn't normally happen in FavoritesSection)
+      // Since we don't have hostel data, we can't add optimistically
+      // Skip the expensive getFavorites() call - just attempt the add
+      try {
+        const { error } = await addFavorite(hostelId)
+        if (error) {
+          if (error === 'Authentication required') {
+            alert('Please log in to save favorites')
+          } else if (error === 'Active subscription required') {
+            alert('An active subscription is required to save favorites')
+          } else {
+            alert('Failed to add to favorites: ' + error)
+          }
+        }
+        // Note: Adding to FavoritesSection is rare - page refresh will show it
+      } catch (error) {
+        alert('An unexpected error occurred')
       }
     }
   }
