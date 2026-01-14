@@ -1,4 +1,5 @@
 import styles from './page.module.css'
+import Loader from '@/components/Loader'
 
 export default function Loading() {
   return (
@@ -7,11 +8,9 @@ export default function Loading() {
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
-        minHeight: '100vh',
-        fontSize: '16px',
-        color: 'var(--color-text-secondary)'
+        minHeight: '100vh'
       }}>
-        Loading...
+        <Loader />
       </div>
     </div>
   )

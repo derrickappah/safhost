@@ -1,4 +1,5 @@
 import styles from './page.module.css'
+import Loader from '@/components/Loader'
 
 export default function RecommendationsSkeleton() {
   return (
@@ -9,8 +10,8 @@ export default function RecommendationsSkeleton() {
           Based on your viewing history
         </p>
       </div>
-      <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--color-text-secondary)' }}>Loading recommendations...</p>
+      <div style={{ padding: '40px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Loader />
       </div>
     </section>
   )

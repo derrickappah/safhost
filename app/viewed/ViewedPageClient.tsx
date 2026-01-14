@@ -7,6 +7,7 @@ import styles from './page.module.css'
 import { getViewedHistory, ViewedHistoryFilters } from '@/lib/actions/views'
 import { useFilter } from './FilterContext'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import Loader from '@/components/Loader'
 
 interface ViewedPageClientProps {
   initialHostels: any[]
@@ -135,7 +136,7 @@ export default function ViewedPageClient({ initialHostels, initialTotal }: Viewe
       {/* Results */}
       {loading ? (
         <div className={styles.loadingState}>
-          <p>Loading...</p>
+          <Loader />
         </div>
       ) : hostels.length === 0 ? (
         <div className={styles.emptyState}>

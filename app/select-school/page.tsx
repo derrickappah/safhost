@@ -8,6 +8,7 @@ import { getSchools } from '@/lib/actions/schools'
 import { getCurrentLocation, calculateDistance } from '@/lib/location/detect'
 import { updateProfile } from '@/lib/actions/profile'
 import { getCurrentUser } from '@/lib/auth/client'
+import Loader from '@/components/Loader'
 
 interface School {
   id: string
@@ -117,7 +118,7 @@ export default function SelectSchoolPage() {
     return (
       <div className={styles.container}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <p>Loading schools...</p>
+          <Loader />
         </div>
       </div>
     )

@@ -7,6 +7,7 @@ import styles from './page.module.css'
 import { getContactedHistory, ContactedHistoryFilters } from '@/lib/actions/contacts'
 import { useFilter } from './FilterContext'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import Loader from '@/components/Loader'
 
 interface ContactedPageClientProps {
   initialHostels: any[]
@@ -135,7 +136,7 @@ export default function ContactedPageClient({ initialHostels, initialTotal }: Co
       {/* Results */}
       {loading ? (
         <div className={styles.loadingState}>
-          <p>Loading...</p>
+          <Loader />
         </div>
       ) : hostels.length === 0 ? (
         <div className={styles.emptyState}>

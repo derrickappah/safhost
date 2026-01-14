@@ -47,39 +47,22 @@ export default function DashboardLayoutHeader() {
     return 'Good evening'
   }
 
-  if (loading) {
-    return (
-      <header className={styles.header}>
-        <div>
-          <p className={styles.greeting}>{getGreeting()} 👋</p>
-          <h1 className={styles.schoolName}>Loading...</h1>
-        </div>
-        <button 
-          className={styles.notificationBtn}
-          onClick={() => router.push('/notifications')}
-        >
-          <IoNotificationsOutline size={24} color="#1e293b" />
-        </button>
-      </header>
-    )
-  }
-
   return (
     <header className={styles.header}>
       <div>
         <p className={styles.greeting}>{getGreeting()} 👋</p>
-        <h1 className={styles.schoolName}>{userName}</h1>
+        {!loading && <h1 className={styles.schoolName}>{userName}</h1>}
       </div>
       <button 
         className={styles.notificationBtn}
         onClick={() => router.push('/notifications')}
       >
-        {unreadNotifications > 0 ? (
+        {!loading && unreadNotifications > 0 ? (
           <IoNotificationsOutline size={24} color="#2563eb" />
         ) : (
           <IoNotificationsOutline size={24} color="#1e293b" />
         )}
-        {unreadNotifications > 0 && (
+        {!loading && unreadNotifications > 0 && (
           <span className={styles.notificationBadge}>{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
         )}
       </button>

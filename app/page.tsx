@@ -5,6 +5,7 @@ import styles from './page.module.css'
 import { getPublicHostelPreviews } from '@/lib/actions/hostels'
 import SubscribeButton from './SubscribeButton'
 import LandingPageClient from './LandingPageClient'
+import Loader from '@/components/Loader'
 
 const features = [
   { icon: IoCameraOutline, text: "Real Photos" },
@@ -102,7 +103,9 @@ export default async function LandingPage() {
 
           {/* Blurred Hostel Cards */}
           {previewHostels.length === 0 ? (
-            <div style={{ padding: '20px', textAlign: 'center' }}>Loading hostels...</div>
+            <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Loader />
+            </div>
           ) : (
             previewHostels.map((hostel) => (
               <div key={hostel.id} className={styles.blurredCard}>

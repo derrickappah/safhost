@@ -10,13 +10,14 @@ import { getHostels, getHostelById, type Hostel } from '@/lib/actions/hostels'
 import { getSchoolById, type School } from '@/lib/actions/schools'
 import { getCurrentLocation } from '@/lib/location/detect'
 import { useMap } from './MapContext'
+import Loader from '@/components/Loader'
 
 // Dynamically import MapView to avoid SSR issues
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
   loading: () => (
-    <div className={styles.mapLoading}>
-      <p>Loading map...</p>
+    <div className={styles.mapLoading} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Loader />
     </div>
   ),
 })
@@ -268,7 +269,9 @@ function MapPageContent() {
           </div>
           <div className={styles.listContent}>
             {loading ? (
-              <div className={styles.loadingState}>Loading hostels...</div>
+              <div className={styles.loadingState} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+                <Loader />
+              </div>
             ) : hostels.length === 0 ? (
               <div className={styles.emptyState}>No hostels found</div>
             ) : (
@@ -458,8 +461,8 @@ export default function MapPage() {
     <Suspense
       fallback={
         <div className={styles.container}>
-          <div className={styles.mapContainer}>
-            <div className={styles.mapLoading}>Loading...</div>
+          <div className={styles.mapContainer} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Loader />
           </div>
         </div>
       }

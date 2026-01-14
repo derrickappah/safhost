@@ -7,6 +7,7 @@ import styles from './page.module.css'
 import { getCurrentUser } from '@/lib/auth/client'
 import { createClient } from '@/lib/supabase/client'
 import { isAdmin } from '@/lib/auth/middleware'
+import Loader from '@/components/Loader'
 
 export default function AdminPromoCodesPage() {
   const router = useRouter()
@@ -142,8 +143,8 @@ export default function AdminPromoCodesPage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading...</div>
+      <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader />
       </div>
     )
   }

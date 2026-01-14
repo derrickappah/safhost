@@ -8,6 +8,7 @@ import { isAdmin } from '@/lib/auth/middleware'
 import { getSchoolById } from '@/lib/actions/schools'
 import { updateSchool, deleteSchool } from '@/lib/admin/schools'
 import styles from '../new/page.module.css'
+import Loader from '@/components/Loader'
 
 export default function EditSchoolPage() {
   const router = useRouter()
@@ -153,8 +154,8 @@ export default function EditSchoolPage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading...</div>
+      <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader />
       </div>
     )
   }

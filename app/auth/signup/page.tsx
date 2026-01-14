@@ -8,6 +8,7 @@ import { signUp } from '@/lib/auth/user'
 import { getProfile } from '@/lib/actions/profile'
 import { isValidEmail, getEmailError } from '@/lib/validation'
 import styles from '../page.module.css'
+import Loader from '@/components/Loader'
 
 function SignUpPageContent() {
   const router = useRouter()
@@ -214,7 +215,9 @@ export default function SignUpPage() {
   return (
     <Suspense fallback={
       <div className={styles.container}>
-        <div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>
+        <div style={{ padding: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <Loader />
+        </div>
       </div>
     }>
       <SignUpPageContent />

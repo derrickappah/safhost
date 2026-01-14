@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { IoStar, IoLocation, IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import Loader from '@/components/Loader'
 
 interface RecommendedHostel {
   id: string
@@ -33,8 +34,8 @@ export default function RecommendedSection({ recommendedHostels, loading }: Reco
             Based on your viewing history
           </p>
         </div>
-        <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-          <p style={{ color: 'var(--color-text-secondary)' }}>Loading recommendations...</p>
+        <div style={{ padding: '40px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Loader />
         </div>
       </section>
     )

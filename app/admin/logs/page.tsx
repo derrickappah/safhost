@@ -6,6 +6,7 @@ import { IoArrowBack, IoSearch, IoFilter, IoEyeOutline, IoCallOutline } from 're
 import styles from './page.module.css'
 import { getCurrentUser } from '@/lib/auth/client'
 import { getViewLogs, getContactLogs, LogFilters } from '@/lib/admin/logs'
+import Loader from '@/components/Loader'
 
 export default function AdminLogsPage() {
   const router = useRouter()
@@ -163,8 +164,8 @@ export default function AdminLogsPage() {
 
       {/* Results */}
       {loading ? (
-        <div className={styles.loadingState}>
-          <p>Loading logs...</p>
+        <div className={styles.loadingState} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px' }}>
+          <Loader />
         </div>
       ) : logs.length === 0 ? (
         <div className={styles.emptyState}>

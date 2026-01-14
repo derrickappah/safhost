@@ -9,6 +9,7 @@ import { getSchools } from '@/lib/actions/schools'
 import { getHostelById } from '@/lib/actions/hostels'
 import { updateHostel, deleteHostel } from '@/lib/admin/hostels'
 import styles from '../new/page.module.css'
+import Loader from '@/components/Loader'
 
 const commonAmenities = [
   'Wi-Fi',
@@ -296,8 +297,8 @@ export default function EditHostelPage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading...</div>
+      <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader />
       </div>
     )
   }
