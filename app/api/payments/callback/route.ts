@@ -40,35 +40,42 @@ export async function GET(request: NextRequest) {
           .from('payments')
           .select('*')
           .eq('provider_ref', reference)
-          .single()
+          .maybeSingle()
         
         if (paymentByRef && !refError) {
           payment = paymentByRef
           console.log('Payment found by reference:', { paymentId: payment.id, subscriptionId: payment.subscription_id })
+        } else if (refError && refError.code !== 'PGRST116') {
+          console.error('Error looking up payment by reference:', refError)
         }
         
         // If not found by reference, try metadata fallback
         if (!payment) {
           console.log('Payment not found by reference, trying metadata lookup...')
           const paymentIdFromMetadata = verification?.data?.metadata?.payment_id
+          console.log('Payment ID from metadata:', paymentIdFromMetadata)
           
           if (paymentIdFromMetadata) {
             const { data: paymentById, error: idError } = await serviceClient
               .from('payments')
               .select('*')
               .eq('id', paymentIdFromMetadata)
-              .single()
+              .maybeSingle()
             
             if (paymentById && !idError) {
               payment = paymentById
               console.log('Found payment by metadata payment_id:', payment.id)
+            } else if (idError && idError.code !== 'PGRST116') {
+              console.error('Error looking up payment by ID:', idError)
             }
+          } else {
+            console.error('No payment_id in metadata. Metadata keys:', Object.keys(verification?.data?.metadata || {}))
           }
         }
         
         if (!payment) {
           console.error('Payment record not found for reference:', reference)
-          console.error('Verification metadata:', verification?.data?.metadata)
+          console.error('Verification metadata:', JSON.stringify(verification?.data?.metadata, null, 2))
           return NextResponse.redirect(new URL('/subscribe?error=payment_not_found', baseUrl))
         }
         
