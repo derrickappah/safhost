@@ -103,6 +103,22 @@ export async function createHostel(input: CreateHostelInput): Promise<{
       )
     }
 
+    // Notify all students with active subscriptions for this school
+    // Do this asynchronously to avoid blocking the response
+    // Errors are logged but don't fail the hostel creation
+    const { notifyStudentsForNewHostel } = await import('../notifications/create')
+    notifyStudentsForNewHostel(input.school_id, data.id, input.name)
+      .then(({ count, error }) => {
+        if (error) {
+          console.error(`Failed to send some notifications for hostel ${data.id}:`, error)
+        } else {
+          console.log(`Successfully sent ${count} notifications for new hostel ${input.name}`)
+        }
+      })
+      .catch((err) => {
+        console.error(`Error sending notifications for hostel ${data.id}:`, err)
+      })
+
     return { data, error: null }
   } catch (error) {
     return {
