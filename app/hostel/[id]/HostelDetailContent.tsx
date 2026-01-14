@@ -54,7 +54,7 @@ export default function HostelDetailContent({
   currentUser,
   hasAccess
 }: HostelDetailContentProps) {
-  const { navigate } = useInstantNavigation()
+  const { navigate, router } = useInstantNavigation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [isSaved, setIsSaved] = useState(initialIsFavorited)
   const [showContactModal, setShowContactModal] = useState(false)
