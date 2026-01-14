@@ -98,8 +98,11 @@ export async function updateProfile(
       hasUpdates = true
     }
     
-    if (avatarUrl !== undefined) {
-      updateData.avatar_url = avatarUrl
+    // Normalize avatarUrl: convert empty string to null
+    const normalizedAvatarUrl = avatarUrl !== undefined ? (avatarUrl === '' ? null : avatarUrl) : undefined
+    
+    if (normalizedAvatarUrl !== undefined) {
+      updateData.avatar_url = normalizedAvatarUrl
       hasUpdates = true
     }
     
@@ -109,13 +112,14 @@ export async function updateProfile(
     }
     
     // Ensure profile exists
-    const { data: existingProfile } = await supabase
+    const { data: existingProfile, error: profileError } = await supabase
       .from('profiles')
       .select('id, full_name, phone, school_id, avatar_url')
       .eq('id', user.id)
       .single()
     
-    if (!existingProfile) {
+    // If profile doesn't exist (PGRST116) or is null, create it
+    if (profileError?.code === 'PGRST116' || !existingProfile) {
       // Create profile if it doesn't exist
       const { error: insertError } = await supabase
         .from('profiles')
@@ -124,7 +128,7 @@ export async function updateProfile(
           full_name: name || user.user_metadata?.name || user.user_metadata?.full_name || null,
           phone: phone || user.user_metadata?.phone || null,
           school_id: schoolId || null,
-          avatar_url: avatarUrl || null,
+          avatar_url: normalizedAvatarUrl || null,
           role: user.user_metadata?.role || 'user',
         })
         
@@ -138,7 +142,7 @@ export async function updateProfile(
         (name !== undefined && name !== existingProfile.full_name) ||
         (phone !== undefined && phone !== existingProfile.phone) ||
         (schoolId !== undefined && schoolId !== existingProfile.school_id) ||
-        (avatarUrl !== undefined && avatarUrl !== existingProfile.avatar_url)
+        (normalizedAvatarUrl !== undefined && normalizedAvatarUrl !== existingProfile.avatar_url)
       
       if (needsUpdate) {
         const { error: updateError } = await supabase

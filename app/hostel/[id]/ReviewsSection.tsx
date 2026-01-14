@@ -160,9 +160,17 @@ export default function ReviewsSection({
             <div className={styles.reviewHeader}>
               <div className={styles.reviewUser}>
                 <div className={styles.reviewAvatar}>
-                  <span className={styles.reviewAvatarText}>
-                    {(review.user?.email || 'U').charAt(0).toUpperCase()}
-                  </span>
+                  {review.user?.avatar_url ? (
+                    <img
+                      src={review.user.avatar_url}
+                      alt={review.user?.email?.split('@')[0] || 'User'}
+                      className={styles.reviewAvatarImage}
+                    />
+                  ) : (
+                    <span className={styles.reviewAvatarText}>
+                      {(review.user?.email || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
                 <div className={styles.reviewUserInfo}>
                   <h4 className={styles.reviewName}>

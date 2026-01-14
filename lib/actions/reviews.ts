@@ -17,6 +17,7 @@ export interface Review {
   updated_at: string
   user?: {
     email: string
+    avatar_url?: string | null
   }
 }
 
@@ -48,7 +49,7 @@ export const getHostelReviews = cache(async (hostelId: string): Promise<{
       return { data: null, error: error.message }
     }
     
-    // Fetch user emails for reviews that have user_id
+    // Fetch user emails and profile pictures for reviews that have user_id
     if (data && data.length > 0) {
       const userIds = data
         .filter(review => review.user_id)
@@ -62,6 +63,17 @@ export const getHostelReviews = cache(async (hostelId: string): Promise<{
             user_ids: userIds
           })
           
+          // Fetch profile pictures from profiles table
+          const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, avatar_url')
+            .in('id', userIds)
+          
+          if (profileError) {
+            console.error('Error fetching user profiles:', profileError)
+            // Continue without profile pictures
+          }
+          
           if (emailError) {
             console.error('Error fetching user emails:', emailError)
             // Continue without user emails - reviews will show as anonymous
@@ -69,10 +81,23 @@ export const getHostelReviews = cache(async (hostelId: string): Promise<{
             // Create a map of user_id to email
             const emailMap = new Map(userEmails.map((u: any) => [u.id, u.email]))
             
-            // Add email to each review
+            // Create a map of user_id to avatar_url
+            const avatarMap = new Map()
+            if (profiles && profiles.length > 0) {
+              profiles.forEach((profile: any) => {
+                if (profile.avatar_url) {
+                  avatarMap.set(profile.id, profile.avatar_url)
+                }
+              })
+            }
+            
+            // Add email and avatar_url to each review
             data.forEach((review: any) => {
               if (review.user_id && emailMap.has(review.user_id)) {
-                review.user = { email: emailMap.get(review.user_id) }
+                review.user = {
+                  email: emailMap.get(review.user_id),
+                  avatar_url: avatarMap.get(review.user_id) || null
+                }
               }
             })
           }
