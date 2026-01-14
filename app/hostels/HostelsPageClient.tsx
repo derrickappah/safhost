@@ -42,7 +42,7 @@ export default function HostelsPageClient({
   initialFilters,
   defaultSchoolId
 }: HostelsPageClientProps) {
-  const { navigate } = useInstantNavigation()
+  const { navigate, router } = useInstantNavigation()
   const searchParams = useSearchParams()
   const [showFilters, setShowFilters] = useState(false)
   const [compareMode, setCompareMode] = useState(false)
