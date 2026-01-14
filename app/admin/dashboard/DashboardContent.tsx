@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { IoEllipsisVertical } from 'react-icons/io5'
+import AdminPageHeader from '../AdminPageHeader'
 import ExportButtons from './ExportButtons'
 import styles from './page.module.css'
 
@@ -14,15 +15,14 @@ export default function DashboardContent({ analytics }: DashboardContentProps) {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Admin Dashboard</h1>
-        <div className={styles.exportContainer}>
-          <ExportButtons />
-        </div>
-      </div>
+      <AdminPageHeader 
+        title="Admin Dashboard"
+        actions={<ExportButtons />}
+      />
       
       {/* Stats Grid */}
-      <div className={styles.statsGrid}>
+      <div className={styles.statsSection}>
+        <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <h3 className={styles.statLabel}>Total Hostels</h3>
           <p className={styles.statValue}>{analytics.totalHostels}</p>
@@ -56,6 +56,7 @@ export default function DashboardContent({ analytics }: DashboardContentProps) {
         <div className={styles.statCard}>
           <h3 className={styles.statLabel}>Reviews</h3>
           <p className={styles.statValue}>{analytics.reviewsCount}</p>
+        </div>
         </div>
       </div>
       

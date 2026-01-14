@@ -1,22 +1,13 @@
 .container {
-  padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.title {
-  font-size: 32px;
-  font-weight: 700;
+  width: 100%;
+  padding: 0;
+  max-width: 100%;
   margin: 0;
+}
+
+/* Header is now handled by AdminPageHeader component */
+.statsSection {
+  margin-top: 24px;
 }
 
 .statsGrid {
@@ -214,11 +205,6 @@
   padding: 24px;
 }
 
-.exportContainer {
-  display: flex;
-  align-items: center;
-}
-
 /* Mobile Card Styles */
 .mobileCardList {
   display: none;
@@ -310,18 +296,11 @@
 /* Mobile Optimizations */
 @media (max-width: 767px) {
   .container {
-    padding: 16px;
+    padding: 0;
   }
   
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 24px;
-    gap: 12px;
-  }
-  
-  .title {
-    font-size: 24px;
+  .statsSection {
+    margin-top: 16px;
   }
   
   .statsGrid {
@@ -388,11 +367,11 @@
 
 @media (max-width: 375px) {
   .container {
-    padding: 12px;
+    padding: 0;
   }
   
-  .title {
-    font-size: 20px;
+  .statsSection {
+    margin-top: 12px;
   }
   
   .statCard {
