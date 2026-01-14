@@ -2,9 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { IoHome, IoCameraOutline, IoCashOutline, IoLocationOutline, IoStarOutline, IoCallOutline, IoLockClosed, IoCheckmarkCircle, IoArrowForward, IoLogInOutline } from 'react-icons/io5'
 import styles from './page.module.css'
-import { getPublicHostelPreviews } from '@/lib/actions/hostels'
+import { getPublicHostelPreviews, getFeaturedHostels } from '@/lib/actions/hostels'
 import SubscribeButton from './SubscribeButton'
 import LandingPageClient from './LandingPageClient'
+import FeaturedSection from './dashboard/FeaturedSection'
 
 const features = [
   { icon: IoCameraOutline, text: "Real Photos" },
@@ -34,6 +35,19 @@ export default async function LandingPage() {
     image: hostel.images && hostel.images.length > 0 ? hostel.images[0] : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400',
     amenities: hostel.amenities || []
   })) || []
+
+  // Load featured hostels
+  const { data: featuredHostelsData } = await getFeaturedHostels(10).catch(() => ({ data: null, error: null }))
+  
+  // Format featured hostels for display
+  const formattedFeaturedHostels = (featuredHostelsData || []).map(hostel => ({
+    id: hostel.id,
+    name: hostel.name,
+    price: hostel.price_min || 0,
+    rating: hostel.rating || 0,
+    distance: hostel.distance,
+    image: hostel.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
+  }))
 
   return (
     <LandingPageClient>
@@ -152,6 +166,9 @@ export default async function LandingPage() {
             ))
           )}
         </section>
+
+        {/* Featured Hostels Section */}
+        <FeaturedSection featuredHostels={formattedFeaturedHostels} />
 
         {/* Spacer for sticky button */}
         <div style={{ height: '180px' }} />
