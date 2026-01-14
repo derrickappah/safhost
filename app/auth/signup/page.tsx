@@ -108,10 +108,20 @@ function SignUpPageContent() {
               type="email"
               placeholder="Email address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
+              onChange={handleEmailChange}
+              onBlur={() => {
+                if (email && !isValidEmail(email)) {
+                  setEmailError(getEmailError(email) || 'Invalid email format')
+                }
+              }}
+              className={`${styles.input} ${emailError ? styles.inputError : ''}`}
               required
             />
+            {emailError && (
+              <div className={styles.fieldError}>
+                {emailError}
+              </div>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
