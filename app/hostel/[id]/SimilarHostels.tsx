@@ -1,17 +1,17 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { IoStar, IoLocation } from 'react-icons/io5'
 import { type Hostel } from '@/lib/actions/hostels'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface SimilarHostelsProps {
   similarHostels: Hostel[]
 }
 
 export default function SimilarHostels({ similarHostels }: SimilarHostelsProps) {
-  const router = useRouter()
+  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
 
   if (similarHostels.length === 0) {
     return null
@@ -28,11 +28,14 @@ export default function SimilarHostels({ similarHostels }: SimilarHostelsProps) 
             ? similarHostel.images[0] 
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
           
+          const hostelUrl = `/hostel/${similarHostel.id}`
           return (
             <button
               key={similarHostel.id}
               className={styles.similarHostelCard}
-              onClick={() => router.push(`/hostel/${similarHostel.id}`)}
+              onClick={() => navigate(hostelUrl)}
+              onMouseEnter={() => handleMouseEnter(hostelUrl)}
+              onTouchStart={() => handleTouchStart(hostelUrl)}
             >
               <div className={styles.similarHostelImageContainer}>
                 <Image

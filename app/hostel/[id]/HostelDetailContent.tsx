@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { IoLocation, IoStar, IoWalk, IoCar, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoShirt, IoSnow, IoBarbell, IoBook, IoPeople, IoCall, IoAlertCircle, IoFlagOutline, IoMale, IoFemale, IoArrowBack, IoShareOutline, IoHeart, IoHeartOutline, IoChevronForward, IoClose } from 'react-icons/io5'
 import { type Hostel } from '@/lib/actions/hostels'
@@ -16,6 +15,7 @@ import SimilarHostels from './SimilarHostels'
 import ContactModal from './ContactModal'
 import ReportModal from '@/components/ReportModal'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 const amenityIcons: Record<string, any> = {
   "Wi-Fi": IoWifi,
@@ -54,7 +54,7 @@ export default function HostelDetailContent({
   currentUser,
   hasAccess
 }: HostelDetailContentProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [isSaved, setIsSaved] = useState(initialIsFavorited)
   const [showContactModal, setShowContactModal] = useState(false)
@@ -71,10 +71,12 @@ export default function HostelDetailContent({
     cancelText?: string
   } | null>(null)
 
-  // Track view on mount (non-blocking)
+  // Track view on mount (optimistic - fire immediately in background)
   useEffect(() => {
+    // Fire immediately without blocking - don't await
     trackHostelView(hostel.id).catch(err => {
       console.error('Error tracking view:', err)
+      // Silently fail - view tracking shouldn't block user experience
     })
   }, [hostel.id])
 
@@ -93,7 +95,7 @@ export default function HostelDetailContent({
 
   const handleSave = async () => {
     if (!hasAccess) {
-      router.push('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
+      navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
       return
     }
     
@@ -168,22 +170,25 @@ export default function HostelDetailContent({
 
   const handleContact = async () => {
     if (!hasAccess) {
-      router.push('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
+      navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
       return
     }
     
-    const { error } = await logContactClick(hostel.id)
-    if (error) {
-      console.error('Failed to log contact:', error)
-    }
+    // Optimistic: Show modal immediately
     setShowContactModal(true)
+    
+    // Log contact in background (non-blocking)
+    logContactClick(hostel.id).catch(err => {
+      console.error('Failed to log contact:', err)
+      // Don't block user interaction on logging errors
+    })
   }
 
   const handleLocationClick = () => {
     if (hostel.latitude && hostel.longitude) {
-      router.push(`/hostels/map?hostel=${hostel.id}&mode=directions`)
+      navigate(`/hostels/map?hostel=${hostel.id}&mode=directions`)
     } else {
-      router.push(`/hostels/map?hostel=${hostel.id}`)
+      navigate(`/hostels/map?hostel=${hostel.id}`)
     }
   }
 

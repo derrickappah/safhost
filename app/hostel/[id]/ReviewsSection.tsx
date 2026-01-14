@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 import { IoStar, IoCreateOutline, IoTrashOutline, IoClose } from 'react-icons/io5'
 import { type Review } from '@/lib/actions/reviews'
 import { createReview, updateReview, deleteReview, getHostelReviews } from '@/lib/actions/reviews'
@@ -22,7 +22,7 @@ export default function ReviewsSection({
   currentUser,
   onReviewUpdate
 }: ReviewsSectionProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const [reviews, setReviews] = useState(initialReviews)
   const [userReview, setUserReview] = useState(initialUserReview)
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -41,7 +41,7 @@ export default function ReviewsSection({
 
   const handleOpenReviewModal = () => {
     if (!currentUser) {
-      router.push('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostelId}`))
+      navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostelId}`))
       return
     }
     setShowReviewModal(true)
@@ -145,7 +145,7 @@ export default function ReviewsSection({
               message: 'Please log in to leave reviews',
               type: 'error',
               onConfirm: () => {
-                router.push('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostelId}`))
+                navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostelId}`))
               }
             })
           } else {

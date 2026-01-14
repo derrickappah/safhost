@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { IoArrowBack, IoChevronDown, IoChevronUp } from 'react-icons/io5'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 const faqs = [
   {
@@ -49,7 +49,7 @@ const faqs = [
 ]
 
 export default function HelpPage() {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
@@ -94,7 +94,7 @@ export default function HelpPage() {
             </a>
             <button
               className={styles.contactOption}
-              onClick={() => router.push('/support')}
+              onClick={() => navigate('/support')}
             >
               <span className={styles.contactLabel}>Live Chat</span>
               <span className={styles.contactValue}>Available 24/7</span>

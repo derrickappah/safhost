@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { IoNotificationsOutline, IoCheckmarkCircle, IoTime, IoStar, IoGift, IoHome } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getNotifications, markAsRead, markAllAsRead } from '@/lib/notifications/get'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 const notificationIcons: Record<string, any> = {
   subscription_expiry: IoTime,
@@ -19,7 +19,7 @@ interface NotificationsPageClientProps {
 }
 
 export default function NotificationsPageClient({ initialNotifications }: NotificationsPageClientProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const [notifications, setNotifications] = useState(initialNotifications)
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function NotificationsPageClient({ initialNotifications }: Notifi
 
     // Navigate to hostel if notification has hostelId in data
     if (notification.data?.hostelId) {
-      router.push(`/hostel/${notification.data.hostelId}`)
+      navigate(`/hostel/${notification.data.hostelId}`)
     }
   }
 

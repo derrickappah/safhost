@@ -1,10 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { IoStar, IoLocation, IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface RecentlyViewedHostel {
   id: string
@@ -20,7 +20,7 @@ interface RecentlyViewedSectionProps {
 }
 
 export default function RecentlyViewedSection({ recentlyViewed }: RecentlyViewedSectionProps) {
-  const router = useRouter()
+  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
 
   if (recentlyViewed.length === 0) {
     return null
@@ -40,11 +40,14 @@ export default function RecentlyViewedSection({ recentlyViewed }: RecentlyViewed
             ? hostel.images[0] 
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
           
+          const hostelUrl = `/hostel/${hostel.id}`
           return (
             <button
               key={hostel.id}
               className={styles.recentCard}
-              onClick={() => router.push(`/hostel/${hostel.id}`)}
+              onClick={() => navigate(hostelUrl)}
+              onMouseEnter={() => handleMouseEnter(hostelUrl)}
+              onTouchStart={() => handleTouchStart(hostelUrl)}
             >
               <div className={styles.recentImageContainer}>
                 {mainImage && (

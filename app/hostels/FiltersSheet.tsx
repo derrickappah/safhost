@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 import { IoOptionsOutline, IoMan, IoWoman, IoPeople, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoBarbell, IoShirt, IoSnow, IoCar, IoBook } from 'react-icons/io5'
 import styles from './page.module.css'
 
@@ -38,7 +39,7 @@ interface FiltersSheetProps {
 }
 
 export default function FiltersSheet({ isOpen, onClose, initialFilters }: FiltersSheetProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const searchParams = useSearchParams()
   const [priceRange, setPriceRange] = useState([initialFilters.minPrice, initialFilters.maxPrice])
   const [distanceRange, setDistanceRange] = useState(initialFilters.distance)
@@ -91,7 +92,7 @@ export default function FiltersSheet({ isOpen, onClose, initialFilters }: Filter
     if (isAvailable !== undefined) params.set('available', isAvailable.toString())
     else params.delete('available')
     
-    router.push(`/hostels?${params.toString()}`)
+    navigate(`/hostels?${params.toString()}`)
     onClose()
   }
 

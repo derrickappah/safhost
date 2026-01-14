@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { IoSearch, IoLocation, IoStar, IoCalendarOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getViewedHistory, ViewedHistoryFilters } from '@/lib/actions/views'
 import { useFilter } from './FilterContext'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface ViewedPageClientProps {
   initialHostels: any[]
@@ -14,7 +14,7 @@ interface ViewedPageClientProps {
 }
 
 export default function ViewedPageClient({ initialHostels, initialTotal }: ViewedPageClientProps) {
-  const router = useRouter()
+  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const { showFilters } = useFilter()
   const [hostels, setHostels] = useState(initialHostels)
   const [loading, setLoading] = useState(false)
@@ -161,11 +161,14 @@ export default function ViewedPageClient({ initialHostels, initialTotal }: Viewe
                 ? hostel.images[0] 
                 : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
               
+              const hostelUrl = `/hostel/${hostel.id}`
               return (
                 <div
                   key={hostel.id}
                   className={styles.hostelCard}
-                  onClick={() => router.push(`/hostel/${hostel.id}`)}
+                  onClick={() => navigate(hostelUrl)}
+                  onMouseEnter={() => handleMouseEnter(hostelUrl)}
+                  onTouchStart={() => handleTouchStart(hostelUrl)}
                 >
                   <div className={styles.hostelImageContainer}>
                     <Image

@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import { IoSearch, IoMap, IoStar, IoFlame, IoGitCompare } from 'react-icons/io5'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 export default function QuickActions() {
+  const { handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const actions = [
     {
       href: "/hostels",
@@ -46,7 +48,10 @@ export default function QuickActions() {
           <Link
             key={index}
             href={action.href}
+            prefetch={true}
             className={styles.quickActionCard}
+            onMouseEnter={() => handleMouseEnter(action.href)}
+            onTouchStart={() => handleTouchStart(action.href)}
           >
             <div className={`${styles.quickActionIcon} ${action.className}`}>
               <Icon size={22} />

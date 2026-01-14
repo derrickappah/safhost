@@ -1,12 +1,12 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
 import { addFavorite, removeFavorite, getFavorites } from '@/lib/actions/favorites'
 import { useState, useEffect } from 'react'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface FeaturedHostel {
   id: string
@@ -22,7 +22,7 @@ interface FeaturedSectionProps {
 }
 
 export default function FeaturedSection({ featuredHostels: initialFeaturedHostels }: FeaturedSectionProps) {
-  const router = useRouter()
+  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const [featuredHostels, setFeaturedHostels] = useState(initialFeaturedHostels)
   const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set())
 
@@ -122,11 +122,14 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
           const isFavorited = favoritedIds.has(hostel.id)
           
+          const hostelUrl = `/hostel/${hostel.id}`
           return (
             <div
               key={hostel.id}
               className={styles.favoriteCard}
-              onClick={() => router.push(`/hostel/${hostel.id}`)}
+              onClick={() => navigate(hostelUrl)}
+              onMouseEnter={() => handleMouseEnter(hostelUrl)}
+              onTouchStart={() => handleTouchStart(hostelUrl)}
             >
               {imageUrl && (
                 <div className={styles.favoriteImageContainer}>

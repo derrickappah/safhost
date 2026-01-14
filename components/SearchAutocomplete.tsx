@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { IoSearch, IoLocation, IoSchool } from 'react-icons/io5'
 import { autocompleteSearch } from '@/lib/actions/hostels'
 import styles from './SearchAutocomplete.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface SearchResult {
   type: 'hostel' | 'school'
@@ -24,7 +24,7 @@ export default function SearchAutocomplete({
   onSelect,
   className,
 }: SearchAutocompleteProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [showResults, setShowResults] = useState(false)
@@ -75,9 +75,9 @@ export default function SearchAutocomplete({
     } else {
       // Default behavior
       if (result.type === 'hostel') {
-        router.push(`/hostel/${result.id}`)
+        navigate(`/hostel/${result.id}`)
       } else {
-        router.push(`/hostels?school=${result.id}`)
+        navigate(`/hostels?school=${result.id}`)
       }
     }
   }

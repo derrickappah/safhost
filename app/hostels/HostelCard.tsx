@@ -1,11 +1,11 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { IoStar, IoHeart, IoHeartOutline, IoWalk, IoCar, IoCheckmarkCircle, IoCheckmarkCircleOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { type Hostel } from '@/lib/actions/hostels'
 import { calculateWalkingTime, calculateDrivingTime, formatTime } from '@/lib/location/detect'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 const amenityIcons: Record<string, any> = {
   "Wi-Fi": IoStar,
@@ -42,17 +42,18 @@ export default function HostelCard({
   isSelected = false,
   onToggleSelection
 }: HostelCardProps) {
-  const router = useRouter()
+  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const AmenityIcon = amenityIcons[hostel.amenities?.[0] || ''] || IoStar
   const mainImage = hostel.images && hostel.images.length > 0 
     ? hostel.images[0] 
     : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
+  const hostelUrl = `/hostel/${hostel.id}`
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (compareMode && onToggleSelection) {
       onToggleSelection(hostel.id, e)
     } else {
-      router.push(`/hostel/${hostel.id}`)
+      navigate(hostelUrl)
     }
   }
 
@@ -60,6 +61,8 @@ export default function HostelCard({
     <div
       className={styles.hostelCard}
       onClick={handleCardClick}
+      onMouseEnter={() => !compareMode && handleMouseEnter(hostelUrl)}
+      onTouchStart={() => !compareMode && handleTouchStart(hostelUrl)}
       style={{ cursor: 'pointer' }}
     >
       {/* Image */}

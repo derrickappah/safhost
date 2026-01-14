@@ -5,10 +5,12 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { IoHome, IoHomeOutline, IoSearch, IoSearchOutline, IoMegaphone, IoMegaphoneOutline, IoHeart, IoHeartOutline, IoPerson, IoPersonOutline } from 'react-icons/io5'
 import styles from './BottomNav.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 export default function BottomNav() {
   const pathname = usePathname()
   const [advertisementEnabled, setAdvertisementEnabled] = useState<boolean | null>(null)
+  const { handleMouseEnter, handleTouchStart } = useInstantNavigation()
 
   // Don't show bottom nav on these pages
   const hiddenPaths = ['/subscribe', '/select-school', '/admin', '/auth', '/hostels/map']
@@ -92,7 +94,10 @@ export default function BottomNav() {
           <Link
             key={tab.href}
             href={tab.href}
+            prefetch={true}
             className={`${styles.tabItem} ${isActive ? styles.tabItemActive : ''}`}
+            onMouseEnter={() => handleMouseEnter(tab.href)}
+            onTouchStart={() => handleTouchStart(tab.href)}
           >
             <div className={`${styles.iconContainer} ${isActive ? styles.iconContainerActive : ''}`}>
               <Icon size={24} color={isActive ? '#2563eb' : '#94a3b8'} />

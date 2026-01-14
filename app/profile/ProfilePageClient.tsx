@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { IoPerson, IoCardOutline, IoSchoolOutline, IoNotificationsOutline, IoHelpCircleOutline, IoInformationCircleOutline, IoCreateOutline, IoDiamond, IoChevronForward, IoLogOutOutline, IoCheckmarkCircle, IoCloseCircle, IoHeart, IoEye, IoCall } from 'react-icons/io5'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile, getProfile } from '@/lib/actions/profile'
@@ -10,6 +9,7 @@ import EditProfileModal from './EditProfileModal'
 import SchoolSelectionModal from './SchoolSelectionModal'
 import AboutModal from './AboutModal'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface ProfilePageClientProps {
   user: any
@@ -34,7 +34,7 @@ export default function ProfilePageClient({
   profile: initialProfile,
   selectedSchool: initialSelectedSchool
 }: ProfilePageClientProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const [profile, setProfile] = useState(initialProfile)
   const [selectedSchool, setSelectedSchool] = useState<string | null>(initialSelectedSchool)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -167,16 +167,16 @@ export default function ProfilePageClient({
   const handleMenuItemClick = (itemId: string) => {
     switch (itemId) {
       case 'subscription':
-        router.push('/subscribe')
+        navigate('/subscribe')
         break
       case 'school':
         setShowSchoolModal(true)
         break
       case 'notifications':
-        router.push('/notifications')
+        navigate('/notifications')
         break
       case 'help':
-        router.push('/help')
+        navigate('/help')
         break
       case 'about':
         setShowAboutModal(true)

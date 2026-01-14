@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { IoStar, IoHeart, IoLocation, IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
 import { removeFavorite, addFavorite } from '@/lib/actions/favorites'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface Favorite {
   id: string
@@ -23,7 +23,7 @@ interface FavoritesSectionProps {
 }
 
 export default function FavoritesSection({ favorites: initialFavorites }: FavoritesSectionProps) {
-  const router = useRouter()
+  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const [favorites, setFavorites] = useState(initialFavorites)
 
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
@@ -81,7 +81,7 @@ export default function FavoritesSection({ favorites: initialFavorites }: Favori
             No favorites yet
           </p>
           <button
-            onClick={() => router.push('/hostels')}
+            onClick={() => navigate('/hostels')}
             style={{
               padding: '12px 24px',
               backgroundColor: 'var(--color-primary)',
@@ -116,7 +116,9 @@ export default function FavoritesSection({ favorites: initialFavorites }: Favori
             <div
               key={hostel.id}
               className={styles.favoriteCard}
-              onClick={() => router.push(`/hostel/${hostel.id}`)}
+              onClick={() => navigate(`/hostel/${hostel.id}`)}
+              onMouseEnter={() => handleMouseEnter(`/hostel/${hostel.id}`)}
+              onTouchStart={() => handleTouchStart(`/hostel/${hostel.id}`)}
             >
               {imageUrl && (
                 <div className={styles.favoriteImageContainer}>

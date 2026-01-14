@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 import dynamic from 'next/dynamic'
 import { type Hostel } from '@/lib/actions/hostels'
 import HostelsHeader from './HostelsHeader'
@@ -41,7 +42,7 @@ export default function HostelsPageClient({
   initialFilters,
   defaultSchoolId
 }: HostelsPageClientProps) {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const searchParams = useSearchParams()
   const [showFilters, setShowFilters] = useState(false)
   const [compareMode, setCompareMode] = useState(false)
@@ -92,7 +93,7 @@ export default function HostelsPageClient({
   const handleCompare = () => {
     if (selectedHostels.size > 0) {
       const ids = Array.from(selectedHostels).join(',')
-      router.push(`/compare?ids=${ids}`)
+      navigate(`/compare?ids=${ids}`)
     }
   }
 

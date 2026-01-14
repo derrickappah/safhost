@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { IoClose, IoAdd, IoStar, IoLocation } from 'react-icons/io5'
 import { type Hostel } from '@/lib/actions/hostels'
 import Image from 'next/image'
 import styles from './page.module.css'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 const MAX_COMPARE = 4
 
@@ -15,8 +15,11 @@ interface ComparePageClientProps {
 }
 
 export default function ComparePageClient({ initialHostels, initialIds }: ComparePageClientProps) {
-  const router = useRouter()
+  const { navigate, router } = useInstantNavigation()
   const [hostels, setHostels] = useState<(Hostel | null)[]>(initialHostels)
+  
+  // Expose router.replace for URL updates
+  const routerReplace = router.replace.bind(router)
 
   const removeHostel = (index: number) => {
     const newHostels = [...hostels]
@@ -26,14 +29,14 @@ export default function ComparePageClient({ initialHostels, initialIds }: Compar
     // Update URL
     const activeIds = newHostels.filter(h => h !== null).map(h => h!.id)
     if (activeIds.length > 0) {
-      router.replace(`/compare?ids=${activeIds.join(',')}`)
+      routerReplace(`/compare?ids=${activeIds.join(',')}`)
     } else {
-      router.replace('/compare')
+      routerReplace('/compare')
     }
   }
 
   const addHostel = () => {
-    router.push(`/hostels?compare=true`)
+    navigate(`/hostels?compare=true`)
   }
 
   const activeHostels = hostels.filter(h => h !== null) as Hostel[]

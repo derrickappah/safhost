@@ -1,13 +1,13 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getCurrentUser } from '@/lib/auth/client'
+import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 export default function SubscribeButton() {
-  const router = useRouter()
+  const { navigate } = useInstantNavigation()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   // Check auth on mount
@@ -21,9 +21,9 @@ export default function SubscribeButton() {
 
   const handleSubscribe = () => {
     if (isAuthenticated) {
-      router.push('/subscribe')
+      navigate('/subscribe')
     } else {
-      router.push('/auth/signup?redirect=/subscribe')
+      navigate('/auth/signup?redirect=/subscribe')
     }
   }
 
