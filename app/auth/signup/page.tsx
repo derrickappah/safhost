@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { IoPerson, IoMailOutline, IoLockClosed, IoCallOutline, IoCheckmarkCircle } from 'react-icons/io5'
 import { signUp } from '@/lib/auth/user'
 import { getProfile } from '@/lib/actions/profile'
+import { isValidEmail, getEmailError } from '@/lib/validation'
 import styles from '../page.module.css'
 
 function SignUpPageContent() {
@@ -18,11 +19,30 @@ function SignUpPageContent() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [emailError, setEmailError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value
+    setEmail(newEmail)
+    
+    // Real-time email validation
+    if (newEmail && !isValidEmail(newEmail)) {
+      setEmailError(getEmailError(newEmail) || 'Invalid email format')
+    } else {
+      setEmailError('')
+    }
+    
+    // Clear general error when user starts typing
+    if (error) {
+      setError('')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setEmailError('')
     
     // Validation
     if (!name || !email || !password) {
@@ -30,8 +50,11 @@ function SignUpPageContent() {
       return
     }
     
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address')
+    // Validate email format
+    if (!isValidEmail(email)) {
+      const emailErr = getEmailError(email)
+      setEmailError(emailErr || 'Please enter a valid email address')
+      setError(emailErr || 'Please enter a valid email address')
       return
     }
     
