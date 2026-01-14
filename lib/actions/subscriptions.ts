@@ -234,9 +234,12 @@ export async function activateSubscription(
     
     console.log('Subscription activated:', { subscriptionId, status: data?.status })
     
-    // Clear cache for this user so next getActiveSubscription call fetches fresh data
+    // Clear cache and then update with the activated subscription
+    // This ensures the next getActiveSubscription call sees the active subscription immediately
     if (data?.user_id) {
       await clearCachedSubscription(data.user_id)
+      // Update cache with the activated subscription
+      await setCachedSubscription(data.user_id, data as Subscription)
     }
     
     return { data: data as Subscription, error: null }
