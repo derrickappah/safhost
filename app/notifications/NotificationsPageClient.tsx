@@ -41,6 +41,18 @@ export default function NotificationsPageClient({ initialNotifications }: Notifi
     ))
   }
 
+  const handleNotificationClick = async (notification: any) => {
+    // Mark as read if unread
+    if (!notification.read) {
+      await handleMarkAsRead(notification.id)
+    }
+
+    // Navigate to hostel if notification has hostelId in data
+    if (notification.data?.hostelId) {
+      router.push(`/hostel/${notification.data.hostelId}`)
+    }
+  }
+
   const getNotificationIcon = (type: string) => {
     return notificationIcons[type] || notificationIcons.other
   }
@@ -84,7 +96,7 @@ export default function NotificationsPageClient({ initialNotifications }: Notifi
                 <button
                   key={notification.id}
                   className={`${styles.notificationItem} ${isUnread ? styles.notificationItemUnread : ''}`}
-                  onClick={() => handleMarkAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className={styles.notificationIcon} style={{ backgroundColor: `${iconColor}15` }}>
                     <Icon size={20} color={iconColor} />
