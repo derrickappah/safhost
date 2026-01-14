@@ -38,7 +38,7 @@
 
 .imageIndicators {
   position: absolute;
-  bottom: 20px; /* Moved up a tiny bit from 12px */
+  bottom: 50px; /* Moved up a tiny bit from 12px */
   left: 0;
   right: 0;
   display: flex;
@@ -55,14 +55,21 @@
 }
 
 .indicator {
-  width: 4px; /* Made smaller from 6px */
-  height: 4px; /* Made smaller from 6px */
+  width: 8px !important;
+  height: 8px !important;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.4);
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  padding: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+  min-width: 4px !important;
+  min-height: 4px !important;
+  max-width: 12px !important;
+  max-height: 12px !important;
+  box-sizing: border-box;
 }
 
 .indicator:hover {
@@ -72,8 +79,17 @@
 
 .indicatorActive {
   background-color: #fff;
-  width: 16px; /* Made smaller from 24px */
+  width: 20px !important;
+  height: 8px !important;
   border-radius: 12px;
+  flex-shrink: 0;
+  min-width: 4px !important;
+  min-height: 4px !important;
+  max-width:20px !important;
+  max-height: 16px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
 }
 
 .headerOverlay {

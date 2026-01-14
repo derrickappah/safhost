@@ -45,10 +45,10 @@ export default function ImageCarousel({
     const isRightSwipe = distance < -minSwipeDistance
 
     if (isLeftSwipe && images.length > 0) {
-      setCurrentImage((prev) => (prev < images.length - 1 ? prev + 1 : prev))
+      setCurrentImage((prev) => (prev + 1) % images.length)
     }
     if (isRightSwipe && images.length > 0) {
-      setCurrentImage((prev) => (prev > 0 ? prev - 1 : prev))
+      setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
     }
     
     setTouchStart(null)
