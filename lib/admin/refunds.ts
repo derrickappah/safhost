@@ -2,6 +2,7 @@
 
 import { createClient } from '../supabase/server'
 import { getUser } from '../auth'
+import { isAdmin } from '../auth/middleware'
 import { logAuditAction } from './audit'
 
 /**
@@ -14,6 +15,11 @@ export async function processRefund(
   error: string | null
 }> {
   try {
+    const admin = await isAdmin()
+    if (!admin) {
+      return { error: 'Admin access required' }
+    }
+
     const supabase = await createClient()
     const user = await getUser()
     
@@ -54,6 +60,12 @@ export async function processRefund(
       return { error: cancelError.message }
     }
     
+    // Clear cache when subscription is cancelled
+    if (subscription.user_id) {
+      const { clearCachedSubscription } = await import('../cache/subscription')
+      await clearCachedSubscription(subscription.user_id)
+    }
+    
     // Create refund record (for tracking)
     // Note: Actual refund would be processed through Paystack API
     // This just marks it in the system
@@ -84,6 +96,11 @@ export async function manuallyAddSubscription(
   error: string | null
 }> {
   try {
+    const admin = await isAdmin()
+    if (!admin) {
+      return { data: null, error: 'Admin access required' }
+    }
+
     const supabase = await createClient()
     const user = await getUser()
     
@@ -132,12 +149,24 @@ export async function manuallyRemoveSubscription(
   error: string | null
 }> {
   try {
+    const admin = await isAdmin()
+    if (!admin) {
+      return { error: 'Admin access required' }
+    }
+
     const supabase = await createClient()
     const user = await getUser()
     
     if (!user) {
       return { error: 'Authentication required' }
     }
+    
+    // Get subscription to find user_id for cache invalidation
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('user_id')
+      .eq('id', subscriptionId)
+      .single()
     
     const { error } = await supabase
       .from('subscriptions')
@@ -149,6 +178,12 @@ export async function manuallyRemoveSubscription(
     
     if (error) {
       return { error: error.message }
+    }
+    
+    // Clear cache when subscription is cancelled
+    if (subscription?.user_id) {
+      const { clearCachedSubscription } = await import('../cache/subscription')
+      await clearCachedSubscription(subscription.user_id)
     }
     
     // Log audit action

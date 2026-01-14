@@ -249,7 +249,7 @@ export async function createReview(input: CreateReviewInput): Promise<{
           }
           
           const nonExpiredSubs = activeSubs.filter(sub => {
-            if (!sub.expires_at) return true
+            if (!sub.expires_at) return false // NULL expiration means expired/invalid
             return new Date(sub.expires_at) > now
           })
           

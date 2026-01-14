@@ -123,9 +123,10 @@ export const getActiveSubscription = cache(async (): Promise<{
     if (activeSubs && activeSubs.length > 0) {
       // Find the first non-expired subscription
       // IMPORTANT: Only return non-expired subscriptions to match RLS policy requirements
+      // NULL expires_at is treated as expired/invalid for security
       const now = new Date()
       const activeSub = activeSubs.find(sub => {
-        if (!sub.expires_at) return true // If no expiration date, consider it active
+        if (!sub.expires_at) return false // NULL expiration means expired/invalid
         return new Date(sub.expires_at) > now
       })
       
@@ -144,6 +145,13 @@ export const getActiveSubscription = cache(async (): Promise<{
           now: now.toISOString()
         }
       })
+      
+      // Check for NULL expires_at in active subscriptions (security issue)
+      const nullExpiresSub = activeSubs.find(sub => !sub.expires_at)
+      if (nullExpiresSub) {
+        const { logNullExpiresAtDetected } = await import('../monitoring/subscription-security')
+        await logNullExpiresAtDetected(nullExpiresSub.id)
+      }
     }
     
     // If no active subscription, check for pending subscriptions with successful payments
@@ -151,7 +159,7 @@ export const getActiveSubscription = cache(async (): Promise<{
       .from('subscriptions')
       .select(`
         *,
-        payments!inner(id, status)
+        payments!inner(id, status, amount, provider_ref, created_at)
       `)
       .eq('user_id', user.id)
       .eq('status', 'pending')
@@ -160,18 +168,53 @@ export const getActiveSubscription = cache(async (): Promise<{
       .limit(1)
     
     if (pendingSubs && pendingSubs.length > 0) {
-      // Found a pending subscription with successful payment - activate it
+      // Found a pending subscription with successful payment - verify before activating
       const pendingSub = pendingSubs[0] as any
-      console.log('Found pending subscription with successful payment, activating:', pendingSub.id)
+      const payments = pendingSub.payments as any[]
       
-      const { data: activated, error: activateError } = await activateSubscription(pendingSub.id, false)
-      
-      if (activated) {
-        // Cache the result
-        await setCachedSubscription(user.id, activated)
-        return { data: activated, error: null }
+      if (!payments || payments.length === 0) {
+        console.warn('Pending subscription has no payments:', pendingSub.id)
       } else {
-        console.error('Failed to activate pending subscription:', activateError)
+        const successfulPayment = payments.find((p: any) => p.status === 'success')
+        
+        if (successfulPayment) {
+          // Verify payment details
+          const paymentCreatedAt = new Date(successfulPayment.created_at)
+          const now = new Date()
+          const hoursSincePayment = (now.getTime() - paymentCreatedAt.getTime()) / (1000 * 60 * 60)
+          
+          // Payment should be within last 7 days (reasonable window for activation)
+          if (hoursSincePayment > 168) {
+            console.warn('Payment is too old for auto-activation:', {
+              subscriptionId: pendingSub.id,
+              paymentId: successfulPayment.id,
+              hoursSincePayment: hoursSincePayment.toFixed(2)
+            })
+          } else if (!successfulPayment.provider_ref) {
+            console.warn('Payment missing provider reference:', {
+              subscriptionId: pendingSub.id,
+              paymentId: successfulPayment.id
+            })
+          } else {
+            // Payment looks valid, proceed with activation
+            console.log('Found pending subscription with verified successful payment, activating:', {
+              subscriptionId: pendingSub.id,
+              paymentId: successfulPayment.id,
+              amount: successfulPayment.amount,
+              providerRef: successfulPayment.provider_ref
+            })
+            
+            const { data: activated, error: activateError } = await activateSubscription(pendingSub.id, false)
+            
+            if (activated) {
+              // Cache the result
+              await setCachedSubscription(user.id, activated)
+              return { data: activated, error: null }
+            } else {
+              console.error('Failed to activate pending subscription:', activateError)
+            }
+          }
+        }
       }
     }
     
@@ -218,6 +261,54 @@ export async function activateSubscription(
       supabase = createServiceRoleClient()
     } else {
       supabase = await createClient()
+      
+      // When not using service role, add security checks
+      const user = await getUser()
+      if (!user) {
+        return { data: null, error: 'Authentication required' }
+      }
+      
+      // Verify subscription exists and belongs to the user
+      const { data: subscription, error: fetchError } = await supabase
+        .from('subscriptions')
+        .select('id, user_id, status')
+        .eq('id', subscriptionId)
+        .single()
+      
+      if (fetchError || !subscription) {
+        return { data: null, error: 'Subscription not found' }
+      }
+      
+      // Verify ownership
+      if (subscription.user_id !== user.id) {
+        const { logUnauthorizedActivationAttempt } = await import('../monitoring/subscription-security')
+        await logUnauthorizedActivationAttempt(subscriptionId, 'Subscription does not belong to user')
+        return { data: null, error: 'Unauthorized: Subscription does not belong to user' }
+      }
+      
+      // Only allow activation of pending subscriptions
+      if (subscription.status !== 'pending') {
+        return { data: null, error: `Cannot activate subscription with status: ${subscription.status}` }
+      }
+      
+      // Verify there's a successful payment record
+      const { data: payments, error: paymentError } = await supabase
+        .from('payments')
+        .select('id, status, amount')
+        .eq('subscription_id', subscriptionId)
+        .eq('status', 'success')
+        .limit(1)
+      
+      if (paymentError) {
+        console.error('Error checking payments:', paymentError)
+        return { data: null, error: 'Failed to verify payment' }
+      }
+      
+      if (!payments || payments.length === 0) {
+        const { logActivationWithoutPayment } = await import('../monitoring/subscription-security')
+        await logActivationWithoutPayment(subscriptionId, 'No successful payment found')
+        return { data: null, error: 'No successful payment found for this subscription' }
+      }
     }
     
     const { data, error } = await supabase
@@ -238,8 +329,11 @@ export async function activateSubscription(
     // This ensures the next getActiveSubscription call sees the active subscription immediately
     if (data?.user_id) {
       await clearCachedSubscription(data.user_id)
-      // Update cache with the activated subscription
-      await setCachedSubscription(data.user_id, data as Subscription)
+      
+      // Only cache if status is active (not expired or cancelled)
+      if (data.status === 'active') {
+        await setCachedSubscription(data.user_id, data as Subscription)
+      }
     }
     
     return { data: data as Subscription, error: null }

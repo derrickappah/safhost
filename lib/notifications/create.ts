@@ -191,8 +191,9 @@ export async function notifyStudentsForNewHostel(
     }
     
     // Filter subscriptions to only include non-expired ones
+    // NULL expires_at is treated as expired/invalid for security
     const validSubscriptions = subscriptions.filter((sub: any) => {
-      if (!sub.expires_at) return true // No expiration date means active
+      if (!sub.expires_at) return false // NULL expiration means expired/invalid
       return new Date(sub.expires_at) > new Date(now)
     })
     

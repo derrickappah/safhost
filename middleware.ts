@@ -89,9 +89,10 @@ export async function middleware(request: NextRequest) {
       // Use cached value - check if it's a valid subscription object
       if (cachedSubscription && typeof cachedSubscription === 'object' && cachedSubscription.status === 'active') {
         // Also check expiration if subscription exists
+        // NULL expires_at is treated as expired/invalid for security
         const now = new Date()
         const expiresAt = cachedSubscription.expires_at ? new Date(cachedSubscription.expires_at) : null
-        hasSubscription = !expiresAt || expiresAt > now
+        hasSubscription = expiresAt !== null && expiresAt > now
       } else {
         // Cached null means no subscription
         hasSubscription = false
@@ -109,9 +110,10 @@ export async function middleware(request: NextRequest) {
       if (subscriptions && subscriptions.length > 0) {
         const subscription = subscriptions[0]
         // Check if subscription is not expired
+        // NULL expires_at is treated as expired/invalid for security
         const now = new Date()
         const expiresAt = subscription.expires_at ? new Date(subscription.expires_at) : null
-        hasSubscription = !expiresAt || expiresAt > now
+        hasSubscription = expiresAt !== null && expiresAt > now
       }
     }
 
