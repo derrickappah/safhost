@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { IoLocation, IoStar, IoWalk, IoCar, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoShirt, IoSnow, IoBarbell, IoBook, IoPeople, IoCall, IoAlertCircle, IoFlagOutline, IoMale, IoFemale, IoArrowBack, IoShareOutline, IoHeart, IoHeartOutline, IoChevronForward } from 'react-icons/io5'
+import { IoLocation, IoStar, IoWalk, IoCar, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoShirt, IoSnow, IoBarbell, IoBook, IoPeople, IoCall, IoAlertCircle, IoFlagOutline, IoMale, IoFemale, IoArrowBack, IoShareOutline, IoHeart, IoHeartOutline, IoChevronForward, IoClose } from 'react-icons/io5'
 import { type Hostel } from '@/lib/actions/hostels'
 import { type Review } from '@/lib/actions/reviews'
 import { trackHostelView } from '@/lib/actions/views'
@@ -61,6 +61,15 @@ export default function HostelDetailContent({
   const [showReportModal, setShowReportModal] = useState(false)
   const [reportTarget, setReportTarget] = useState<'hostel' | string>('hostel')
   const [showStickyHeader, setShowStickyHeader] = useState(false)
+  const [showAvailabilityDialog, setShowAvailabilityDialog] = useState(false)
+  const [availabilityDialogConfig, setAvailabilityDialogConfig] = useState<{
+    title: string
+    message: string
+    type: 'success' | 'error' | 'info' | 'confirm'
+    onConfirm?: () => void
+    confirmText?: string
+    cancelText?: string
+  } | null>(null)
 
   // Track view on mount (non-blocking)
   useEffect(() => {
@@ -186,6 +195,56 @@ export default function HostelDetailContent({
   const handleReviewUpdate = () => {
     // Refresh hostel data to update rating
     window.location.reload()
+  }
+
+  const showAvailabilityDialogFunc = (config: {
+    title: string
+    message: string
+    type: 'success' | 'error' | 'info' | 'confirm'
+    onConfirm?: () => void
+    confirmText?: string
+    cancelText?: string
+  }) => {
+    setAvailabilityDialogConfig(config)
+    setShowAvailabilityDialog(true)
+  }
+
+  const closeAvailabilityDialog = () => {
+    setShowAvailabilityDialog(false)
+    setAvailabilityDialogConfig(null)
+  }
+
+  const handleAvailabilityConfirm = () => {
+    if (availabilityDialogConfig?.onConfirm) {
+      availabilityDialogConfig.onConfirm()
+    }
+    closeAvailabilityDialog()
+  }
+
+  const handleFlagAvailability = async () => {
+    showAvailabilityDialogFunc({
+      title: 'Report Availability',
+      message: 'Report this hostel as no longer available? This will be reviewed by admin.',
+      type: 'confirm',
+      confirmText: 'Report',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        const { error } = await flagHostelAvailability(hostel.id, 'General', 0)
+        if (error) {
+          showAvailabilityDialogFunc({
+            title: 'Report Failed',
+            message: 'Failed to report: ' + error,
+            type: 'error'
+          })
+        } else {
+          showAvailabilityDialogFunc({
+            title: 'Report Submitted',
+            message: 'Report submitted. Admin will review and update the listing.',
+            type: 'success'
+          })
+        }
+      }
+    })
   }
 
   const images = hostel.images && hostel.images.length > 0 
@@ -458,16 +517,7 @@ export default function HostelDetailContent({
               </div>
               <button
                 className={styles.flagButton}
-                onClick={async () => {
-                  if (confirm('Report this hostel as no longer available? This will be reviewed by admin.')) {
-                    const { error } = await flagHostelAvailability(hostel.id, 'General', 0)
-                    if (error) {
-                      alert('Failed to report: ' + error)
-                    } else {
-                      alert('Report submitted. Admin will review and update the listing.')
-                    }
-                  }
-                }}
+                onClick={handleFlagAvailability}
               >
                 <IoAlertCircle size={20} color="#f97316" />
                 <span>Room Taken / Not Available</span>
@@ -510,6 +560,49 @@ export default function HostelDetailContent({
         hostelManagerName={hostel.hostel_manager_name}
         phone={hostel.hostel_manager_phone}
       />
+
+      {/* Availability Confirmation Dialog */}
+      {showAvailabilityDialog && availabilityDialogConfig && (
+        <div className={styles.confirmDialogOverlay} onClick={closeAvailabilityDialog}>
+          <div className={styles.confirmDialog} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.confirmDialogHeader}>
+              <h3 className={styles.confirmDialogTitle}>{availabilityDialogConfig.title}</h3>
+              <button
+                className={styles.confirmDialogClose}
+                onClick={closeAvailabilityDialog}
+                aria-label="Close dialog"
+              >
+                <IoClose size={20} />
+              </button>
+            </div>
+            <div className={styles.confirmDialogContent}>
+              <p className={styles.confirmDialogMessage}>{availabilityDialogConfig.message}</p>
+            </div>
+            <div className={styles.confirmDialogFooter}>
+              {availabilityDialogConfig.type === 'confirm' && (
+                <button
+                  className={styles.confirmDialogCancelButton}
+                  onClick={closeAvailabilityDialog}
+                >
+                  {availabilityDialogConfig.cancelText || 'Cancel'}
+                </button>
+              )}
+              <button
+                className={`${styles.confirmDialogButton} ${
+                  availabilityDialogConfig.type === 'error' 
+                    ? styles.confirmDialogButtonError 
+                    : availabilityDialogConfig.type === 'success'
+                    ? styles.confirmDialogButtonSuccess
+                    : styles.confirmDialogButtonPrimary
+                }`}
+                onClick={handleAvailabilityConfirm}
+              >
+                {availabilityDialogConfig.confirmText || 'OK'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
