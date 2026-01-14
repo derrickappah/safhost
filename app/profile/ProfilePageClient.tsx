@@ -34,7 +34,7 @@ export default function ProfilePageClient({
   profile: initialProfile,
   selectedSchool: initialSelectedSchool
 }: ProfilePageClientProps) {
-  const { navigate } = useInstantNavigation()
+  const { navigate, router } = useInstantNavigation()
   const [profile, setProfile] = useState(initialProfile)
   const [selectedSchool, setSelectedSchool] = useState<string | null>(initialSelectedSchool)
   const [showEditModal, setShowEditModal] = useState(false)

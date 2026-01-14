@@ -14,7 +14,7 @@ interface ViewedPageClientProps {
 }
 
 export default function ViewedPageClient({ initialHostels, initialTotal }: ViewedPageClientProps) {
-  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
+  const { navigate, router, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const { showFilters } = useFilter()
   const [hostels, setHostels] = useState(initialHostels)
   const [loading, setLoading] = useState(false)
