@@ -1,68 +1,40 @@
 /**
- * Request-level cache for subscription data
- * Caches subscription data per user for 30 seconds to avoid redundant queries
+ * Distributed cache for subscription data using Vercel KV
+ * Caches subscription data per user to avoid redundant queries
+ * Falls back to in-memory cache if Vercel KV is not configured
  */
 
-interface CacheEntry {
-  data: any
-  timestamp: number
-}
+import { getCached, setCached, deleteCached, clearPattern } from './kv'
 
-const CACHE_TTL = 30 * 1000 // 30 seconds
-const cache = new Map<string, CacheEntry>()
+const CACHE_TTL_SECONDS = 300 // 5 minutes - optimized for performance while maintaining freshness
 
 /**
  * Get cached subscription data for a user
  */
-export function getCachedSubscription(userId: string): any | null {
-  const entry = cache.get(userId)
-  
-  if (!entry) {
-    return null
-  }
-  
-  // Check if cache entry is still valid
-  const now = Date.now()
-  if (now - entry.timestamp > CACHE_TTL) {
-    cache.delete(userId)
-    return null
-  }
-  
-  return entry.data
+export async function getCachedSubscription(userId: string): Promise<any | null> {
+  const key = `subscription:${userId}`
+  return await getCached<any>(key)
 }
 
 /**
  * Set cached subscription data for a user
  */
-export function setCachedSubscription(userId: string, data: any): void {
-  cache.set(userId, {
-    data,
-    timestamp: Date.now()
-  })
+export async function setCachedSubscription(userId: string, data: any): Promise<void> {
+  const key = `subscription:${userId}`
+  await setCached(key, data, CACHE_TTL_SECONDS)
 }
 
 /**
  * Clear cached subscription data for a user
  */
-export function clearCachedSubscription(userId: string): void {
-  cache.delete(userId)
+export async function clearCachedSubscription(userId: string): Promise<void> {
+  const key = `subscription:${userId}`
+  await deleteCached(key)
 }
 
 /**
  * Clear all cached subscription data
  */
-export function clearAllCachedSubscriptions(): void {
-  cache.clear()
-}
-
-/**
- * Clean up expired cache entries (optional, can be called periodically)
- */
-export function cleanupExpiredEntries(): void {
-  const now = Date.now()
-  for (const [userId, entry] of cache.entries()) {
-    if (now - entry.timestamp > CACHE_TTL) {
-      cache.delete(userId)
-    }
-  }
+export async function clearAllCachedSubscriptions(): Promise<void> {
+  await clearPattern('subscription:*')
 }

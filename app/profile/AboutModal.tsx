@@ -26,7 +26,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
               <IoPerson size={32} color="#2563eb" />
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
-              Hostel Student Finder
+              SafHost
             </h3>
             <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>Version 1.0.0</p>
           </div>
@@ -35,7 +35,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
               Find verified hostels near your school campus. Connect with hostel managers, save favorites, and make informed decisions about your accommodation.
             </p>
             <p style={{ fontSize: '12px', color: '#94a3b8', margin: '16px 0 0 0' }}>
-              © 2025 Hostel Student Finder. All rights reserved.
+              © 2025 SafHost. All rights reserved.
             </p>
           </div>
         </div>

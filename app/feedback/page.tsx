@@ -68,7 +68,7 @@ export default function FeedbackPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Share Your Feedback</h2>
           <p className={styles.sectionDescription}>
-            Help us improve HostelFinder by sharing your thoughts, reporting bugs, or suggesting new features.
+            Help us improve SafHost by sharing your thoughts, reporting bugs, or suggesting new features.
           </p>
 
           {submitted && (

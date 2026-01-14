@@ -106,7 +106,7 @@ export const getActiveSubscription = cache(async (): Promise<{
     }
     
     // Check cache first
-    const cached = getCachedSubscription(user.id)
+    const cached = await getCachedSubscription(user.id)
     if (cached !== null) {
       return { data: cached, error: null }
     }
@@ -168,7 +168,7 @@ export const getActiveSubscription = cache(async (): Promise<{
       
       if (activated) {
         // Cache the result
-        setCachedSubscription(user.id, activated)
+        await setCachedSubscription(user.id, activated)
         return { data: activated, error: null }
       } else {
         console.error('Failed to activate pending subscription:', activateError)
@@ -180,7 +180,7 @@ export const getActiveSubscription = cache(async (): Promise<{
     }
     
     // Cache null result (no subscription) to avoid repeated queries
-    setCachedSubscription(user.id, null)
+    await setCachedSubscription(user.id, null)
     return { data: null, error: null }
   } catch (error) {
     console.error('getActiveSubscription error:', error)
@@ -236,7 +236,7 @@ export async function activateSubscription(
     
     // Clear cache for this user so next getActiveSubscription call fetches fresh data
     if (data?.user_id) {
-      clearCachedSubscription(data.user_id)
+      await clearCachedSubscription(data.user_id)
     }
     
     return { data: data as Subscription, error: null }

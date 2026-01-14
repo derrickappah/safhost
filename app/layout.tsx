@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import BottomNav from '@/components/BottomNav'
+import ServiceWorkerRegistration from './ServiceWorkerRegistration'
+import WebVitals from './WebVitals'
 
 export const metadata: Metadata = {
-  title: 'Hostel Student Finder',
+  title: 'SafHost',
   description: 'Find verified hostels near your school',
   icons: {
     icon: '/favicon.ico',
@@ -31,6 +33,8 @@ export default function RootLayout({
       <body>
         {children}
         <BottomNav />
+        <ServiceWorkerRegistration />
+        <WebVitals />
       </body>
     </html>
   )

@@ -25,8 +25,8 @@ const QuickActions = dynamic(() => import('./QuickActions'), {
   ssr: true
 })
 
-// Revalidate every 60 seconds for fresh data
-export const revalidate = 60
+// Revalidate every 120 seconds (2 minutes) for fresh data - optimized for performance
+export const revalidate = 120
 
 export default async function DashboardPage() {
   // Check authentication

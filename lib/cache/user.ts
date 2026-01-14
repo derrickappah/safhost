@@ -1,25 +1,12 @@
 /**
- * Request-scoped cache for user data
- * Caches user by session token to avoid multiple getUser() calls in the same request cycle
+ * Distributed cache for user data using Vercel KV
+ * Caches user by session token to avoid multiple getUser() calls
+ * Falls back to in-memory cache if Vercel KV is not configured
  */
 
-interface UserCacheEntry {
-  user: any | null
-  timestamp: number
-}
+import { getCached, setCached, deleteCached } from './kv'
 
-const CACHE_TTL = 30 * 1000 // 30 seconds - short enough to avoid stale data
-const cache = new Map<string, UserCacheEntry>()
-
-// Clean up old cache entries periodically
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of cache.entries()) {
-    if (now - entry.timestamp > CACHE_TTL) {
-      cache.delete(key)
-    }
-  }
-}, 60000) // Clean up every minute
+const CACHE_TTL_SECONDS = 30 // 30 seconds - short enough to avoid stale data
 
 /**
  * Generate a cache key from cookies
@@ -45,19 +32,8 @@ export async function getCachedUser(): Promise<any | null> {
     const cookieArray = cookieStore.getAll()
     const key = getCacheKey(cookieArray)
     
-    const entry = cache.get(key)
-    if (!entry) {
-      return null
-    }
-    
-    // Check if cache is still valid
-    const now = Date.now()
-    if (now - entry.timestamp > CACHE_TTL) {
-      cache.delete(key)
-      return null
-    }
-    
-    return entry.user
+    const cached = await getCached<any>(key)
+    return cached
   } catch {
     // If cookies() fails (e.g., in middleware), return null
     return null
@@ -74,10 +50,7 @@ export async function setCachedUser(user: any | null): Promise<void> {
     const cookieArray = cookieStore.getAll()
     const key = getCacheKey(cookieArray)
     
-    cache.set(key, {
-      user,
-      timestamp: Date.now()
-    })
+    await setCached(key, user, CACHE_TTL_SECONDS)
   } catch {
     // If cookies() fails, silently ignore
   }
@@ -93,7 +66,7 @@ export async function clearCachedUser(): Promise<void> {
     const cookieArray = cookieStore.getAll()
     const key = getCacheKey(cookieArray)
     
-    cache.delete(key)
+    await deleteCached(key)
   } catch {
     // If cookies() fails, silently ignore
   }

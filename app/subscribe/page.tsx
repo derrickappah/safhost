@@ -29,7 +29,7 @@ const plans = [
     price: 50,
     period: "3 months",
     popular: false,
-    savings: "Save GHS 30",
+    savings: "Save GHS 10",
     features: [
       "Everything in Monthly",
       "Priority support",

@@ -1,11 +1,10 @@
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { IoHome, IoCameraOutline, IoCashOutline, IoLocationOutline, IoStarOutline, IoCallOutline, IoLockClosed, IoCheckmarkCircle, IoArrowForward, IoLogInOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getPublicHostelPreviews } from '@/lib/actions/hostels'
-import { getUser } from '@/lib/auth'
 import SubscribeButton from './SubscribeButton'
+import LandingPageClient from './LandingPageClient'
 
 const features = [
   { icon: IoCameraOutline, text: "Real Photos" },
@@ -15,17 +14,15 @@ const features = [
   { icon: IoCallOutline, text: "Direct Contact" },
 ]
 
-// Static generation with revalidation
-export const revalidate = 3600 // Revalidate every hour
+// Full static generation - revalidate every hour
+export const revalidate = 3600
+
+// Force static generation
+export const dynamic = 'force-static'
+export const dynamicParams = false
 
 export default async function LandingPage() {
-  // Check authentication - if logged in, redirect to dashboard
-  const user = await getUser()
-  if (user) {
-    redirect('/dashboard')
-  }
-
-  // Load hostels for preview (public)
+  // Load hostels for preview (public) - this will be cached
   const { data: hostelsData } = await getPublicHostelPreviews(3)
   
   const previewHostels = hostelsData?.map((hostel) => ({
@@ -39,7 +36,8 @@ export default async function LandingPage() {
   })) || []
 
   return (
-    <div className={styles.container}>
+    <LandingPageClient>
+      <div className={styles.container}>
       <div className={styles.scrollContent}>
         {/* Header */}
         <header className={styles.header}>
@@ -208,5 +206,6 @@ export default async function LandingPage() {
         </div>
       </div>
     </div>
+    </LandingPageClient>
   )
 }

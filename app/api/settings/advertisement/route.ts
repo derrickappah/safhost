@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { isAdvertisementEnabled } from '@/lib/admin/settings'
 
+export const runtime = 'edge'
+
 export async function GET() {
   try {
     const enabled = await isAdvertisementEnabled()

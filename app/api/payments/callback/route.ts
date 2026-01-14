@@ -42,8 +42,9 @@ export async function GET(request: NextRequest) {
           // Try to find payment by metadata (fallback for payments created before reference was stored)
           console.log('Payment not found by reference, trying metadata lookup...')
           const { createServiceRoleClient } = await import('@/lib/supabase/server')
+          // Reuse the same service role client instance throughout this request
+          const serviceClient = createServiceRoleClient()
           try {
-            const serviceClient = createServiceRoleClient()
             // Get verification metadata which should contain payment_id
             const paymentIdFromMetadata = verification?.data?.metadata?.payment_id
             
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
                   
                   console.log('Payment found, activating subscription:', { paymentId: payment.id, subscriptionId: payment.subscription_id })
                   
-                  // Activate subscription
+                  // Activate subscription using the same client instance
                   const { data: activatedSubscription, error: activateError } = await serviceClient
                     .from('subscriptions')
                     .update({ status: 'active' })
@@ -115,6 +116,7 @@ export async function GET(request: NextRequest) {
           console.log('Payment found, activating subscription:', { paymentId: payment.id, subscriptionId: payment.subscription_id })
           
           // Try with service role first (for webhooks/callbacks without user session)
+          // Reuse the same service role client instance
           let activatedSubscription = null
           let activateError = null
           

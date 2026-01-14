@@ -5,6 +5,7 @@ import { unstable_cache } from 'next/cache'
 import { createClient } from '../supabase/server'
 import { revalidatePath } from 'next/cache'
 import { checkSubscriptionAccess } from '../auth/subscription'
+import { getCached, setCached, getCachedWithStale } from '../cache/kv'
 
 export interface HostelFilters {
   schoolId?: string
@@ -59,7 +60,7 @@ export interface Hostel {
 
 /**
  * Get all hostels with optional filters
- * Uses React cache() for request deduplication and unstable_cache for time-based caching
+ * Uses React cache() for request deduplication and KV cache for distributed caching
  */
 const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
   data: Hostel[] | null
@@ -70,6 +71,27 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
     const { hasAccess } = await checkSubscriptionAccess()
     if (!hasAccess) {
       return { data: null, error: 'Subscription required to view hostels' }
+    }
+
+    // Generate cache key from filters
+    const filterKey = JSON.stringify(filters)
+    const cacheKey = `hostels:${Buffer.from(filterKey).toString('base64').substring(0, 50)}`
+    
+    // Check cache with stale-while-revalidate support
+    const { value: cached, isStale } = await getCachedWithStale<Hostel[]>(cacheKey)
+    
+    // If we have cached data (fresh or stale), return it immediately
+    // Fresh data will be returned synchronously
+    // Stale data will be returned while fresh data is fetched in background
+    if (cached !== null) {
+      // If stale, trigger background refresh (fire and forget)
+      if (isStale) {
+        // Fetch fresh data in background without awaiting
+        refreshHostelsCache(cacheKey, filters).catch(err => {
+          console.error('[Cache] Background refresh failed:', err)
+        })
+      }
+      return { data: cached, error: null }
     }
 
     const supabase = await createClient()
@@ -199,6 +221,12 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
       school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
     }))
 
+    // Cache result: 5 minutes for filtered queries, 15 minutes for general queries
+    // Stale TTL: double the fresh TTL for stale-while-revalidate
+    const ttl = Object.keys(filters).length > 0 ? 300 : 900 // 5 min vs 15 min
+    const staleTtl = ttl * 2 // Allow stale data for double the fresh TTL
+    await setCached(cacheKey, formattedData, ttl, staleTtl, ['hostels'])
+
     return { data: formattedData as unknown as Hostel[], error: null }
   } catch (error) {
     return {
@@ -208,32 +236,16 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
   }
 }
 
-export const getHostels = cache(getHostelsImpl)
-
 /**
- * Get cached hostels with time-based revalidation (60 seconds)
- * Use this for public pages that don't need real-time data
+ * Background refresh function for stale-while-revalidate
+ * Fetches fresh data and updates cache without blocking
  */
-export const getCachedHostels = unstable_cache(
-  async (filters: HostelFilters = {}) => {
-    return getHostels(filters)
-  },
-  ['hostels-list'],
-  { revalidate: 60 }
-)
-
-/**
- * Get featured hostels
- * Uses React cache() for request deduplication
- */
-export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
-  data: Hostel[] | null
-  error: string | null
-}> => {
+async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Promise<void> {
   try {
     const supabase = await createClient()
     
-    const { data, error } = await supabase
+    // Build query (same logic as getHostelsImpl)
+    let query = supabase
       .from('hostels')
       .select(`
         id,
@@ -257,17 +269,181 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
         school:schools(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
-      .eq('featured', true)
-      .eq('is_available', true)
-      .order('rating', { ascending: false })
-      .order('view_count', { ascending: false, nullsFirst: false })
+    
+    // Apply filters (same as getHostelsImpl)
+    if (filters.schoolId) query = query.eq('school_id', filters.schoolId)
+    if (filters.minPrice !== undefined) query = query.gte('price_min', filters.minPrice)
+    if (filters.maxPrice !== undefined) query = query.lte('price_max', filters.maxPrice)
+    if (filters.maxDistance !== undefined) query = query.lte('distance', filters.maxDistance)
+    if (filters.amenities && filters.amenities.length > 0) {
+      filters.amenities.forEach(amenity => {
+        query = query.contains('amenities', [amenity])
+      })
+    }
+    if (filters.roomTypes && filters.roomTypes.length > 0) {
+      for (const roomType of filters.roomTypes) {
+        query = query.filter('room_types', 'cs', JSON.stringify([{ type: roomType }]))
+      }
+    }
+    if (filters.genderRestriction) query = query.eq('gender_restriction', filters.genderRestriction)
+    if (filters.isAvailable !== undefined) query = query.eq('is_available', filters.isAvailable)
+    if (filters.search) {
+      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,address.ilike.%${filters.search}%`)
+    }
+    
+    // Apply sorting
+    if (filters.sortBy) {
+      switch (filters.sortBy) {
+        case 'price_asc': query = query.order('price_min', { ascending: true }); break
+        case 'price_desc': query = query.order('price_min', { ascending: false }); break
+        case 'distance': query = query.order('distance', { ascending: true, nullsFirst: false }); break
+        case 'rating': query = query.order('rating', { ascending: false }); break
+        case 'newest': query = query.order('created_at', { ascending: false }); break
+        case 'popular': query = query.order('view_count', { ascending: false, nullsFirst: false }); break
+        default: query = query.order('created_at', { ascending: false })
+      }
+    } else {
+      query = query.order('created_at', { ascending: false })
+    }
+    
+    if (filters.limit) query = query.limit(filters.limit)
+    if (filters.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
+    
+    const { data, error } = await query
+    
+    if (error) {
+      console.error('[Cache] Background refresh error:', error)
+      return
+    }
+    
+    const formattedData = (data || []).map(hostel => ({
+      ...hostel,
+      latitude: hostel.latitude ? Number(hostel.latitude) : null,
+      longitude: hostel.longitude ? Number(hostel.longitude) : null,
+      price_min: Number(hostel.price_min),
+      price_max: hostel.price_max ? Number(hostel.price_max) : null,
+      rating: Number(hostel.rating),
+      school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
+    }))
+    
+    const ttl = Object.keys(filters).length > 0 ? 300 : 900
+    const staleTtl = ttl * 2
+    await setCached(cacheKey, formattedData, ttl, staleTtl, ['hostels'])
+  } catch (error) {
+    console.error('[Cache] Background refresh failed:', error)
+  }
+}
+
+export const getHostels = cache(getHostelsImpl)
+
+/**
+ * Get cached hostels with time-based revalidation (60 seconds)
+ * Use this for public pages that don't need real-time data
+ */
+export const getCachedHostels = unstable_cache(
+  async (filters: HostelFilters = {}) => {
+    return getHostels(filters)
+  },
+  ['hostels-list'],
+  { revalidate: 60 }
+)
+
+/**
+ * Get featured hostels
+ * Uses React cache() for request deduplication and KV cache
+ */
+export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
+  data: Hostel[] | null
+  error: string | null
+}> => {
+  try {
+    // Check cache first
+    const cacheKey = `hostels:featured:${limit}`
+    const cached = await getCached<Hostel[]>(cacheKey)
+    if (cached !== null) {
+      return { data: cached, error: null }
+    }
+
+    const supabase = await createClient()
+    
+    // Use materialized view for better performance
+    // Fallback to regular query if materialized view doesn't exist
+    let query = supabase
+      .from('mv_featured_hostels')
+      .select('*')
       .limit(limit)
+    
+    const { data, error } = await query
+    
+    // If materialized view doesn't exist, fallback to regular query
+    if (error && error.code === '42P01') {
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('hostels')
+        .select(`
+          id,
+          school_id,
+          name,
+          price_min,
+          price_max,
+          rating,
+          review_count,
+          distance,
+          images,
+          amenities,
+          is_active,
+          created_at,
+          view_count,
+          gender_restriction,
+          is_available,
+          featured,
+          latitude,
+          longitude,
+          school:schools(id, name, location, latitude, longitude, logo_url)
+        `)
+        .eq('is_active', true)
+        .eq('featured', true)
+        .eq('is_available', true)
+        .order('rating', { ascending: false })
+        .order('view_count', { ascending: false, nullsFirst: false })
+        .limit(limit)
+      
+      if (fallbackError) {
+        return { data: null, error: fallbackError.message }
+      }
+      
+      const formattedData = (fallbackData || []).map(hostel => ({
+        ...hostel,
+        latitude: hostel.latitude ? Number(hostel.latitude) : null,
+        longitude: hostel.longitude ? Number(hostel.longitude) : null,
+        price_min: Number(hostel.price_min),
+        price_max: hostel.price_max ? Number(hostel.price_max) : null,
+        rating: Number(hostel.rating),
+        school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
+      }))
+      
+      await setCached(cacheKey, formattedData, 1800)
+      return { data: formattedData as unknown as Hostel[], error: null }
+    }
     
     if (error) {
       return { data: null, error: error.message }
     }
     
-    return { data: data as unknown as Hostel[], error: null }
+    // Format data from materialized view (school is already JSONB)
+    const formattedData = (data || []).map((hostel: any) => ({
+      ...hostel,
+      latitude: hostel.latitude ? Number(hostel.latitude) : null,
+      longitude: hostel.longitude ? Number(hostel.longitude) : null,
+      price_min: Number(hostel.price_min),
+      price_max: hostel.price_max ? Number(hostel.price_max) : null,
+      rating: Number(hostel.rating),
+      school: typeof hostel.school === 'object' ? hostel.school : null
+    }))
+
+    // Cache for 30 minutes (featured hostels change infrequently)
+    await setCached(cacheKey, formattedData, 1800, 3600, ['hostels', 'featured'])
+    
+    return { data: formattedData as unknown as Hostel[], error: null }
   } catch (error) {
     return {
       data: null,
@@ -501,6 +677,13 @@ export const getPublicHostelPreviews = cache(async (limit: number = 10): Promise
   error: string | null
 }> => {
   try {
+    // Check cache first
+    const cacheKey = `hostels:public:${limit}`
+    const cached = await getCached<Hostel[]>(cacheKey)
+    if (cached !== null) {
+      return { data: cached, error: null }
+    }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase
@@ -537,7 +720,20 @@ export const getPublicHostelPreviews = cache(async (limit: number = 10): Promise
       return { data: null, error: error.message }
     }
 
-    return { data: data as unknown as Hostel[], error: null }
+    const formattedData = (data || []).map(hostel => ({
+      ...hostel,
+      latitude: hostel.latitude ? Number(hostel.latitude) : null,
+      longitude: hostel.longitude ? Number(hostel.longitude) : null,
+      price_min: Number(hostel.price_min),
+      price_max: hostel.price_max ? Number(hostel.price_max) : null,
+      rating: Number(hostel.rating),
+      school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
+    }))
+
+    // Cache for 30 minutes (public previews change infrequently)
+    await setCached(cacheKey, formattedData, 1800, 3600, ['hostels', 'public'])
+
+    return { data: formattedData as unknown as Hostel[], error: null }
   } catch (error) {
     return {
       data: null,

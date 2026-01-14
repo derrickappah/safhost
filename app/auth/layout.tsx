@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Authentication - Hostel Student Finder',
+  title: 'Authentication - SafHost',
   description: 'Sign up or log in to access hostel listings',
 }
 

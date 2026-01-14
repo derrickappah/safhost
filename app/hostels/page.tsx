@@ -4,8 +4,9 @@ import { requireSubscription } from '@/lib/access/guard'
 import { getProfile } from '@/lib/actions/profile'
 import HostelsPageClient from './HostelsPageClient'
 
-// Enable ISR - revalidate every 60 seconds
-export const revalidate = 60
+// Enable ISR - revalidate every 10 minutes (600 seconds)
+// Optimized for better performance while maintaining reasonable freshness
+export const revalidate = 600
 
 interface PageProps {
   searchParams: Promise<{

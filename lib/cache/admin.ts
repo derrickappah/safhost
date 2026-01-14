@@ -1,56 +1,40 @@
 /**
- * Request-level cache for admin role checks
- * Caches admin status per user for 5 minutes to avoid redundant database queries
+ * Distributed cache for admin role checks using Vercel KV
+ * Caches admin status per user to avoid redundant database queries
+ * Falls back to in-memory cache if Vercel KV is not configured
  */
 
-interface CacheEntry {
-  isAdmin: boolean
-  timestamp: number
-}
+import { getCached, setCached, deleteCached, clearPattern } from './kv'
 
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-const cache = new Map<string, CacheEntry>()
+const CACHE_TTL_SECONDS = 5 * 60 // 5 minutes - admin status changes rarely
 
 /**
  * Get cached admin status for a user
  */
-export function getCachedAdminStatus(userId: string): boolean | null {
-  const entry = cache.get(userId)
-  
-  if (!entry) {
-    return null
-  }
-  
-  // Check if cache entry is still valid
-  const now = Date.now()
-  if (now - entry.timestamp > CACHE_TTL) {
-    cache.delete(userId)
-    return null
-  }
-  
-  return entry.isAdmin
+export async function getCachedAdminStatus(userId: string): Promise<boolean | null> {
+  const key = `admin:${userId}`
+  return await getCached<boolean>(key)
 }
 
 /**
  * Set cached admin status for a user
  */
-export function setCachedAdminStatus(userId: string, isAdmin: boolean): void {
-  cache.set(userId, {
-    isAdmin,
-    timestamp: Date.now()
-  })
+export async function setCachedAdminStatus(userId: string, isAdmin: boolean): Promise<void> {
+  const key = `admin:${userId}`
+  await setCached(key, isAdmin, CACHE_TTL_SECONDS)
 }
 
 /**
  * Clear cached admin status for a user
  */
-export function clearCachedAdminStatus(userId: string): void {
-  cache.delete(userId)
+export async function clearCachedAdminStatus(userId: string): Promise<void> {
+  const key = `admin:${userId}`
+  await deleteCached(key)
 }
 
 /**
  * Clear all cached admin statuses
  */
-export function clearAllCachedAdminStatuses(): void {
-  cache.clear()
+export async function clearAllCachedAdminStatuses(): Promise<void> {
+  await clearPattern('admin:*')
 }

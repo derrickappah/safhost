@@ -70,7 +70,8 @@ export default function HostelCard({
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className={styles.hostelImage}
-          quality={90}
+          quality={85}
+          loading="lazy"
         />
         {compareMode && onToggleSelection && (
           <button

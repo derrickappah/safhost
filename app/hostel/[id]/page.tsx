@@ -9,7 +9,7 @@ import HostelDetailContent from './HostelDetailContent'
 import styles from './page.module.css'
 
 // Enable ISR with on-demand revalidation
-export const revalidate = 300 // Revalidate every 5 minutes
+export const revalidate = 600 // Revalidate every 10 minutes - optimized for performance
 
 interface PageProps {
   params: Promise<{ id: string }>

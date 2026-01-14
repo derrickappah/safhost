@@ -82,7 +82,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check subscription status (use cache for performance)
-    const cachedSubscription = getCachedSubscription(user.id)
+    const cachedSubscription = await getCachedSubscription(user.id)
     let hasSubscription = false
 
     if (cachedSubscription !== null) {
@@ -132,7 +132,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // Check cache first
-    const cachedAdminStatus = getCachedAdminStatus(user.id)
+    const cachedAdminStatus = await getCachedAdminStatus(user.id)
     if (cachedAdminStatus !== null) {
       if (!cachedAdminStatus) {
         const url = request.nextUrl.clone()
@@ -159,7 +159,7 @@ export async function middleware(request: NextRequest) {
       }
       
       // Cache the result
-      setCachedAdminStatus(user.id, isAdmin)
+      await setCachedAdminStatus(user.id, isAdmin)
       
       if (!isAdmin) {
         const url = request.nextUrl.clone()

@@ -73,7 +73,8 @@ export default function ImageCarousel({
             className={styles.hostelImage}
             style={{ display: currentImage === index ? 'block' : 'none' }}
             priority={index === 0}
-            quality={95}
+            quality={index === 0 ? 90 : 85}
+            loading={index === 0 ? 'eager' : 'lazy'}
           />
         ))}
       </div>

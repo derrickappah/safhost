@@ -1,6 +1,8 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '../supabase/server'
+import { getCached, setCached } from '../cache/kv'
 
 export interface School {
   id: string
@@ -15,12 +17,20 @@ export interface School {
 
 /**
  * Get all schools
+ * Uses KV cache with 1 hour TTL (schools change rarely)
  */
-export async function getSchools(): Promise<{
+export const getSchools = cache(async (): Promise<{
   data: School[] | null
   error: string | null
-}> {
+}> => {
   try {
+    // Check cache first
+    const cacheKey = 'schools:all'
+    const cached = await getCached<School[]>(cacheKey)
+    if (cached !== null) {
+      return { data: cached, error: null }
+    }
+
     const supabase = await createClient()
     
     const { data, error } = await supabase
@@ -32,6 +42,9 @@ export async function getSchools(): Promise<{
       return { data: null, error: error.message }
     }
     
+    // Cache for 1 hour (3600 seconds)
+    await setCached(cacheKey, data, 3600)
+    
     return { data: data as School[], error: null }
   } catch (error) {
     return {
@@ -39,16 +52,24 @@ export async function getSchools(): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch schools'
     }
   }
-}
+})
 
 /**
  * Get a single school by ID
+ * Uses KV cache with 1 hour TTL
  */
-export async function getSchoolById(id: string): Promise<{
+export const getSchoolById = cache(async (id: string): Promise<{
   data: School | null
   error: string | null
-}> {
+}> => {
   try {
+    // Check cache first
+    const cacheKey = `school:${id}`
+    const cached = await getCached<School>(cacheKey)
+    if (cached !== null) {
+      return { data: cached, error: null }
+    }
+
     const supabase = await createClient()
     
     const { data, error } = await supabase
@@ -61,6 +82,9 @@ export async function getSchoolById(id: string): Promise<{
       return { data: null, error: error.message }
     }
     
+    // Cache for 1 hour
+    await setCached(cacheKey, data, 3600)
+    
     return { data: data as School, error: null }
   } catch (error) {
     return {
@@ -68,7 +92,7 @@ export async function getSchoolById(id: string): Promise<{
       error: error instanceof Error ? error.message : 'Failed to fetch school'
     }
   }
-}
+})
 
 /**
  * Search schools by name or location

@@ -123,7 +123,7 @@ export default function HostelDetailContent({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${hostel.name} on HostelFinder`,
+          title: `${hostel.name} on SafHost`,
           text: `Check out ${hostel.name}! From GHS ${hostel.price_min}/sem`,
           url: url,
         })
