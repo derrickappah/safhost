@@ -152,9 +152,6 @@ export default async function LandingPage() {
             ))
           )}
         </section>
-
-        {/* Spacer for sticky button */}
-        <div style={{ height: '180px' }} />
       </div>
 
       {/* Sticky CTA Section */}
