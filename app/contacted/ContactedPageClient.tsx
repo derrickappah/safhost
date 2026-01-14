@@ -148,7 +148,7 @@ export default function ContactedPageClient({ initialHostels, initialTotal }: Co
           </p>
           <button
             className={styles.browseButton}
-            onClick={() => router.push('/hostels')}
+            onClick={() => navigate('/hostels')}
           >
             Browse Hostels
           </button>
