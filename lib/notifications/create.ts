@@ -202,9 +202,11 @@ export async function notifyStudentsForNewHostel(
     }
     
     // Prepare notification data for batch insert
+    // Note: We use user_id only (not subscription_id) to comply with the constraint
+    // that requires either user_id OR subscription_id, but not both
     const notificationsToInsert: Array<{
       user_id: string
-      subscription_id: string | null
+      subscription_id: null
       type: string
       title: string
       message: string
@@ -215,7 +217,7 @@ export async function notifyStudentsForNewHostel(
       if (subscription.user_id) {
         notificationsToInsert.push({
           user_id: subscription.user_id,
-          subscription_id: subscription.id,
+          subscription_id: null, // Set to null to comply with constraint
           type: 'new_hostel',
           title: 'New Hostel Available',
           message: `${hostelName} is now available near ${schoolName}. Check it out!`,
@@ -224,6 +226,7 @@ export async function notifyStudentsForNewHostel(
             hostelName,
             schoolId,
             schoolName,
+            subscriptionId: subscription.id, // Store subscription ID in data for reference
           },
         })
       }
@@ -239,8 +242,11 @@ export async function notifyStudentsForNewHostel(
     let totalInserted = 0
     let lastError: string | null = null
     
+    console.log(`Attempting to insert ${notificationsToInsert.length} notifications in batches of ${BATCH_SIZE}`)
+    
     for (let i = 0; i < notificationsToInsert.length; i += BATCH_SIZE) {
       const batch = notificationsToInsert.slice(i, i + BATCH_SIZE)
+      const batchNumber = Math.floor(i / BATCH_SIZE) + 1
       
       const { data, error: insertError } = await supabase
         .from('notifications')
@@ -248,19 +254,29 @@ export async function notifyStudentsForNewHostel(
         .select('id')
       
       if (insertError) {
-        console.error(`Error inserting notification batch ${i / BATCH_SIZE + 1}:`, insertError)
+        console.error(`Error inserting notification batch ${batchNumber}/${Math.ceil(notificationsToInsert.length / BATCH_SIZE)}:`, insertError)
+        console.error(`Batch details:`, {
+          batchSize: batch.length,
+          firstNotification: batch[0] ? { user_id: batch[0].user_id, type: batch[0].type } : null,
+        })
         lastError = insertError.message
         // Continue with next batch even if this one fails
       } else {
-        totalInserted += data?.length || 0
+        const inserted = data?.length || 0
+        totalInserted += inserted
+        console.log(`Successfully inserted batch ${batchNumber}: ${inserted} notifications`)
       }
     }
     
-    console.log(`Successfully sent ${totalInserted} notifications for new hostel ${hostelName} to school ${schoolName}`)
+    if (totalInserted > 0) {
+      console.log(`Successfully sent ${totalInserted}/${notificationsToInsert.length} notifications for new hostel ${hostelName} to school ${schoolName}`)
+    } else {
+      console.warn(`Failed to insert any notifications for hostel ${hostelName}. Last error: ${lastError}`)
+    }
     
     return {
       count: totalInserted,
-      error: lastError, // Return error only if all batches failed
+      error: totalInserted === 0 ? lastError : null, // Return error only if all batches failed
     }
   } catch (error) {
     console.error('Error in notifyStudentsForNewHostel:', error)
