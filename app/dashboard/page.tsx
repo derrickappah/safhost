@@ -50,7 +50,10 @@ export default async function DashboardPage() {
     getFavorites().catch(() => ({ data: null, error: null })),
     getUnreadCount().catch(() => ({ data: 0, error: null })),
     getRecentlyViewed(10).catch(() => ({ data: null, error: null })),
-    getFeaturedHostels(10).catch(() => ({ data: null, error: null }))
+    getFeaturedHostels(10).catch((error) => {
+      console.error('[Dashboard] Error fetching featured hostels:', error)
+      return { data: [], error: error instanceof Error ? error.message : 'Unknown error' }
+    })
   ])
 
   const subscription = subscriptionResult.data

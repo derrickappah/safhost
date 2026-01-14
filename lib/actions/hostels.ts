@@ -367,7 +367,7 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
     const supabase = await createClient()
     
     // Use materialized view for better performance
-    // Fallback to regular query if materialized view doesn't exist
+    // Fallback to regular query if materialized view fails for any reason
     let query = supabase
       .from('mv_featured_hostels')
       .select('*')
@@ -375,8 +375,20 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
     
     const { data, error } = await query
     
-    // If materialized view doesn't exist, fallback to regular query
-    if (error && error.code === '42P01') {
+    // Try fallback query if materialized view fails for any reason
+    // or if it returns empty data (might need refresh)
+    const shouldUseFallback = error || !data || data.length === 0
+    
+    if (shouldUseFallback) {
+      if (error) {
+        console.warn('[getFeaturedHostels] Materialized view query failed, using fallback:', {
+          code: error.code,
+          message: error.message
+        })
+      } else if (!data || data.length === 0) {
+        console.warn('[getFeaturedHostels] Materialized view returned empty, using fallback query')
+      }
+      
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('hostels')
         .select(`
@@ -408,7 +420,8 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
         .limit(limit)
       
       if (fallbackError) {
-        return { data: null, error: fallbackError.message }
+        console.error('[getFeaturedHostels] Fallback query also failed:', fallbackError.message)
+        return { data: [], error: fallbackError.message }
       }
       
       const formattedData = (fallbackData || []).map(hostel => ({
@@ -423,10 +436,6 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
       
       await setCached(cacheKey, formattedData, 1800)
       return { data: formattedData as unknown as Hostel[], error: null }
-    }
-    
-    if (error) {
-      return { data: null, error: error.message }
     }
     
     // Format data from materialized view (school is already JSONB)
@@ -445,8 +454,9 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
     
     return { data: formattedData as unknown as Hostel[], error: null }
   } catch (error) {
+    console.error('[getFeaturedHostels] Unexpected error:', error)
     return {
-      data: null,
+      data: [],
       error: error instanceof Error ? error.message : 'Failed to fetch featured hostels'
     }
   }
