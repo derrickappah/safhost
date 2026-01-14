@@ -64,13 +64,9 @@ export function createServiceRoleClient(): SupabaseClient {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set')
   }
 
-  // Use connection pooler URL if available (recommended for serverless)
-  // Format: https://<project-ref>.supabase.co -> https://<project-ref>.pooler.supabase.co
-  let connectionUrl = supabaseUrl
-  if (supabaseUrl.includes('.supabase.co') && !supabaseUrl.includes('.pooler.')) {
-    // Try to use pooler URL for better connection management
-    connectionUrl = supabaseUrl.replace('.supabase.co', '.pooler.supabase.co')
-  }
+  // Use regular URL (pooler can cause DNS issues in some environments)
+  // The pooler URL format varies and may not be available in all environments
+  const connectionUrl = supabaseUrl
   
   // Create and cache the client instance
   serviceRoleClientInstance = createSupabaseClient(connectionUrl, supabaseServiceKey, {
