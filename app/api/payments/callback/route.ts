@@ -52,9 +52,15 @@ export async function GET(request: NextRequest) {
         // If not found by reference, try metadata fallback
         if (!payment) {
           console.log('Payment not found by reference, trying metadata lookup...')
-          const paymentIdFromMetadata = verification?.data?.metadata?.payment_id
-          console.log('Payment ID from metadata:', paymentIdFromMetadata)
+          const metadata = verification?.data?.metadata || {}
+          const paymentIdFromMetadata = metadata.payment_id
+          const subscriptionIdFromMetadata = metadata.subscription_id
           
+          console.log('Metadata:', JSON.stringify(metadata, null, 2))
+          console.log('Payment ID from metadata:', paymentIdFromMetadata)
+          console.log('Subscription ID from metadata:', subscriptionIdFromMetadata)
+          
+          // Try by payment ID first
           if (paymentIdFromMetadata) {
             const { data: paymentById, error: idError } = await serviceClient
               .from('payments')
@@ -68,8 +74,25 @@ export async function GET(request: NextRequest) {
             } else if (idError && idError.code !== 'PGRST116') {
               console.error('Error looking up payment by ID:', idError)
             }
-          } else {
-            console.error('No payment_id in metadata. Metadata keys:', Object.keys(verification?.data?.metadata || {}))
+          }
+          
+          // If still not found, try by subscription_id (get most recent pending payment)
+          if (!payment && subscriptionIdFromMetadata) {
+            console.log('Trying to find payment by subscription_id...')
+            const { data: paymentsBySub, error: subError } = await serviceClient
+              .from('payments')
+              .select('*')
+              .eq('subscription_id', subscriptionIdFromMetadata)
+              .eq('status', 'pending')
+              .order('created_at', { ascending: false })
+              .limit(1)
+            
+            if (paymentsBySub && paymentsBySub.length > 0 && !subError) {
+              payment = paymentsBySub[0]
+              console.log('Found payment by subscription_id:', payment.id)
+            } else if (subError) {
+              console.error('Error looking up payment by subscription_id:', subError)
+            }
           }
         }
         
