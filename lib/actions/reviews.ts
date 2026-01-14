@@ -74,22 +74,31 @@ export const getHostelReviews = cache(async (hostelId: string): Promise<{
             // Continue without profile pictures
           }
           
+          // Create a map of user_id to avatar_url (independent of email fetching)
+          const avatarMap = new Map()
+          if (profiles && profiles.length > 0) {
+            profiles.forEach((profile: any) => {
+              if (profile.avatar_url) {
+                avatarMap.set(profile.id, profile.avatar_url)
+              }
+            })
+          }
+          
           if (emailError) {
             console.error('Error fetching user emails:', emailError)
             // Continue without user emails - reviews will show as anonymous
+            // But still add avatar URLs if available
+            data.forEach((review: any) => {
+              if (review.user_id && avatarMap.has(review.user_id)) {
+                review.user = {
+                  email: undefined,
+                  avatar_url: avatarMap.get(review.user_id)
+                }
+              }
+            })
           } else if (userEmails && userEmails.length > 0) {
             // Create a map of user_id to email
             const emailMap = new Map(userEmails.map((u: any) => [u.id, u.email]))
-            
-            // Create a map of user_id to avatar_url
-            const avatarMap = new Map()
-            if (profiles && profiles.length > 0) {
-              profiles.forEach((profile: any) => {
-                if (profile.avatar_url) {
-                  avatarMap.set(profile.id, profile.avatar_url)
-                }
-              })
-            }
             
             // Add email and avatar_url to each review
             data.forEach((review: any) => {
