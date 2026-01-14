@@ -235,3 +235,47 @@
 .reviewButton:hover {
   background-color: #e2e8f0;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 767px) {
+  .content {
+    padding: 16px;
+  }
+  
+  .reportCard {
+    padding: 16px;
+  }
+  
+  .reportHeader {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .reportMeta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .reportActions {
+    flex-direction: column;
+  }
+  
+  .resolveButton,
+  .dismissButton,
+  .reviewButton {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 375px) {
+  .reportCard {
+    padding: 12px;
+  }
+  
+  .reportTitle {
+    font-size: 14px;
+  }
+}

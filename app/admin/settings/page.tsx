@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/middleware'
 import { getAppSetting } from '@/lib/admin/settings'
 import SettingsClient from './SettingsClient'
+import styles from './page.module.css'
 
 export default async function AdminSettingsPage() {
   const admin = await isAdmin()
@@ -19,18 +20,13 @@ export default async function AdminSettingsPage() {
     : true // Default to enabled
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '32px' }}>
+    <div className={styles.container}>
+      <h1 className={styles.title}>
         Settings
       </h1>
       
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '24px' }}>
+      <div className={styles.settingsCard}>
+        <h2 className={styles.sectionTitle}>
           Application Settings
         </h2>
         

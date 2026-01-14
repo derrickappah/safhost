@@ -1,13 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { IoDownload, IoEllipsisVertical } from 'react-icons/io5'
 import { exportAnalyticsToCSV, exportAnalyticsToJSON, exportViewLogsToCSV, exportContactLogsToCSV, exportViewLogsToExcel, exportContactLogsToExcel } from '@/lib/admin/export'
+import styles from './ExportButtons.module.css'
 
 export default function ExportButtons() {
   const [exporting, setExporting] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMenu])
 
   const handleExport = async (format: 'csv' | 'json') => {
     setExporting(true)
+    setShowMenu(false)
     try {
       const { data, error } = format === 'csv' 
         ? await exportAnalyticsToCSV()
@@ -38,6 +60,7 @@ export default function ExportButtons() {
 
   const handleExportLogs = async (type: 'view' | 'contact', format: 'csv' | 'excel') => {
     setExporting(true)
+    setShowMenu(false)
     try {
       const { data, error } = type === 'view'
         ? (format === 'csv' ? await exportViewLogsToCSV({}) : await exportViewLogsToExcel({}))
@@ -68,112 +91,119 @@ export default function ExportButtons() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button
-          onClick={() => handleExport('csv')}
-          disabled={exporting}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: exporting ? 'not-allowed' : 'pointer',
-            opacity: exporting ? 0.6 : 1,
-          }}
-        >
-          {exporting ? 'Exporting...' : 'Export Analytics CSV'}
-        </button>
-        <button
-          onClick={() => handleExport('json')}
-          disabled={exporting}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#64748b',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: exporting ? 'not-allowed' : 'pointer',
-            opacity: exporting ? 0.6 : 1,
-          }}
-        >
-          {exporting ? 'Exporting...' : 'Export Analytics JSON'}
-        </button>
+    <div className={styles.container} ref={menuRef}>
+      {/* Desktop View */}
+      <div className={styles.desktopButtons}>
+        <div className={styles.buttonRow}>
+          <button
+            onClick={() => handleExport('csv')}
+            disabled={exporting}
+            className={styles.primaryButton}
+          >
+            <IoDownload size={16} />
+            {exporting ? 'Exporting...' : 'Export Analytics CSV'}
+          </button>
+          <button
+            onClick={() => handleExport('json')}
+            disabled={exporting}
+            className={styles.secondaryButton}
+          >
+            <IoDownload size={16} />
+            {exporting ? 'Exporting...' : 'Export Analytics JSON'}
+          </button>
+        </div>
+        <div className={styles.buttonRow}>
+          <button
+            onClick={() => handleExportLogs('view', 'csv')}
+            disabled={exporting}
+            className={styles.tertiaryButton}
+          >
+            View Logs CSV
+          </button>
+          <button
+            onClick={() => handleExportLogs('contact', 'csv')}
+            disabled={exporting}
+            className={styles.tertiaryButton}
+          >
+            Contact Logs CSV
+          </button>
+          <button
+            onClick={() => handleExportLogs('view', 'excel')}
+            disabled={exporting}
+            className={styles.tertiaryButton}
+          >
+            View Logs Excel
+          </button>
+          <button
+            onClick={() => handleExportLogs('contact', 'excel')}
+            disabled={exporting}
+            className={styles.tertiaryButton}
+          >
+            Contact Logs Excel
+          </button>
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b' }}>
+
+      {/* Mobile View */}
+      <div className={styles.mobileButtons}>
         <button
-          onClick={() => handleExportLogs('view', 'csv')}
+          onClick={() => setShowMenu(!showMenu)}
           disabled={exporting}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#f3f4f6',
-            color: '#1e293b',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: exporting ? 'not-allowed' : 'pointer',
-            opacity: exporting ? 0.6 : 1,
-          }}
+          className={styles.menuButton}
+          aria-label="Export options"
+          aria-expanded={showMenu}
         >
-          View Logs CSV
+          <IoEllipsisVertical size={20} />
         </button>
-        <button
-          onClick={() => handleExportLogs('contact', 'csv')}
-          disabled={exporting}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#f3f4f6',
-            color: '#1e293b',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: exporting ? 'not-allowed' : 'pointer',
-            opacity: exporting ? 0.6 : 1,
-          }}
-        >
-          Contact Logs CSV
-        </button>
-        <button
-          onClick={() => handleExportLogs('view', 'excel')}
-          disabled={exporting}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#f3f4f6',
-            color: '#1e293b',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: exporting ? 'not-allowed' : 'pointer',
-            opacity: exporting ? 0.6 : 1,
-          }}
-        >
-          View Logs Excel
-        </button>
-        <button
-          onClick={() => handleExportLogs('contact', 'excel')}
-          disabled={exporting}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#f3f4f6',
-            color: '#1e293b',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: exporting ? 'not-allowed' : 'pointer',
-            opacity: exporting ? 0.6 : 1,
-          }}
-        >
-          Contact Logs Excel
-        </button>
+        {showMenu && (
+          <div className={styles.menu}>
+            <button
+              onClick={() => handleExport('csv')}
+              disabled={exporting}
+              className={styles.menuItem}
+            >
+              <IoDownload size={16} />
+              Analytics CSV
+            </button>
+            <button
+              onClick={() => handleExport('json')}
+              disabled={exporting}
+              className={styles.menuItem}
+            >
+              <IoDownload size={16} />
+              Analytics JSON
+            </button>
+            <div className={styles.menuDivider} />
+            <button
+              onClick={() => handleExportLogs('view', 'csv')}
+              disabled={exporting}
+              className={styles.menuItem}
+            >
+              View Logs CSV
+            </button>
+            <button
+              onClick={() => handleExportLogs('contact', 'csv')}
+              disabled={exporting}
+              className={styles.menuItem}
+            >
+              Contact Logs CSV
+            </button>
+            <button
+              onClick={() => handleExportLogs('view', 'excel')}
+              disabled={exporting}
+              className={styles.menuItem}
+            >
+              View Logs Excel
+            </button>
+            <button
+              onClick={() => handleExportLogs('contact', 'excel')}
+              disabled={exporting}
+              className={styles.menuItem}
+            >
+              Contact Logs Excel
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

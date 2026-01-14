@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/middleware'
 import Link from 'next/link'
 import Image from 'next/image'
+import MobileNav from './MobileNav'
+import MobileHeader from './MobileHeader'
 import styles from './layout.module.css'
 
 export default async function AdminLayout({
@@ -17,6 +19,7 @@ export default async function AdminLayout({
 
   return (
     <div className={styles.container}>
+      {/* Desktop Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <Image 
@@ -67,6 +70,10 @@ export default async function AdminLayout({
           </Link>
         </nav>
       </aside>
+      
+      {/* Mobile Header & Navigation */}
+      <MobileHeader />
+      
       <main className={styles.main}>
         {children}
       </main>

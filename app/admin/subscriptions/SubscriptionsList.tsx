@@ -58,73 +58,124 @@ export default function SubscriptionsList({ initialSubscriptions }: Subscription
   }
 
   return (
-    <div className={styles.table}>
-      <table>
-        <thead>
-          <tr>
-            <th>User ID</th>
-            <th>Plan</th>
-            <th>Status</th>
-            <th>Expires</th>
-            <th>Amount</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {subscriptions.map((sub) => {
-            const payment = sub.payments?.[0]
-            const amount = payment ? Number(payment.amount) / 100 : 0
-            
-            return (
-              <tr key={sub.id}>
-                <td style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-                  {sub.user_id.substring(0, 8)}...
-                </td>
-                <td>{sub.plan_type}</td>
-                <td>
-                  <span style={{
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    backgroundColor: sub.status === 'active' ? '#dcfce7' : '#fee2e2',
-                    color: sub.status === 'active' ? '#166534' : '#991b1b',
-                    fontSize: '12px',
-                    fontWeight: 600
-                  }}>
-                    {sub.status}
-                  </span>
-                </td>
-                <td>
-                  {sub.expires_at 
-                    ? new Date(sub.expires_at).toLocaleDateString()
-                    : 'N/A'
-                  }
-                </td>
-                <td>GHS {amount.toFixed(2)}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {payment?.status === 'success' && sub.status === 'active' && (
+    <>
+      {/* Desktop Table View */}
+      <div className={styles.table}>
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Expires</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subscriptions.map((sub) => {
+              const payment = sub.payments?.[0]
+              const amount = payment ? Number(payment.amount) / 100 : 0
+              
+              return (
+                <tr key={sub.id}>
+                  <td style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+                    {sub.user_id.substring(0, 8)}...
+                  </td>
+                  <td>{sub.plan_type}</td>
+                  <td>
+                    <span className={`${styles.statusBadge} ${styles[`status${sub.status}`]}`}>
+                      {sub.status}
+                    </span>
+                  </td>
+                  <td>
+                    {sub.expires_at 
+                      ? new Date(sub.expires_at).toLocaleDateString()
+                      : 'N/A'
+                    }
+                  </td>
+                  <td>GHS {amount.toFixed(2)}</td>
+                  <td>
+                    <div className={styles.actions}>
+                      {payment?.status === 'success' && sub.status === 'active' && (
+                        <button
+                          className={styles.refundButton}
+                          onClick={() => handleRefund(sub.id)}
+                        >
+                          <IoCashOutline size={16} />
+                          Refund
+                        </button>
+                      )}
                       <button
-                        className={styles.refundButton}
-                        onClick={() => handleRefund(sub.id)}
+                        className={styles.removeButton}
+                        onClick={() => handleRemove(sub.id)}
                       >
-                        <IoCashOutline size={16} />
-                        Refund
+                        <IoTrashOutline size={16} />
+                        Remove
                       </button>
-                    )}
-                    <button
-                      className={styles.removeButton}
-                      onClick={() => handleRemove(sub.id)}
-                    >
-                      <IoTrashOutline size={16} />
-                      Remove
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className={styles.mobileCardList}>
+        {subscriptions.map((sub) => {
+          const payment = sub.payments?.[0]
+          const amount = payment ? Number(payment.amount) / 100 : 0
+          
+          return (
+            <div key={sub.id} className={styles.mobileCard}>
+              <div className={styles.mobileCardHeader}>
+                <div>
+                  <div className={styles.mobileCardTitle}>User: {sub.user_id.substring(0, 8)}...</div>
+                  <div className={styles.mobileCardSubtitle}>Plan: {sub.plan_type}</div>
+                </div>
+                <span className={`${styles.statusBadge} ${styles[`status${sub.status}`]}`}>
+                  {sub.status}
+                </span>
+              </div>
+              <div className={styles.mobileCardContent}>
+                <div className={styles.mobileCardRow}>
+                  <span className={styles.mobileCardLabel}>Expires:</span>
+                  <span className={styles.mobileCardValue}>
+                    {sub.expires_at 
+                      ? new Date(sub.expires_at).toLocaleDateString()
+                      : 'N/A'
+                    }
+                  </span>
+                </div>
+                <div className={styles.mobileCardRow}>
+                  <span className={styles.mobileCardLabel}>Amount:</span>
+                  <span className={styles.mobileCardValueBold}>GHS {amount.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className={styles.mobileCardActions}>
+                {payment?.status === 'success' && sub.status === 'active' && (
+                  <button
+                    className={styles.refundButton}
+                    onClick={() => handleRefund(sub.id)}
+                  >
+                    <IoCashOutline size={16} />
+                    Refund
+                  </button>
+                )}
+                <button
+                  className={styles.removeButton}
+                  onClick={() => handleRemove(sub.id)}
+                >
+                  <IoTrashOutline size={16} />
+                  Remove
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

@@ -291,72 +291,142 @@ export default function AdminPromoCodesPage() {
             </button>
           </div>
         ) : (
-          <div className={styles.table}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Type</th>
-                  <th>Value</th>
-                  <th>Used</th>
-                  <th>Status</th>
-                  <th>Valid Until</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {promoCodes.map((code) => (
-                  <tr key={code.id}>
-                    <td>
-                      <div className={styles.codeCell}>
-                        <strong>{code.code}</strong>
-                        {code.description && (
-                          <span className={styles.description}>{code.description}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>{code.discount_type === 'percentage' ? 'Percentage' : 'Fixed'}</td>
-                    <td>
-                      {code.discount_type === 'percentage' 
-                        ? `${code.discount_value}%`
-                        : `GHS ${code.discount_value}`
-                      }
-                    </td>
-                    <td>
-                      {code.used_count} / {code.max_uses || '∞'}
-                    </td>
-                    <td>
-                      <span className={`${styles.statusBadge} ${code.is_active ? styles.statusActive : styles.statusInactive}`}>
-                        {code.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td>
-                      {code.valid_until 
-                        ? new Date(code.valid_until).toLocaleDateString()
-                        : 'No expiry'
-                      }
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button
-                          className={styles.editButton}
-                          onClick={() => handleEdit(code)}
-                        >
-                          <IoCreateOutline size={18} color="#2563eb" />
-                        </button>
-                        <button
-                          className={styles.deleteButton}
-                          onClick={() => handleDelete(code.id)}
-                        >
-                          <IoTrashOutline size={18} color="#ef4444" />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className={styles.table}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Used</th>
+                    <th>Status</th>
+                    <th>Valid Until</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {promoCodes.map((code) => (
+                    <tr key={code.id}>
+                      <td>
+                        <div className={styles.codeCell}>
+                          <strong>{code.code}</strong>
+                          {code.description && (
+                            <span className={styles.description}>{code.description}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>{code.discount_type === 'percentage' ? 'Percentage' : 'Fixed'}</td>
+                      <td>
+                        {code.discount_type === 'percentage' 
+                          ? `${code.discount_value}%`
+                          : `GHS ${code.discount_value}`
+                        }
+                      </td>
+                      <td>
+                        {code.used_count} / {code.max_uses || '∞'}
+                      </td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${code.is_active ? styles.statusActive : styles.statusInactive}`}>
+                          {code.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        {code.valid_until 
+                          ? new Date(code.valid_until).toLocaleDateString()
+                          : 'No expiry'
+                        }
+                      </td>
+                      <td>
+                        <div className={styles.actions}>
+                          <button
+                            className={styles.editButton}
+                            onClick={() => handleEdit(code)}
+                          >
+                            <IoCreateOutline size={18} color="#2563eb" />
+                          </button>
+                          <button
+                            className={styles.deleteButton}
+                            onClick={() => handleDelete(code.id)}
+                          >
+                            <IoTrashOutline size={18} color="#ef4444" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className={styles.mobileCardList}>
+              {promoCodes.map((code) => (
+                <div key={code.id} className={styles.mobileCard}>
+                  <div className={styles.mobileCardHeader}>
+                    <div>
+                      <div className={styles.mobileCardTitle}>{code.code}</div>
+                      {code.description && (
+                        <div className={styles.mobileCardDescription}>{code.description}</div>
+                      )}
+                    </div>
+                    <span className={`${styles.statusBadge} ${code.is_active ? styles.statusActive : styles.statusInactive}`}>
+                      {code.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <div className={styles.mobileCardContent}>
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Type:</span>
+                      <span className={styles.mobileCardValue}>
+                        {code.discount_type === 'percentage' ? 'Percentage' : 'Fixed'}
+                      </span>
+                    </div>
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Value:</span>
+                      <span className={styles.mobileCardValueBold}>
+                        {code.discount_type === 'percentage' 
+                          ? `${code.discount_value}%`
+                          : `GHS ${code.discount_value}`
+                        }
+                      </span>
+                    </div>
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Used:</span>
+                      <span className={styles.mobileCardValue}>
+                        {code.used_count} / {code.max_uses || '∞'}
+                      </span>
+                    </div>
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Valid Until:</span>
+                      <span className={styles.mobileCardValue}>
+                        {code.valid_until 
+                          ? new Date(code.valid_until).toLocaleDateString()
+                          : 'No expiry'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.mobileCardActions}>
+                    <button
+                      className={styles.editButton}
+                      onClick={() => handleEdit(code)}
+                    >
+                      <IoCreateOutline size={18} color="#2563eb" />
+                      Edit
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => handleDelete(code.id)}
+                    >
+                      <IoTrashOutline size={18} color="#ef4444" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

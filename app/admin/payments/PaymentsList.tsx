@@ -80,6 +80,7 @@ export default function PaymentsList({ initialPayments, initialFilter }: Payment
         ))}
       </div>
 
+      {/* Desktop Table View */}
       <div className={styles.table}>
         <table>
           <thead>
@@ -97,27 +98,53 @@ export default function PaymentsList({ initialPayments, initialFilter }: Payment
                 <td>{new Date(payment.created_at).toLocaleDateString()}</td>
                 <td>GHS {(Number(payment.amount) / 100).toFixed(2)}</td>
                 <td>
-                  <span style={{
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    backgroundColor: payment.status === 'success' ? '#dcfce7' : '#fee2e2',
-                    color: payment.status === 'success' ? '#166534' : '#991b1b',
-                    fontSize: '12px',
-                    fontWeight: 600
-                  }}>
+                  <span className={`${styles.statusBadge} ${styles[`status${payment.status}`]}`}>
                     {payment.status}
                   </span>
                 </td>
-                <td style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+                <td className={styles.referenceCode}>
                   {payment.provider_ref || '-'}
                 </td>
-                <td style={{ fontSize: '12px' }}>
+                <td className={styles.userInfo}>
                   {payment.subscription?.email || payment.subscription?.user_id?.substring(0, 8) || '-'}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className={styles.mobileCardList}>
+        {filteredPayments.map((payment) => (
+          <div key={payment.id} className={styles.mobileCard}>
+            <div className={styles.mobileCardHeader}>
+              <div>
+                <div className={styles.mobileCardAmount}>GHS {(Number(payment.amount) / 100).toFixed(2)}</div>
+                <div className={styles.mobileCardDate}>
+                  {new Date(payment.created_at).toLocaleDateString()}
+                </div>
+              </div>
+              <span className={`${styles.statusBadge} ${styles[`status${payment.status}`]}`}>
+                {payment.status}
+              </span>
+            </div>
+            <div className={styles.mobileCardContent}>
+              <div className={styles.mobileCardRow}>
+                <span className={styles.mobileCardLabel}>Reference:</span>
+                <span className={styles.referenceCode}>
+                  {payment.provider_ref || '-'}
+                </span>
+              </div>
+              <div className={styles.mobileCardRow}>
+                <span className={styles.mobileCardLabel}>User:</span>
+                <span className={styles.userInfo}>
+                  {payment.subscription?.email || payment.subscription?.user_id?.substring(0, 8) || '-'}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </>
   )

@@ -4,6 +4,7 @@
   background-color: #f8fafc;
 }
 
+/* Desktop Sidebar */
 .sidebar {
   width: 250px;
   background-color: #1e293b;
@@ -12,6 +13,7 @@
   position: fixed;
   height: 100vh;
   overflow-y: auto;
+  z-index: 100;
 }
 
 .sidebarHeader {
@@ -44,8 +46,11 @@
   padding: 12px 16px;
   color: #cbd5e1;
   text-decoration: none;
-  border-radius: var(--border-radius-button);
+  border-radius: 8px;
   transition: all 0.2s;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
 }
 
 .navLink:hover {
@@ -59,13 +64,202 @@
   padding: 32px;
 }
 
-@media (max-width: 768px) {
+/* Mobile Header */
+.mobileHeader {
+  display: none;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  z-index: 50;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.menuButton {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.menuButton:hover {
+  background-color: #f1f5f9;
+}
+
+.menuButton:active {
+  background-color: #e2e8f0;
+}
+
+.mobileHeaderTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  flex: 1;
+  text-align: center;
+}
+
+/* Mobile Drawer */
+.mobileDrawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  background-color: #1e293b;
+  color: white;
+  z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  overflow-y: auto;
+  display: none;
+}
+
+.drawerOpen {
+  transform: translateX(0);
+}
+
+.drawerBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: block;
+  opacity: 1;
+  transition: opacity 0.3s;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drawerHeader {
+  padding: 16px;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.drawerCloseButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.drawerCloseButton:hover {
+  background-color: #334155;
+}
+
+.drawerNav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 4px;
+}
+
+.drawerNavLink {
+  padding: 12px 16px;
+  color: #cbd5e1;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.drawerNavLink:hover {
+  background-color: #334155;
+  color: white;
+}
+
+.drawerNavLink.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1023px) {
   .sidebar {
-    width: 200px;
+    display: none;
   }
   
+  .mobileHeader {
+    display: flex;
+  }
+  
+  .mobileDrawer {
+    display: block;
+  }
+  
+  
   .main {
-    margin-left: 200px;
+    margin-left: 0;
     padding: 16px;
+    padding-top: 76px; /* Account for mobile header */
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .main {
+    padding: 24px;
+    padding-top: 76px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobileHeader {
+    display: none;
+  }
+  
+  .mobileDrawer {
+    display: none;
+  }
+  
+}
+
+/* Small phones */
+@media (max-width: 375px) {
+  .main {
+    padding: 12px;
+    padding-top: 76px;
+  }
+  
+  .mobileDrawer {
+    width: 100vw;
+    max-width: 100vw;
   }
 }

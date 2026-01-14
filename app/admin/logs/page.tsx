@@ -179,21 +179,83 @@ export default function AdminLogsPage() {
           <div className={styles.resultsHeader}>
             <span className={styles.resultsCount}>{total} log{total !== 1 ? 's' : ''} found</span>
           </div>
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Date & Time</th>
-                  <th>User</th>
-                  <th>Hostel</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id}>
-                    <td>
+          <>
+            {/* Desktop Table View */}
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Date & Time</th>
+                    <th>User</th>
+                    <th>Hostel</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log) => (
+                    <tr key={log.id}>
+                      <td>
+                        {type === 'contact' || log.created_at ? (
+                          <span className={styles.typeBadge} style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
+                            <IoCallOutline size={14} />
+                            Contact
+                          </span>
+                        ) : (
+                          <span className={styles.typeBadge} style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
+                            <IoEyeOutline size={14} />
+                            View
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {new Date(log.viewed_at || log.created_at).toLocaleString()}
+                      </td>
+                      <td>
+                        {log.user?.email || log.user_id || 'Anonymous'}
+                        {log.subscription_id && (
+                          <span className={styles.subscriptionTag}>Subscription</span>
+                        )}
+                      </td>
+                      <td>
+                        {log.hostel?.name || 'Unknown'}
+                        {log.hostel_id && (
+                          <span className={styles.hostelId}>
+                            {log.hostel_id.substring(0, 8)}...
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className={styles.detailsCell}>
+                          {log.user_id && (
+                            <div className={styles.detailItem}>
+                              <strong>User ID:</strong> {log.user_id.substring(0, 8)}...
+                            </div>
+                          )}
+                          {log.subscription_id && (
+                            <div className={styles.detailItem}>
+                              <strong>Subscription ID:</strong> {log.subscription_id.substring(0, 8)}...
+                            </div>
+                          )}
+                          {log.hostel_id && (
+                            <div className={styles.detailItem}>
+                              <strong>Hostel ID:</strong> {log.hostel_id.substring(0, 8)}...
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className={styles.mobileCardList}>
+              {logs.map((log) => (
+                <div key={log.id} className={styles.mobileCard}>
+                  <div className={styles.mobileCardHeader}>
+                    <div>
                       {type === 'contact' || log.created_at ? (
                         <span className={styles.typeBadge} style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
                           <IoCallOutline size={14} />
@@ -205,48 +267,54 @@ export default function AdminLogsPage() {
                           View
                         </span>
                       )}
-                    </td>
-                    <td>
+                    </div>
+                    <div className={styles.mobileCardDate}>
                       {new Date(log.viewed_at || log.created_at).toLocaleString()}
-                    </td>
-                    <td>
-                      {log.user?.email || log.user_id || 'Anonymous'}
-                      {log.subscription_id && (
-                        <span className={styles.subscriptionTag}>Subscription</span>
-                      )}
-                    </td>
-                    <td>
-                      {log.hostel?.name || 'Unknown'}
-                      {log.hostel_id && (
-                        <span className={styles.hostelId}>
-                          {log.hostel_id.substring(0, 8)}...
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <div className={styles.detailsCell}>
-                        {log.user_id && (
-                          <div className={styles.detailItem}>
-                            <strong>User ID:</strong> {log.user_id.substring(0, 8)}...
-                          </div>
-                        )}
+                    </div>
+                  </div>
+                  <div className={styles.mobileCardContent}>
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>User:</span>
+                      <span className={styles.mobileCardValue}>
+                        {log.user?.email || log.user_id || 'Anonymous'}
                         {log.subscription_id && (
-                          <div className={styles.detailItem}>
-                            <strong>Subscription ID:</strong> {log.subscription_id.substring(0, 8)}...
-                          </div>
+                          <span className={styles.subscriptionTag}>Subscription</span>
                         )}
+                      </span>
+                    </div>
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Hostel:</span>
+                      <span className={styles.mobileCardValue}>
+                        {log.hostel?.name || 'Unknown'}
                         {log.hostel_id && (
-                          <div className={styles.detailItem}>
-                            <strong>Hostel ID:</strong> {log.hostel_id.substring(0, 8)}...
-                          </div>
+                          <span className={styles.hostelId}>
+                            {' '}({log.hostel_id.substring(0, 8)}...)
+                          </span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </span>
+                    </div>
+                    <div className={styles.detailsCell}>
+                      {log.user_id && (
+                        <div className={styles.detailItem}>
+                          <strong>User ID:</strong> {log.user_id.substring(0, 8)}...
+                        </div>
+                      )}
+                      {log.subscription_id && (
+                        <div className={styles.detailItem}>
+                          <strong>Subscription ID:</strong> {log.subscription_id.substring(0, 8)}...
+                        </div>
+                      )}
+                      {log.hostel_id && (
+                        <div className={styles.detailItem}>
+                          <strong>Hostel ID:</strong> {log.hostel_id.substring(0, 8)}...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
 
           {/* Pagination */}
           {total > 50 && (

@@ -83,99 +83,184 @@ export default function UsersList({ initialUsers, initialBannedUsers, initialUse
   }
 
   return (
-    <div className={styles.table}>
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Created</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => {
-            const isBanned = bannedUsers.has(user.id)
-            const role = userRoles.get(user.id) || 'user'
-            const isUpdating = updatingRoles.has(user.id)
-            return (
-              <tr key={user.id}>
-                <td>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{user.email}</div>
-                    {user.user_metadata?.name && (
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        {user.user_metadata.name}
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  {new Date(user.created_at).toLocaleDateString()}
-                </td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className={role === 'admin' ? styles.adminBadge : styles.userBadge}>
-                      {role === 'admin' ? (
-                        <>
-                          <IoShieldCheckmark size={14} />
-                          Admin
-                        </>
-                      ) : (
-                        <>
-                          <IoPerson size={14} />
-                          User
-                        </>
+    <>
+      {/* Desktop Table View */}
+      <div className={styles.table}>
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Created</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => {
+              const isBanned = bannedUsers.has(user.id)
+              const role = userRoles.get(user.id) || 'user'
+              const isUpdating = updatingRoles.has(user.id)
+              return (
+                <tr key={user.id}>
+                  <td>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{user.email}</div>
+                      {user.user_metadata?.name && (
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>
+                          {user.user_metadata.name}
+                        </div>
                       )}
-                    </span>
-                    {!isUpdating && (
-                      <button
-                        className={styles.roleButton}
-                        onClick={() => handleRoleChange(user.id, role === 'admin' ? 'user' : 'admin')}
-                        title={role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
-                      >
-                        {role === 'admin' ? 'Demote' : 'Promote'}
-                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className={role === 'admin' ? styles.adminBadge : styles.userBadge}>
+                        {role === 'admin' ? (
+                          <>
+                            <IoShieldCheckmark size={14} />
+                            Admin
+                          </>
+                        ) : (
+                          <>
+                            <IoPerson size={14} />
+                            User
+                          </>
+                        )}
+                      </span>
+                      {!isUpdating && (
+                        <button
+                          className={styles.roleButton}
+                          onClick={() => handleRoleChange(user.id, role === 'admin' ? 'user' : 'admin')}
+                          title={role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
+                        >
+                          {role === 'admin' ? 'Demote' : 'Promote'}
+                        </button>
+                      )}
+                      {isUpdating && (
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>Updating...</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    {isBanned ? (
+                      <span className={styles.bannedBadge}>Banned</span>
+                    ) : (
+                      <span className={styles.activeBadge}>Active</span>
                     )}
-                    {isUpdating && (
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Updating...</span>
-                    )}
-                  </div>
-                </td>
-                <td>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {isBanned ? (
+                        <button
+                          className={styles.unbanButton}
+                          onClick={() => handleUnbanUser(user.id)}
+                        >
+                          <IoCheckmarkCircle size={18} color="#22c55e" />
+                          Unban
+                        </button>
+                      ) : (
+                        <button
+                          className={styles.banButton}
+                          onClick={() => handleBanUser(user.id)}
+                        >
+                          <IoBan size={18} color="#ef4444" />
+                          Ban
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className={styles.mobileCardList}>
+        {users.map((user) => {
+          const isBanned = bannedUsers.has(user.id)
+          const role = userRoles.get(user.id) || 'user'
+          const isUpdating = updatingRoles.has(user.id)
+          return (
+            <div key={user.id} className={styles.mobileCard}>
+              <div className={styles.mobileCardHeader}>
+                <div>
+                  <div className={styles.mobileCardTitle}>{user.email}</div>
+                  {user.user_metadata?.name && (
+                    <div className={styles.mobileCardSubtitle}>{user.user_metadata.name}</div>
+                  )}
+                </div>
+                <div className={styles.mobileCardBadges}>
                   {isBanned ? (
                     <span className={styles.bannedBadge}>Banned</span>
                   ) : (
                     <span className={styles.activeBadge}>Active</span>
                   )}
-                </td>
-                <td>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    {isBanned ? (
-                      <button
-                        className={styles.unbanButton}
-                        onClick={() => handleUnbanUser(user.id)}
-                      >
-                        <IoCheckmarkCircle size={18} color="#22c55e" />
-                        Unban
-                      </button>
+                </div>
+              </div>
+              <div className={styles.mobileCardContent}>
+                <div className={styles.mobileCardRow}>
+                  <span className={styles.mobileCardLabel}>Created:</span>
+                  <span className={styles.mobileCardValue}>
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className={styles.mobileCardRow}>
+                  <span className={styles.mobileCardLabel}>Role:</span>
+                  <span className={role === 'admin' ? styles.adminBadge : styles.userBadge}>
+                    {role === 'admin' ? (
+                      <>
+                        <IoShieldCheckmark size={14} />
+                        Admin
+                      </>
                     ) : (
-                      <button
-                        className={styles.banButton}
-                        onClick={() => handleBanUser(user.id)}
-                      >
-                        <IoBan size={18} color="#ef4444" />
-                        Ban
-                      </button>
+                      <>
+                        <IoPerson size={14} />
+                        User
+                      </>
                     )}
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                  </span>
+                </div>
+              </div>
+              <div className={styles.mobileCardActions}>
+                {!isUpdating && (
+                  <button
+                    className={styles.roleButton}
+                    onClick={() => handleRoleChange(user.id, role === 'admin' ? 'user' : 'admin')}
+                  >
+                    {role === 'admin' ? 'Demote' : 'Promote'}
+                  </button>
+                )}
+                {isUpdating && (
+                  <span className={styles.updatingText}>Updating...</span>
+                )}
+                {isBanned ? (
+                  <button
+                    className={styles.unbanButton}
+                    onClick={() => handleUnbanUser(user.id)}
+                  >
+                    <IoCheckmarkCircle size={18} color="#22c55e" />
+                    Unban
+                  </button>
+                ) : (
+                  <button
+                    className={styles.banButton}
+                    onClick={() => handleBanUser(user.id)}
+                  >
+                    <IoBan size={18} color="#ef4444" />
+                    Ban
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

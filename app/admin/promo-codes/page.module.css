@@ -315,3 +315,162 @@
 .submitButton:hover {
   background-color: #1d4ed8;
 }
+
+/* Mobile Card Styles */
+.mobileCardList {
+  display: none;
+}
+
+.mobileCard {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.mobileCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mobileCardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: monospace;
+  margin-bottom: 4px;
+}
+
+.mobileCardDescription {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.mobileCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mobileCardRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobileCardLabel {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.mobileCardValue {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.mobileCardValueBold {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.mobileCardActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.editButton,
+.deleteButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 48px;
+}
+
+.editButton {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.editButton:hover {
+  background-color: #dbeafe;
+}
+
+.deleteButton {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.deleteButton:hover {
+  background-color: #fecaca;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 767px) {
+  .table {
+    display: none;
+  }
+  
+  .mobileCardList {
+    display: block;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+  
+  .formModal {
+    padding: 0;
+    align-items: flex-end;
+  }
+  
+  .formContent {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .formActions {
+    flex-direction: column;
+  }
+  
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 375px) {
+  .mobileCard {
+    padding: 12px;
+  }
+  
+  .mobileCardTitle {
+    font-size: 16px;
+  }
+}

@@ -329,3 +329,82 @@
 .removeImageButton:hover {
   background-color: rgba(0, 0, 0, 0.8);
 }
+
+/* Mobile Optimizations */
+@media (max-width: 767px) {
+  .form {
+    padding: 16px;
+  }
+  
+  .formSection {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .sectionTitle {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .roomTypeRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .removeButton {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+  
+  .amenitiesGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .formActions {
+    flex-direction: column-reverse;
+    padding: 16px 0;
+  }
+  
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+  
+  .imageGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .imageUploadLabel {
+    width: 100%;
+    text-align: center;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 375px) {
+  .form {
+    padding: 12px;
+  }
+  
+  .formSection {
+    padding: 12px;
+  }
+  
+  .amenitiesGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .imageGrid {
+    grid-template-columns: 1fr;
+  }
+}

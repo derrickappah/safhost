@@ -184,3 +184,46 @@
 .rejectButton:hover {
   background-color: #fecaca;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 767px) {
+  .content {
+    padding: 16px;
+  }
+  
+  .reviewCard {
+    padding: 16px;
+  }
+  
+  .reviewHeader {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .reviewMeta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .reviewActions {
+    flex-direction: column;
+  }
+  
+  .approveButton,
+  .rejectButton {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 375px) {
+  .reviewCard {
+    padding: 12px;
+  }
+  
+  .reviewTitle {
+    font-size: 14px;
+  }
+}
