@@ -67,19 +67,19 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
   error: string | null
 }> => {
   try {
-    // Check subscription access
-    const { hasAccess } = await checkSubscriptionAccess()
-    if (!hasAccess) {
-      return { data: null, error: 'Subscription required to view hostels' }
-    }
+    // Check subscription access - REMOVED to allow browsing
+    // const { hasAccess } = await checkSubscriptionAccess()
+    // if (!hasAccess) {
+    //   return { data: null, error: 'Subscription required to view hostels' }
+    // }
 
     // Generate cache key from filters
     const filterKey = JSON.stringify(filters)
     const cacheKey = `hostels:${Buffer.from(filterKey).toString('base64').substring(0, 50)}`
-    
+
     // Check cache with stale-while-revalidate support
     const { value: cached, isStale } = await getCachedWithStale<Hostel[]>(cacheKey)
-    
+
     // If we have cached data (fresh or stale), return it immediately
     // Fresh data will be returned synchronously
     // Stale data will be returned while fresh data is fetched in background
@@ -95,7 +95,7 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
     }
 
     const supabase = await createClient()
-    
+
     // Optimized query - only fetch essential fields for list view
     let query = supabase
       .from('hostels')
@@ -121,31 +121,31 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
         school:schools(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
-    
+
     // Apply filters
     if (filters.schoolId) {
       query = query.eq('school_id', filters.schoolId)
     }
-    
+
     if (filters.minPrice !== undefined) {
       query = query.gte('price_min', filters.minPrice)
     }
-    
+
     if (filters.maxPrice !== undefined) {
       query = query.lte('price_max', filters.maxPrice)
     }
-    
+
     if (filters.maxDistance !== undefined) {
       query = query.lte('distance', filters.maxDistance)
     }
-    
+
     if (filters.amenities && filters.amenities.length > 0) {
       // Filter by amenities (array contains)
       filters.amenities.forEach(amenity => {
         query = query.contains('amenities', [amenity])
       })
     }
-    
+
     if (filters.roomTypes && filters.roomTypes.length > 0) {
       // Filter by room types - check if any room type in room_types JSONB array matches
       // Build filter conditions for each room type
@@ -154,19 +154,19 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
         query = query.filter('room_types', 'cs', JSON.stringify([{ type: roomType }]))
       }
     }
-    
+
     if (filters.genderRestriction) {
       query = query.eq('gender_restriction', filters.genderRestriction)
     }
-    
+
     if (filters.isAvailable !== undefined) {
       query = query.eq('is_available', filters.isAvailable)
     }
-    
+
     if (filters.search) {
       query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,address.ilike.%${filters.search}%`)
     }
-    
+
     // Apply sorting
     if (filters.sortBy) {
       switch (filters.sortBy) {
@@ -194,21 +194,21 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
     } else {
       query = query.order('created_at', { ascending: false })
     }
-    
+
     if (filters.limit) {
       query = query.limit(filters.limit)
     }
-    
+
     if (filters.offset) {
       query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
     }
-    
+
     const { data, error } = await query
-    
+
     if (error) {
       return { data: null, error: error.message }
     }
-    
+
     // Type assertion and numeric conversion for coordinates
     const formattedData = (data || []).map(hostel => ({
       ...hostel,
@@ -243,7 +243,7 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
 async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Promise<void> {
   try {
     const supabase = await createClient()
-    
+
     // Build query (same logic as getHostelsImpl)
     let query = supabase
       .from('hostels')
@@ -269,7 +269,7 @@ async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Pr
         school:schools(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
-    
+
     // Apply filters (same as getHostelsImpl)
     if (filters.schoolId) query = query.eq('school_id', filters.schoolId)
     if (filters.minPrice !== undefined) query = query.gte('price_min', filters.minPrice)
@@ -290,7 +290,7 @@ async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Pr
     if (filters.search) {
       query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,address.ilike.%${filters.search}%`)
     }
-    
+
     // Apply sorting
     if (filters.sortBy) {
       switch (filters.sortBy) {
@@ -305,17 +305,17 @@ async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Pr
     } else {
       query = query.order('created_at', { ascending: false })
     }
-    
+
     if (filters.limit) query = query.limit(filters.limit)
     if (filters.offset) query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
-    
+
     const { data, error } = await query
-    
+
     if (error) {
       console.error('[Cache] Background refresh error:', error)
       return
     }
-    
+
     const formattedData = (data || []).map(hostel => ({
       ...hostel,
       latitude: hostel.latitude ? Number(hostel.latitude) : null,
@@ -325,7 +325,7 @@ async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Pr
       rating: Number(hostel.rating),
       school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
     }))
-    
+
     const ttl = Object.keys(filters).length > 0 ? 300 : 900
     const staleTtl = ttl * 2
     await setCached(cacheKey, formattedData, ttl, staleTtl, ['hostels'])
@@ -365,20 +365,20 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
     }
 
     const supabase = await createClient()
-    
+
     // Use materialized view for better performance
     // Fallback to regular query if materialized view fails for any reason
     let query = supabase
       .from('mv_featured_hostels')
       .select('*')
       .limit(limit)
-    
+
     const { data, error } = await query
-    
+
     // Try fallback query if materialized view fails for any reason
     // or if it returns empty data (might need refresh)
     const shouldUseFallback = error || !data || data.length === 0
-    
+
     if (shouldUseFallback) {
       if (error) {
         console.warn('[getFeaturedHostels] Materialized view query failed, using fallback:', {
@@ -388,7 +388,7 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
       } else if (!data || data.length === 0) {
         console.warn('[getFeaturedHostels] Materialized view returned empty, using fallback query')
       }
-      
+
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('hostels')
         .select(`
@@ -418,12 +418,12 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
         .order('rating', { ascending: false })
         .order('view_count', { ascending: false, nullsFirst: false })
         .limit(limit)
-      
+
       if (fallbackError) {
         console.error('[getFeaturedHostels] Fallback query also failed:', fallbackError.message)
         return { data: [], error: fallbackError.message }
       }
-      
+
       const formattedData = (fallbackData || []).map(hostel => ({
         ...hostel,
         latitude: hostel.latitude ? Number(hostel.latitude) : null,
@@ -433,11 +433,11 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
         rating: Number(hostel.rating),
         school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
       }))
-      
+
       await setCached(cacheKey, formattedData, 1800)
       return { data: formattedData as unknown as Hostel[], error: null }
     }
-    
+
     // Format data from materialized view (school is already JSONB)
     const formattedData = (data || []).map((hostel: any) => ({
       ...hostel,
@@ -451,7 +451,7 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
 
     // Cache for 30 minutes (featured hostels change infrequently)
     await setCached(cacheKey, formattedData, 1800, 3600, ['hostels', 'featured'])
-    
+
     return { data: formattedData as unknown as Hostel[], error: null }
   } catch (error) {
     console.error('[getFeaturedHostels] Unexpected error:', error)
@@ -478,7 +478,7 @@ export const getHostelById = cache(async (id: string): Promise<{
     }
 
     const supabase = await createClient()
-    
+
     const { data, error } = await supabase
       .from('hostels')
       .select(`
@@ -511,11 +511,11 @@ export const getHostelById = cache(async (id: string): Promise<{
       `)
       .eq('id', id)
       .single()
-    
+
     if (error) {
       return { data: null, error: error.message }
     }
-    
+
     // Convert string coordinates/prices to numbers
     const formattedHostel = {
       ...data,
@@ -556,18 +556,18 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
 }> => {
   try {
     const supabase = await createClient()
-    
+
     // First, get the reference hostel
     const { data: referenceHostel, error: refError } = await supabase
       .from('hostels')
       .select('school_id, price_min, price_max, address, amenities, rating')
       .eq('id', hostelId)
       .single()
-    
+
     if (refError || !referenceHostel) {
       return { data: [], error: null }
     }
-    
+
     // Build query for similar hostels (excluding the current one)
     let query = supabase
       .from('hostels')
@@ -601,12 +601,12 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
       `)
       .eq('is_active', true)
       .neq('id', hostelId)
-    
+
     // Filter by same school (highest priority)
     if (referenceHostel.school_id) {
       query = query.eq('school_id', referenceHostel.school_id)
     }
-    
+
     // Filter by similar price range (±30%)
     if (referenceHostel.price_min) {
       const priceRange = referenceHostel.price_min * 0.3
@@ -614,24 +614,24 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
         .gte('price_min', referenceHostel.price_min - priceRange)
         .lte('price_min', referenceHostel.price_min + priceRange)
     }
-    
+
     // Order by: same school first, then by rating, then by view_count
     query = query
       .order('rating', { ascending: false, nullsFirst: false })
       .order('view_count', { ascending: false, nullsFirst: false })
       .limit(limit)
-    
+
     const { data, error } = await query
-    
+
     if (error) {
       return { data: null, error: error.message }
     }
-    
+
     // If we don't have enough results, get more from featured hostels
     if (data && data.length < limit) {
       const remaining = limit - data.length
       const existingIds = new Set([hostelId, ...data.map(h => h.id)])
-      
+
       // Try to get featured hostels
       const { data: allFeatured } = await supabase
         .from('hostels')
@@ -643,18 +643,18 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
         .eq('featured', true)
         .order('rating', { ascending: false })
         .limit(remaining * 2) // Get more to filter
-      
+
       if (allFeatured) {
         const additionalData = allFeatured
           .filter(h => !existingIds.has(h.id))
           .slice(0, remaining)
-        
+
         if (additionalData.length > 0) {
           data.push(...additionalData)
         }
       }
     }
-    
+
     // Type assertion: Supabase returns school as array but it's actually a single object in practice
     return { data: (data || []) as unknown as Hostel[], error: null }
   } catch (error) {
