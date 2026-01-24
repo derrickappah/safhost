@@ -1827,3 +1827,60 @@
     max-height: 85vh;
   }
 }
+.lockedContactCard {
+  background-color: #f8fafc;
+  border-radius: 16px;
+  padding: 32px 20px;
+  border: 1px dashed #cbd5e1;
+  text-align: center;
+}
+
+.lockedContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lockIconContainer {
+  width: 64px;
+  height: 64px;
+  background-color: #f1f5f9;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.lockedTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.lockedDescription {
+  font-size: 14px;
+  color: #64748b;
+  max-width: 250px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.subscribeLinkButton {
+  background-color: #2563eb;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.subscribeLinkButton:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}

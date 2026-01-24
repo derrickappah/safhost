@@ -1,6 +1,6 @@
 import { getHostels, type HostelFilters } from '@/lib/actions/hostels'
-import { areFavorited } from '@/lib/actions/favorites'
-import { requireSubscription } from '@/lib/access/guard'
+import { areFavorited, removeFavorite } from '@/lib/actions/favorites'
+import { hasActiveSubscription } from '@/lib/actions/subscriptions'
 import { getProfile } from '@/lib/actions/profile'
 import HostelsPageClient from './HostelsPageClient'
 
@@ -25,9 +25,10 @@ interface PageProps {
 
 export default async function HostelsPage({ searchParams }: PageProps) {
   // Require active subscription
-  await requireSubscription()
+  // No longer requiring subscription to browse, only to view contact details
+  // await requireSubscription()
   const params = await searchParams
-  
+
   // Parse filters from URL
   const filters: HostelFilters = {
     schoolId: params.school || undefined,
@@ -42,11 +43,12 @@ export default async function HostelsPage({ searchParams }: PageProps) {
     sortBy: (params.sortBy as any) || 'newest'
   }
 
-  // Load hostels, favorites, and profile in parallel
-  const [hostelsResult, favoritedResult, profileResult] = await Promise.all([
+  // Load hostels, favorites, profile, and subscription in parallel
+  const [hostelsResult, favoritedResult, profileResult, hasSubscription] = await Promise.all([
     getHostels(filters).catch(() => ({ data: [], error: null })),
     areFavorited([]).catch(() => new Set<string>()), // Will be updated with actual IDs
-    getProfile().catch(() => ({ data: null, error: null }))
+    getProfile().catch(() => ({ data: null, error: null })),
+    hasActiveSubscription().catch(() => false)
   ])
 
   const hostels = hostelsResult.data || []
@@ -55,7 +57,7 @@ export default async function HostelsPage({ searchParams }: PageProps) {
 
   // Get favorites for loaded hostels
   const hostelIds = hostels.map(h => h.id)
-  const favorited = hostelIds.length > 0 
+  const favorited = hostelIds.length > 0
     ? await areFavorited(hostelIds).catch(() => new Set<string>())
     : new Set<string>()
 
@@ -79,6 +81,7 @@ export default async function HostelsPage({ searchParams }: PageProps) {
       sortBy={sortBy}
       initialFilters={initialFilters}
       defaultSchoolId={defaultSchoolId}
+      hasSubscription={hasSubscription}
     />
   )
 }

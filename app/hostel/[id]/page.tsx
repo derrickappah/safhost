@@ -17,8 +17,9 @@ interface PageProps {
 
 export default async function HostelDetailPage({ params }: PageProps) {
   // Require active subscription
-  await requireSubscription()
-  
+  // No longer requiring subscription to view details, only to view contact details
+  // await requireSubscription()
+
   const { id: hostelId } = await params
 
   // Load critical data in parallel

@@ -31,16 +31,18 @@ interface HostelsPageClientProps {
     isAvailable: boolean | undefined
   }
   defaultSchoolId: string | null
+  hasSubscription: boolean
 }
 
 const MAX_COMPARE = 4
 
-export default function HostelsPageClient({ 
-  hostels, 
-  favorited, 
+export default function HostelsPageClient({
+  hostels,
+  favorited,
   sortBy,
   initialFilters,
-  defaultSchoolId
+  defaultSchoolId,
+  hasSubscription
 }: HostelsPageClientProps) {
   const { navigate, router } = useInstantNavigation()
   const searchParams = useSearchParams()
@@ -62,7 +64,7 @@ export default function HostelsPageClient({
     if (!newCompareMode) {
       setSelectedHostels(new Set())
     }
-    
+
     // Update URL
     const params = new URLSearchParams(searchParams.toString())
     if (newCompareMode) {
@@ -99,7 +101,7 @@ export default function HostelsPageClient({
 
   return (
     <div className={styles.container}>
-      <HostelsHeader 
+      <HostelsHeader
         onFilterClick={() => setShowFilters(true)}
         compareMode={compareMode}
         onToggleCompareMode={toggleCompareMode}
@@ -121,19 +123,20 @@ export default function HostelsPageClient({
       {/* Results Count */}
       <div className={styles.resultsHeader}>
         <span className={styles.resultsCount}>
-          <span className={styles.resultsCountNumber}>{hostels.length}</span> 
+          <span className={styles.resultsCountNumber}>{hostels.length}</span>
           hostels found
         </span>
         <SortMenu currentSort={sortBy} />
       </div>
 
       {/* Hostel List */}
-      <HostelsList 
-        initialHostels={hostels} 
+      <HostelsList
+        initialHostels={hostels}
         initialFavorited={favorited}
         compareMode={compareMode}
         selectedHostels={selectedHostels}
         onToggleSelection={toggleHostelSelection}
+        hasSubscription={hasSubscription}
       />
 
       {/* Filter Modal */}

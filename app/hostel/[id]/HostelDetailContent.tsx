@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { IoLocation, IoStar, IoWalk, IoCar, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoShirt, IoSnow, IoBarbell, IoBook, IoPeople, IoCall, IoAlertCircle, IoFlagOutline, IoMale, IoFemale, IoArrowBack, IoShareOutline, IoHeart, IoHeartOutline, IoChevronForward, IoClose } from 'react-icons/io5'
+import { IoLocation, IoStar, IoWalk, IoCar, IoWifi, IoWater, IoShieldCheckmark, IoFlash, IoRestaurant, IoShirt, IoSnow, IoBarbell, IoBook, IoPeople, IoCall, IoAlertCircle, IoFlagOutline, IoMale, IoFemale, IoArrowBack, IoShareOutline, IoHeart, IoHeartOutline, IoChevronForward, IoClose, IoLockClosed } from 'react-icons/io5'
 import { type Hostel } from '@/lib/actions/hostels'
 import { type Review } from '@/lib/actions/reviews'
 import { trackHostelView } from '@/lib/actions/views'
@@ -94,16 +94,20 @@ export default function HostelDetailContent({
   }, [])
 
   const handleSave = async () => {
-    if (!hasAccess) {
+    if (!currentUser) {
       navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
       return
     }
-    
+
+    // Check subscription if needed (if favoriting is also gated)
+    // Actually, according to middleware favorites IS gated. 
+    // Let's keep the error handling for subscription in the action call below.
+
     const previousState = isSaved
-    
+
     // Optimistic update
     setIsSaved(!isSaved)
-    
+
     // API call
     try {
       if (previousState) {
@@ -127,7 +131,10 @@ export default function HostelDetailContent({
           } else if (error === 'Authentication required') {
             alert('Please log in to save favorites')
           } else if (error === 'Active subscription required') {
-            alert('An active subscription is required to save favorites')
+            // Updated to be more helpful
+            if (confirm('An active subscription is required to save favorites. Would you like to subscribe now?')) {
+              navigate('/subscribe?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
+            }
           } else {
             alert('Failed to add to favorites: ' + error)
           }
@@ -142,7 +149,7 @@ export default function HostelDetailContent({
 
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : ''
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -169,14 +176,19 @@ export default function HostelDetailContent({
   }
 
   const handleContact = async () => {
-    if (!hasAccess) {
+    if (!currentUser) {
       navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
       return
     }
-    
+
+    if (!hasAccess) {
+      navigate('/subscribe?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
+      return
+    }
+
     // Optimistic: Show modal immediately
     setShowContactModal(true)
-    
+
     // Log contact in background (non-blocking)
     logContactClick(hostel.id).catch(err => {
       console.error('Failed to log contact:', err)
@@ -185,6 +197,15 @@ export default function HostelDetailContent({
   }
 
   const handleLocationClick = () => {
+    if (!hasAccess) {
+      if (!currentUser) {
+        navigate('/auth/login?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
+      } else {
+        navigate('/subscribe?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))
+      }
+      return
+    }
+
     if (hostel.latitude && hostel.longitude) {
       navigate(`/hostels/map?hostel=${hostel.id}&mode=directions`)
     } else {
@@ -252,10 +273,10 @@ export default function HostelDetailContent({
     })
   }
 
-  const images = hostel.images && hostel.images.length > 0 
-    ? hostel.images 
+  const images = hostel.images && hostel.images.length > 0
+    ? hostel.images
     : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800']
-  
+
   let roomTypes: any[] = []
   if (hostel.room_types) {
     if (Array.isArray(hostel.room_types)) {
@@ -354,16 +375,19 @@ export default function HostelDetailContent({
                   <IoFlagOutline size={18} color="#64748b" />
                 </button>
               </div>
-              <button 
+              <button
                 className={styles.locationLink}
                 onClick={handleLocationClick}
-                title="View on map"
+                title={hasAccess ? "View on map" : "Subscribe to view map"}
               >
                 <div className={styles.locationInfo}>
                   <IoLocation size={18} className={styles.locationIcon} />
-                  <span className={styles.locationText}>{hostel.address}</span>
+                  <span className={styles.locationText}>
+                    {hasAccess ? hostel.address : "Location Locked"}
+                  </span>
+                  {!hasAccess && <IoLockClosed size={14} color="#64748b" style={{ marginLeft: '4px' }} />}
                 </div>
-                <span className={styles.mapLabel}>View Map</span>
+                <span className={styles.mapLabel}>{hasAccess ? "View Map" : "Unlock Map"}</span>
               </button>
               <div className={styles.metaInfo}>
                 {(hostel.view_count ?? 0) > 0 && (
@@ -450,7 +474,7 @@ export default function HostelDetailContent({
           {(hostel.description || hostel.gender_restriction) && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>About</h2>
-              
+
               {hostel.gender_restriction && (
                 <div className={styles.genderRestrictionSection} style={{ marginBottom: hostel.description ? '20px' : '0' }}>
                   {hostel.gender_restriction === 'male' && (
@@ -481,26 +505,44 @@ export default function HostelDetailContent({
           )}
 
           {/* Contact Information */}
-          {hasAccess && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Contact Information</h2>
-              <div className={styles.contactCard}>
-                <div className={styles.contactCardHeader}>
-                  <div>
-                    <h3 className={styles.contactCardName}>{hostel.hostel_manager_name}</h3>
-                    <p className={styles.contactCardLabel}>Hostel Manager</p>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Contact Information</h2>
+            <div className={hasAccess ? styles.contactCard : styles.lockedContactCard}>
+              {hasAccess ? (
+                <>
+                  <div className={styles.contactCardHeader}>
+                    <div>
+                      <h3 className={styles.contactCardName}>{hostel.hostel_manager_name}</h3>
+                      <p className={styles.contactCardLabel}>Hostel Manager</p>
+                    </div>
                   </div>
+                  <button
+                    className={styles.contactCardButton}
+                    onClick={handleContact}
+                  >
+                    <IoCall size={18} />
+                    <span>Contact Hostel Manager</span>
+                  </button>
+                </>
+              ) : (
+                <div className={styles.lockedContent}>
+                  <div className={styles.lockIconContainer}>
+                    <IoLockClosed size={32} color="#64748b" />
+                  </div>
+                  <h3 className={styles.lockedTitle}>Manager Details Hidden</h3>
+                  <p className={styles.lockedDescription}>
+                    Subscribe to view the manager's contact details and book your room.
+                  </p>
+                  <button
+                    className={styles.subscribeLinkButton}
+                    onClick={() => navigate('/subscribe?redirect=' + encodeURIComponent(`/hostel/${hostel.id}`))}
+                  >
+                    Get Full Access for GHS 20
+                  </button>
                 </div>
-                <button
-                  className={styles.contactCardButton}
-                  onClick={handleContact}
-                >
-                  <IoCall size={18} />
-                  <span>Contact Hostel Manager</span>
-                </button>
-              </div>
-            </section>
-          )}
+              )}
+            </div>
+          </section>
 
           {/* Reviews */}
           <ReviewsSection
@@ -593,13 +635,12 @@ export default function HostelDetailContent({
                 </button>
               )}
               <button
-                className={`${styles.confirmDialogButton} ${
-                  availabilityDialogConfig.type === 'error' 
-                    ? styles.confirmDialogButtonError 
-                    : availabilityDialogConfig.type === 'success'
+                className={`${styles.confirmDialogButton} ${availabilityDialogConfig.type === 'error'
+                  ? styles.confirmDialogButtonError
+                  : availabilityDialogConfig.type === 'success'
                     ? styles.confirmDialogButtonSuccess
                     : styles.confirmDialogButtonPrimary
-                }`}
+                  }`}
                 onClick={handleAvailabilityConfirm}
               >
                 {availabilityDialogConfig.confirmText || 'OK'}

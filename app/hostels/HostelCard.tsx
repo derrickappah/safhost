@@ -32,26 +32,29 @@ interface HostelCardProps {
   compareMode?: boolean
   isSelected?: boolean
   onToggleSelection?: (id: string, e: React.MouseEvent) => void
+  hasSubscription: boolean
 }
 
-export default function HostelCard({ 
-  hostel, 
-  isFavorited, 
+export default function HostelCard({
+  hostel,
+  isFavorited,
   onToggleFavorite,
   compareMode = false,
   isSelected = false,
-  onToggleSelection
+  onToggleSelection,
+  hasSubscription
 }: HostelCardProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const AmenityIcon = amenityIcons[hostel.amenities?.[0] || ''] || IoStar
-  const mainImage = hostel.images && hostel.images.length > 0 
-    ? hostel.images[0] 
+  const mainImage = hostel.images && hostel.images.length > 0
+    ? hostel.images[0]
     : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
   const hostelUrl = `/hostel/${hostel.id}`
-
   const handleCardClick = (e: React.MouseEvent) => {
     if (compareMode && onToggleSelection) {
       onToggleSelection(hostel.id, e)
+    } else if (!hasSubscription) {
+      navigate('/subscribe')
     } else {
       navigate(hostelUrl)
     }
@@ -124,7 +127,7 @@ export default function HostelCard({
             From <strong className={styles.priceAmount}>GHS {hostel.price_min}</strong>/sem
           </span>
         </div>
-        
+
         {hostel.distance && (
           <div className={styles.distanceInfo}>
             <div className={styles.distanceBadge}>

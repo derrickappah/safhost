@@ -97,7 +97,7 @@ export default function SelectSchoolPage() {
     if (selectedSchool) {
       // Check if user is authenticated
       const { data: userData } = await getCurrentUser()
-      
+
       if (userData?.user) {
         // Save school to user profile
         const { error } = await updateProfile(undefined, undefined, undefined, selectedSchool)
@@ -106,11 +106,12 @@ export default function SelectSchoolPage() {
           // Still continue even if save fails
         }
       }
-      
+
       // Store in localStorage as fallback
       localStorage.setItem('selectedSchool', selectedSchool)
-      
-      router.replace('/dashboard')
+
+      console.log('[SelectSchool] Redirecting to /hostels')
+      router.replace('/hostels')
     }
   }
 

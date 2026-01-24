@@ -12,14 +12,16 @@ interface HostelsListProps {
   compareMode?: boolean
   selectedHostels?: Set<string>
   onToggleSelection?: (id: string, e: React.MouseEvent) => void
+  hasSubscription: boolean
 }
 
-export default function HostelsList({ 
-  initialHostels, 
+export default function HostelsList({
+  initialHostels,
   initialFavorited,
   compareMode = false,
   selectedHostels = new Set(),
-  onToggleSelection
+  onToggleSelection,
+  hasSubscription
 }: HostelsListProps) {
   const [hostels, setHostels] = useState(initialHostels)
   const [favoritedHostels, setFavoritedHostels] = useState<Set<string>>(initialFavorited || new Set())
@@ -39,7 +41,7 @@ export default function HostelsList({
     e.stopPropagation()
     const isFav = favoritedHostels.has(id)
     const previousState = favoritedHostels.has(id)
-    
+
     // Optimistic update
     if (isFav) {
       setFavoritedHostels(prev => {
@@ -50,7 +52,7 @@ export default function HostelsList({
     } else {
       setFavoritedHostels(prev => new Set(prev).add(id))
     }
-    
+
     // API call
     try {
       if (isFav) {
@@ -117,6 +119,7 @@ export default function HostelsList({
           compareMode={compareMode}
           isSelected={selectedHostels.has(hostel.id)}
           onToggleSelection={onToggleSelection}
+          hasSubscription={hasSubscription}
         />
       ))}
       <div style={{ height: '100px' }} />

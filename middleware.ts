@@ -6,6 +6,11 @@ import { getCachedSubscription } from './lib/cache/subscription'
 export async function middleware(request: NextRequest) {
   const startTime = Date.now()
   const currentPath = request.nextUrl.pathname
+  const pathWithoutTrailingSlash = currentPath.endsWith('/') && currentPath.length > 1
+    ? currentPath.slice(0, -1)
+    : currentPath
+
+  console.log(`[Middleware] Processing ${currentPath}`)
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -37,15 +42,15 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const sessionTime = Date.now() - sessionStart
   const user = session?.user || null
-  
+
   if (process.env.NODE_ENV === 'development' && sessionTime > 100) {
     console.log(`[Middleware] getSession took ${sessionTime}ms for ${currentPath}`)
   }
 
   // Routes that require authentication only (no subscription)
-  const authOnlyRoutes = ['/subscribe', '/profile']
-  
-  if (authOnlyRoutes.includes(currentPath)) {
+  const authOnlyRoutes = ['/subscribe', '/profile', '/hostels']
+
+  if (authOnlyRoutes.includes(pathWithoutTrailingSlash)) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/auth/login'
@@ -53,23 +58,24 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
     // User is authenticated, allow through
+    console.log(`[Middleware] Allowed auth-only route: ${currentPath}`)
     return supabaseResponse
   }
 
   // Routes that require active subscription
   const subscriptionRoutes = [
-    '/hostels',
-    '/hostel',
+    '/hostels/map',
     '/dashboard',
     '/favorites',
     '/viewed',
     '/contacted',
-    '/compare'
+    '/compare',
+    '/hostel'
   ]
 
   // Check if current path requires subscription
-  const requiresSubscription = subscriptionRoutes.some(route => 
-    currentPath === route || currentPath.startsWith(`${route}/`)
+  const requiresSubscription = subscriptionRoutes.some(route =>
+    pathWithoutTrailingSlash === route || pathWithoutTrailingSlash.startsWith(`${route}/`)
   )
 
   if (requiresSubscription) {
@@ -118,6 +124,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!hasSubscription) {
+      console.log(`[Middleware] Redirecting to /subscribe for ${currentPath}`)
       const url = request.nextUrl.clone()
       url.pathname = '/subscribe'
       url.searchParams.set('redirect', currentPath)
@@ -132,7 +139,7 @@ export async function middleware(request: NextRequest) {
       url.pathname = '/'
       return NextResponse.redirect(url)
     }
-    
+
     // Check cache first
     const cachedAdminStatus = await getCachedAdminStatus(user.id)
     if (cachedAdminStatus !== null) {
@@ -145,24 +152,24 @@ export async function middleware(request: NextRequest) {
     } else {
       // Not in cache, check database
       let isAdmin = false
-      
+
       // Check profiles table first - user can read their own profile
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single()
-      
+
       if (!error && profile?.role === 'admin') {
         isAdmin = true
       } else if (user.user_metadata?.role === 'admin') {
         // Fallback to user_metadata if profile check fails
         isAdmin = true
       }
-      
+
       // Cache the result
       await setCachedAdminStatus(user.id, isAdmin)
-      
+
       if (!isAdmin) {
         const url = request.nextUrl.clone()
         url.pathname = '/'

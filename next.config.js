@@ -59,6 +59,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'tqqieudrqdopvtgweuug.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
     // Optimize images for performance and quality
     formats: ['image/avif', 'image/webp'],
