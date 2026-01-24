@@ -64,6 +64,7 @@ export async function middleware(request: NextRequest) {
 
   // Routes that require active subscription
   const subscriptionRoutes = [
+    '/hostels/map',
     '/hostel'
   ]
 

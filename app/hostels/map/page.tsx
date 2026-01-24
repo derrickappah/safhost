@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 import styles from './page.module.css'
 import { getHostels, getHostelById, type Hostel } from '@/lib/actions/hostels'
 import { getSchoolById, type School } from '@/lib/actions/schools'
+import { hasActiveSubscription } from '@/lib/actions/subscriptions'
 import { getCurrentLocation } from '@/lib/location/detect'
 import { useMap } from './MapContext'
 import Loader from '@/components/Loader'
@@ -40,11 +41,25 @@ function MapPageContent() {
   })
   const [mapZoom, setMapZoom] = useState(13)
   const { searchQuery, setSearchQuery, showList, setShowList } = useMap()
+  const [checkingSubscription, setCheckingSubscription] = useState(true)
+
+  // Double check subscription on client side
+  useEffect(() => {
+    async function checkAccess() {
+      const hasAccess = await hasActiveSubscription()
+      if (!hasAccess) {
+        router.push('/subscribe')
+      } else {
+        setCheckingSubscription(false)
+      }
+    }
+    checkAccess()
+  }, [])
 
   const loadHostels = useCallback(async () => {
     setLoading(true)
     setError(null)
-    
+
     // If in directions mode, we primarily care about the specific hostel and school
     if (modeParam === 'directions' && hostelIdParam) {
       const { data: hostel, error: hostelError } = await getHostelById(hostelIdParam)
@@ -56,7 +71,7 @@ function MapPageContent() {
       if (hostel) {
         setHostels([hostel])
         setSelectedHostel(hostel)
-        
+
         // Use provided schoolId or fall back to hostel's associated school
         const targetSchoolId = schoolIdParam || hostel.school_id
         if (targetSchoolId) {
@@ -84,7 +99,7 @@ function MapPageContent() {
     }
 
     const { data, error: hostelsError } = await getHostels(filters)
-    
+
     if (hostelsError) {
       setError(hostelsError)
       setLoading(false)
@@ -144,8 +159,10 @@ function MapPageContent() {
   }, [searchQuery, schoolIdParam, hostelIdParam, modeParam])
 
   useEffect(() => {
-    loadHostels()
-  }, [loadHostels])
+    if (!checkingSubscription) {
+      loadHostels()
+    }
+  }, [loadHostels, checkingSubscription])
 
   useEffect(() => {
     // Only try to get user's location if not in a specific mode and no school/hostel is targeted
@@ -181,13 +198,13 @@ function MapPageContent() {
     const params = new URLSearchParams(searchParams.toString())
     params.set('hostel', hostel.id)
     params.set('mode', 'directions')
-    
+
     // Use school from search params or hostel's linked school
     const targetSchoolId = schoolIdParam || hostel.school_id
     if (targetSchoolId) {
       params.set('school', targetSchoolId)
     }
-    
+
     router.push(`/hostels/map?${params.toString()}`)
   }
 
@@ -207,13 +224,19 @@ function MapPageContent() {
 
   return (
     <div className={styles.container}>
+      {(loading || checkingSubscription) && (
+        <div className={styles.mapLoading} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: 'rgba(255,255,255,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Loader />
+        </div>
+      )}
+
       {/* Map Container */}
       <div className={styles.mapContainer}>
         {error ? (
           <div className={styles.mapError}>
             <p>{error}</p>
             {error.includes('Subscription') && (
-              <button 
+              <button
                 onClick={() => router.push('/subscribe')}
                 style={{
                   marginTop: '16px',
@@ -278,11 +301,10 @@ function MapPageContent() {
               hostels.map((hostel) => (
                 <div
                   key={hostel.id}
-                  className={`${styles.hostelListItem} ${
-                    selectedHostel?.id === hostel.id
+                  className={`${styles.hostelListItem} ${selectedHostel?.id === hostel.id
                       ? styles.hostelListItemSelected
                       : ''
-                  }`}
+                    }`}
                   onClick={() => {
                     handleHostelClick(hostel)
                     if (hostel.latitude && hostel.longitude) {
@@ -331,7 +353,7 @@ function MapPageContent() {
 
       {/* Selected Hostel Info Card */}
       {selectedHostel && !showList && (
-        <motion.div 
+        <motion.div
           initial={{ y: 100, opacity: 0, x: '-50%' }}
           animate={{ y: 0, opacity: 1, x: '-50%' }}
           className={styles.infoCard}
@@ -342,11 +364,11 @@ function MapPageContent() {
           >
             <IoCloseCircle size={24} color="#64748b" />
           </button>
-          
+
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             {selectedHostel.images?.[0] && (
-              <img 
-                src={selectedHostel.images[0]} 
+              <img
+                src={selectedHostel.images[0]}
                 alt={selectedHostel.name}
                 style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover' }}
               />
@@ -355,12 +377,12 @@ function MapPageContent() {
               <h3 className={styles.infoCardName}>{selectedHostel.name}</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <div className={styles.infoCardPrice} style={{ marginBottom: 0 }}>GHS {selectedHostel.price_min}/sem</div>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '2px', 
-                  fontSize: '12px', 
-                  fontWeight: 700, 
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  fontSize: '12px',
+                  fontWeight: 700,
                   color: '#fbbf24',
                   backgroundColor: '#fffbeb',
                   padding: '2px 6px',
@@ -378,7 +400,7 @@ function MapPageContent() {
               )}
             </div>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
             <button
               className={styles.infoCardButton}
@@ -430,7 +452,7 @@ function MapPageContent() {
           <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>
             No hostels found for this school
           </p>
-          <button 
+          <button
             onClick={() => {
               const params = new URLSearchParams(searchParams.toString())
               params.delete('school')
