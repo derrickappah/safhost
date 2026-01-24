@@ -95,25 +95,45 @@ export default function SelectSchoolPage() {
   }
 
   const handleContinue = async () => {
-    if (selectedSchool) {
+    if (!selectedSchool) return
+
+    try {
       setIsRedirecting(true)
-      // Check if user is authenticated
-      const { data: userData } = await getCurrentUser()
+      console.log('[SelectSchool] Starting continue process...')
 
-      if (userData?.user) {
-        // Save school to user profile
-        const { error } = await updateProfile(undefined, undefined, undefined, selectedSchool)
-        if (error) {
-          console.error('Error saving school:', error)
-          // Still continue even if save fails
-        }
-      }
-
-      // Store in localStorage as fallback
+      // Store in localStorage immediately as fallback
       localStorage.setItem('selectedSchool', selectedSchool)
 
-      // Use window.location.href to force a full reload and bypass any client-side router cache/issues
+      // Check if user is authenticated (wrap in try-catch to prevent hanging)
+      try {
+        console.log('[SelectSchool] Checking auth...')
+        const { data: userData } = await getCurrentUser()
+
+        if (userData?.user) {
+          console.log('[SelectSchool] User authenticated, updating profile...')
+          // Save school to user profile
+          const { error } = await updateProfile(undefined, undefined, undefined, selectedSchool)
+          if (error) {
+            console.error('[SelectSchool] Error saving school:', error)
+            // Still continue even if save fails
+          } else {
+            console.log('[SelectSchool] Profile updated successfully')
+          }
+        } else {
+          console.log('[SelectSchool] User not authenticated')
+        }
+      } catch (err) {
+        console.error('[SelectSchool] Error updating profile/checking auth:', err)
+        // Continue anyway
+      }
+
+      console.log('[SelectSchool] Redirecting to /hostels...')
+      // Use window.location.href to force a full reload
       window.location.href = '/hostels'
+    } catch (error) {
+      console.error('[SelectSchool] Critical error in handleContinue:', error)
+      setIsRedirecting(false) // Reset state on error so user can try again
+      alert('Something went wrong. Please try again.')
     }
   }
 
