@@ -25,6 +25,7 @@ export default function SelectSchoolPage() {
   const [schools, setSchools] = useState<School[]>([])
   const [loading, setLoading] = useState(true)
   const [detectingLocation, setDetectingLocation] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const [nearestSchool, setNearestSchool] = useState<string | null>(null)
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function SelectSchoolPage() {
 
   const handleContinue = async () => {
     if (selectedSchool) {
+      setIsRedirecting(true)
       // Check if user is authenticated
       const { data: userData } = await getCurrentUser()
 
@@ -216,9 +218,13 @@ export default function SelectSchoolPage() {
           <button
             className={styles.continueButton}
             onClick={handleContinue}
+            disabled={isRedirecting}
+            style={{ opacity: isRedirecting ? 0.7 : 1, cursor: isRedirecting ? 'not-allowed' : 'pointer' }}
           >
-            <span className={styles.continueButtonText}>Continue</span>
-            <IoCheckmark size={20} color="#fff" />
+            <span className={styles.continueButtonText}>
+              {isRedirecting ? 'Continuing...' : 'Continue'}
+            </span>
+            {!isRedirecting && <IoCheckmark size={20} color="#fff" />}
           </button>
         </div>
       )}
