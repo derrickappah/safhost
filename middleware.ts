@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Routes that require authentication only (no subscription)
-  const authOnlyRoutes = ['/subscribe', '/profile', '/hostels']
+  const authOnlyRoutes = ['/subscribe', '/profile', '/hostels', '/dashboard', '/favorites']
 
   if (authOnlyRoutes.includes(pathWithoutTrailingSlash)) {
     if (!user) {
@@ -64,12 +64,6 @@ export async function middleware(request: NextRequest) {
 
   // Routes that require active subscription
   const subscriptionRoutes = [
-    '/hostels/map',
-    '/dashboard',
-    '/favorites',
-    '/viewed',
-    '/contacted',
-    '/compare',
     '/hostel'
   ]
 

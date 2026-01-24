@@ -20,21 +20,26 @@ interface Favorite {
 
 interface FavoritesSectionProps {
   favorites: Favorite[]
+  hasSubscription: boolean
 }
 
-export default function FavoritesSection({ favorites: initialFavorites }: FavoritesSectionProps) {
+export default function FavoritesSection({ favorites: initialFavorites, hasSubscription }: FavoritesSectionProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const [favorites, setFavorites] = useState(initialFavorites)
 
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!hasSubscription) {
+      navigate('/subscribe')
+      return
+    }
     const favorite = favorites.find(f => f.id === hostelId)
     const previousFavorites = favorites
-    
+
     if (favorite) {
       // Optimistic update: remove from favorites immediately
       setFavorites(favorites.filter(f => f.id !== hostelId))
-      
+
       // API call
       try {
         const { error } = await removeFavorite(hostelId)
@@ -108,17 +113,22 @@ export default function FavoritesSection({ favorites: initialFavorites }: Favori
       </div>
       <div className={styles.horizontalScroll}>
         {favorites.map((hostel) => {
-          const imageUrl = hostel.image && hostel.image.trim() !== '' 
-            ? hostel.image 
+          const imageUrl = hostel.image && hostel.image.trim() !== ''
+            ? hostel.image
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
-          
+
           return (
             <div
               key={hostel.id}
               className={styles.favoriteCard}
-              onClick={() => navigate(`/hostel/${hostel.id}`)}
-              onMouseEnter={() => handleMouseEnter(`/hostel/${hostel.id}`)}
-              onTouchStart={() => handleTouchStart(`/hostel/${hostel.id}`)}
+              onTouchStart={() => hasSubscription ? handleTouchStart(`/hostel/${hostel.id}`) : undefined}
+              onClick={(e) => {
+                if (!hasSubscription) {
+                  navigate('/subscribe')
+                } else {
+                  navigate(`/hostel/${hostel.id}`)
+                }
+              }}
             >
               {imageUrl && (
                 <div className={styles.favoriteImageContainer}>
@@ -146,12 +156,12 @@ export default function FavoritesSection({ favorites: initialFavorites }: Favori
                 </div>
                 <span className={styles.favoritePrice}>GHS {hostel.price || 0}/sem</span>
               </div>
-              <button 
+              <button
                 className={styles.heartButton}
                 onClick={(e) => handleToggleFavorite(hostel.id, e)}
               >
-                <IoHeart 
-                  size={18} 
+                <IoHeart
+                  size={18}
                   color="#ef4444"
                   fill="#ef4444"
                 />

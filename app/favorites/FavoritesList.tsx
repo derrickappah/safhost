@@ -9,19 +9,24 @@ import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface FavoritesListProps {
   initialFavorites: Favorite[]
+  hasSubscription: boolean
 }
 
-export default function FavoritesList({ initialFavorites }: FavoritesListProps) {
+export default function FavoritesList({ initialFavorites, hasSubscription }: FavoritesListProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const [favorites, setFavorites] = useState(initialFavorites)
 
   const handleRemoveFavorite = async (favoriteId: string, hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!hasSubscription) {
+      navigate('/subscribe')
+      return
+    }
     const previousFavorites = favorites
-    
+
     // Optimistic update: remove from list immediately
     setFavorites(favorites.filter(f => f.id !== favoriteId))
-    
+
     // API call
     try {
       const { error } = await removeFavorite(hostelId)
@@ -63,19 +68,25 @@ export default function FavoritesList({ initialFavorites }: FavoritesListProps) 
         {favorites.map((favorite) => {
           const hostel = favorite.hostel
           if (!hostel) return null
-          
-          const mainImage = hostel.images && hostel.images.length > 0 
-            ? hostel.images[0] 
+
+          const mainImage = hostel.images && hostel.images.length > 0
+            ? hostel.images[0]
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
-          
+
           const hostelUrl = `/hostel/${hostel.id}`
           return (
             <div
               key={favorite.id}
               className={styles.hostelCard}
-              onClick={() => navigate(hostelUrl)}
-              onMouseEnter={() => handleMouseEnter(hostelUrl)}
-              onTouchStart={() => handleTouchStart(hostelUrl)}
+              onClick={() => {
+                if (!hasSubscription) {
+                  navigate('/subscribe')
+                } else {
+                  navigate(hostelUrl)
+                }
+              }}
+              onMouseEnter={() => hasSubscription && handleMouseEnter(hostelUrl)}
+              onTouchStart={() => hasSubscription && handleTouchStart(hostelUrl)}
             >
               <div className={styles.imageContainer}>
                 <Image

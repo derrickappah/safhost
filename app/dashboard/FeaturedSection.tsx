@@ -19,9 +19,10 @@ interface FeaturedHostel {
 
 interface FeaturedSectionProps {
   featuredHostels: FeaturedHostel[]
+  hasSubscription: boolean
 }
 
-export default function FeaturedSection({ featuredHostels: initialFeaturedHostels }: FeaturedSectionProps) {
+export default function FeaturedSection({ featuredHostels: initialFeaturedHostels, hasSubscription }: FeaturedSectionProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const [featuredHostels, setFeaturedHostels] = useState(initialFeaturedHostels)
   const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set())
@@ -44,9 +45,13 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
 
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!hasSubscription) {
+      navigate('/subscribe')
+      return
+    }
     const isFavorited = favoritedIds.has(hostelId)
     const previousState = favoritedIds.has(hostelId)
-    
+
     // Optimistic update
     if (isFavorited) {
       setFavoritedIds(prev => {
@@ -57,7 +62,7 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
     } else {
       setFavoritedIds(prev => new Set(prev).add(hostelId))
     }
-    
+
     // API call
     try {
       if (isFavorited) {
@@ -117,19 +122,24 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
       </div>
       <div className={styles.horizontalScroll}>
         {featuredHostels.map((hostel) => {
-          const imageUrl = hostel.image && hostel.image.trim() !== '' 
-            ? hostel.image 
+          const imageUrl = hostel.image && hostel.image.trim() !== ''
+            ? hostel.image
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
           const isFavorited = favoritedIds.has(hostel.id)
-          
+
           const hostelUrl = `/hostel/${hostel.id}`
           return (
             <div
               key={hostel.id}
               className={styles.favoriteCard}
-              onClick={() => navigate(hostelUrl)}
-              onMouseEnter={() => handleMouseEnter(hostelUrl)}
-              onTouchStart={() => handleTouchStart(hostelUrl)}
+              onTouchStart={() => hasSubscription ? handleTouchStart(hostelUrl) : undefined}
+              onClick={(e) => {
+                if (!hasSubscription) {
+                  navigate('/subscribe')
+                } else {
+                  navigate(hostelUrl)
+                }
+              }}
             >
               {imageUrl && (
                 <div className={styles.favoriteImageContainer}>
@@ -160,7 +170,7 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
                 </div>
                 <span className={styles.favoritePrice}>GHS {hostel.price || 0}/sem</span>
               </div>
-              <button 
+              <button
                 className={styles.heartButton}
                 onClick={(e) => handleToggleFavorite(hostel.id, e)}
               >

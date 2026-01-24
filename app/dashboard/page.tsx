@@ -35,18 +35,17 @@ export default async function DashboardPage() {
     redirect('/auth/login?redirect=/dashboard')
   }
 
-  // Require active subscription
-  await requireSubscription()
+  // Check subscription status (non-blocking)
+  const { data: subscription } = await getActiveSubscription()
+  const hasSubscription = !!(subscription && subscription.status === 'active')
 
   // Load critical data in parallel
   const [
-    subscriptionResult,
     favoritesResult,
     unreadCountResult,
     recentlyViewedResult,
     featuredHostelsResult
   ] = await Promise.all([
-    getActiveSubscription().catch(() => ({ data: null, error: null })),
     getFavorites().catch(() => ({ data: null, error: null })),
     getUnreadCount().catch(() => ({ data: 0, error: null })),
     getRecentlyViewed(10).catch(() => ({ data: null, error: null })),
@@ -56,7 +55,7 @@ export default async function DashboardPage() {
     })
   ])
 
-  const subscription = subscriptionResult.data
+
   const favorites = favoritesResult.data || []
   const unreadNotifications = unreadCountResult.data || 0
   const recentlyViewed = recentlyViewedResult.data || []
@@ -93,8 +92,8 @@ export default async function DashboardPage() {
     <div className={styles.container}>
       <div className={styles.scrollContent}>
         {/* Header */}
-        <DashboardHeader 
-          userName={getUserName()} 
+        <DashboardHeader
+          userName={getUserName()}
           unreadNotifications={unreadNotifications}
           subscription={subscription}
         />
@@ -103,10 +102,10 @@ export default async function DashboardPage() {
         <QuickActions />
 
         {/* Featured Section */}
-        <FeaturedSection featuredHostels={formattedFeaturedHostels} />
+        <FeaturedSection featuredHostels={formattedFeaturedHostels} hasSubscription={hasSubscription} />
 
         {/* Favorites Section */}
-        <FavoritesSection favorites={formattedFavorites} />
+        <FavoritesSection favorites={formattedFavorites} hasSubscription={hasSubscription} />
 
         {/* Recommended Hostels - Load asynchronously with Suspense */}
         <Suspense fallback={<RecommendationsSkeleton />}>
@@ -115,7 +114,7 @@ export default async function DashboardPage() {
 
         {/* Recently Viewed */}
         {recentlyViewed.length > 0 && (
-          <RecentlyViewedSection recentlyViewed={recentlyViewed} />
+          <RecentlyViewedSection recentlyViewed={recentlyViewed} hasSubscription={hasSubscription} />
         )}
 
         <div style={{ height: '120px' }} />

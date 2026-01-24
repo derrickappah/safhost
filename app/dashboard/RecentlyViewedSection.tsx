@@ -17,9 +17,10 @@ interface RecentlyViewedHostel {
 
 interface RecentlyViewedSectionProps {
   recentlyViewed: RecentlyViewedHostel[]
+  hasSubscription: boolean
 }
 
-export default function RecentlyViewedSection({ recentlyViewed }: RecentlyViewedSectionProps) {
+export default function RecentlyViewedSection({ recentlyViewed, hasSubscription }: RecentlyViewedSectionProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
 
   if (recentlyViewed.length === 0) {
@@ -36,18 +37,23 @@ export default function RecentlyViewedSection({ recentlyViewed }: RecentlyViewed
       </div>
       <div className={styles.hostelList}>
         {recentlyViewed.map((hostel) => {
-          const mainImage = hostel.images && hostel.images.length > 0 
-            ? hostel.images[0] 
+          const mainImage = hostel.images && hostel.images.length > 0
+            ? hostel.images[0]
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
-          
+
           const hostelUrl = `/hostel/${hostel.id}`
           return (
             <button
               key={hostel.id}
               className={styles.recentCard}
-              onClick={() => navigate(hostelUrl)}
-              onMouseEnter={() => handleMouseEnter(hostelUrl)}
-              onTouchStart={() => handleTouchStart(hostelUrl)}
+              onTouchStart={() => hasSubscription ? handleTouchStart(hostelUrl) : undefined}
+              onClick={(e) => {
+                if (!hasSubscription) {
+                  navigate('/subscribe')
+                } else {
+                  navigate(hostelUrl)
+                }
+              }}
             >
               <div className={styles.recentImageContainer}>
                 {mainImage && (

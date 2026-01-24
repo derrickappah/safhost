@@ -110,8 +110,8 @@ export default function SelectSchoolPage() {
       // Store in localStorage as fallback
       localStorage.setItem('selectedSchool', selectedSchool)
 
-      console.log('[SelectSchool] Redirecting to /hostels')
-      router.replace('/hostels')
+      // Use window.location.href to force a full reload and bypass any client-side router cache/issues
+      window.location.href = '/hostels'
     }
   }
 

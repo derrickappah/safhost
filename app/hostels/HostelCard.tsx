@@ -99,6 +99,10 @@ export default function HostelCard({
             className={styles.saveButton}
             onClick={(e) => {
               e.stopPropagation()
+              if (!hasSubscription) {
+                navigate('/subscribe')
+                return
+              }
               onToggleFavorite(hostel.id, e)
             }}
           >

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/auth'
-import { requireSubscription } from '@/lib/access/guard'
 import { getFavorites } from '@/lib/actions/favorites'
+import { hasActiveSubscription } from '@/lib/actions/subscriptions'
 import FavoritesList from './FavoritesList'
 import styles from './page.module.css'
 
@@ -15,8 +15,8 @@ export default async function FavoritesPage() {
     redirect('/auth/login?redirect=/favorites')
   }
 
-  // Require active subscription
-  await requireSubscription()
+  // Check subscription status
+  const hasSubscription = await hasActiveSubscription()
 
   // Load favorites on the server
   const favoritesResult = await getFavorites().catch(() => ({ data: [], error: null }))
@@ -24,7 +24,7 @@ export default async function FavoritesPage() {
 
   return (
     <div className={styles.container}>
-      <FavoritesList initialFavorites={favorites} />
+      <FavoritesList initialFavorites={favorites} hasSubscription={hasSubscription} />
     </div>
   )
 }
