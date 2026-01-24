@@ -104,7 +104,7 @@ export default async function LandingPage() {
 
             {/* Trust Section */}
             <section className={styles.trustSection}>
-              <h2 className={styles.trustLabel}>Why SafHostel</h2>
+              <h2 className={styles.trustLabel}>Why SafHost</h2>
               <div className={styles.trustGrid}>
                 <div className={styles.trustItem}>
                   <div className={`${styles.trustIcon} ${styles.blueIcon}`}>
@@ -184,7 +184,7 @@ export default async function LandingPage() {
 
             {/* How it Works */}
             <section className={styles.howItWorks}>
-              <h2 className={styles.howItWorksTitle}>How SafHostel Works</h2>
+              <h2 className={styles.howItWorksTitle}>How SafHost Works</h2>
               <div className={styles.steps}>
                 <div className={styles.step}>
                   <div className={styles.stepHeader}>
@@ -238,7 +238,7 @@ export default async function LandingPage() {
                 <IoLogoInstagram size={24} />
               </a>
             </div>
-            <p className={styles.copyright}>© 2026 SafHostel Technologies. All rights reserved.</p>
+            <p className={styles.copyright}>© 2026 SafHost Technologies. All rights reserved.</p>
           </footer>
         </div>
 
