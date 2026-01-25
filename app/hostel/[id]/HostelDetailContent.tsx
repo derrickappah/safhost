@@ -16,6 +16,18 @@ import ContactModal from './ContactModal'
 import ReportModal from '@/components/ReportModal'
 import styles from './page.module.css'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import dynamic from 'next/dynamic'
+import Loader from '@/components/Loader'
+
+// Dynamically import MapView to avoid SSR issues
+const MapView = dynamic(() => import('@/components/MapView'), {
+  ssr: false,
+  loading: () => (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%', minHeight: '200px' }}>
+      <Loader />
+    </div>
+  ),
+})
 
 const amenityIcons: Record<string, any> = {
   "Wi-Fi": IoWifi,
