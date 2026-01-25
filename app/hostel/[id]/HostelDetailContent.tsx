@@ -571,13 +571,7 @@ export default function HostelDetailContent({
                 <div className={styles.openMapsOverlay}>
                   <button
                     className={styles.openMapsButton}
-                    onClick={() => {
-                      if (hostel.latitude && hostel.longitude) {
-                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hostel.latitude},${hostel.longitude}`, '_blank')
-                      } else {
-                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hostel.name + ' ' + hostel.address)}`, '_blank')
-                      }
-                    }}
+                    onClick={handleLocationClick}
                   >
                     Open in Maps
                   </button>
