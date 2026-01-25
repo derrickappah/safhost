@@ -45,31 +45,28 @@
   display: flex;
   justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   margin: 0 auto;
   width: fit-content;
   z-index: 5;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .indicator {
-  width: 8px !important;
-  height: 8px !important;
+  width: 6px !important;
+  height: 6px !important;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.4);
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0 !important;
   margin: 0 !important;
   flex-shrink: 0;
-  min-width: 4px !important;
-  min-height: 4px !important;
-  max-width: 12px !important;
-  max-height: 12px !important;
   box-sizing: border-box;
 }
 
@@ -80,17 +77,11 @@
 
 .indicatorActive {
   background-color: #fff;
-  width: 20px !important;
-  height: 8px !important;
-  border-radius: 12px;
+  width: 18px !important;
+  height: 6px !important;
+  border-radius: 10px;
   flex-shrink: 0;
-  min-width: 4px !important;
-  min-height: 4px !important;
-  max-width: 20px !important;
-  max-height: 16px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  box-sizing: border-box;
+  opacity: 1;
 }
 
 .headerOverlay {
@@ -107,22 +98,23 @@
 .backButton {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .backButton:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
+  background-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .headerActions {
@@ -133,22 +125,23 @@
 .actionButton {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .actionButton:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
+  background-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* Sticky Header Styles */
@@ -1926,22 +1919,24 @@
 }
 
 .openMapsButton {
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #0f172a;
   padding: 10px 20px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .openMapsButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  background-color: #f8fafc;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.85);
 }
 
 .openMapsButton:active {
