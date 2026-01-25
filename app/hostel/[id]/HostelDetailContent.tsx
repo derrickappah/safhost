@@ -561,16 +561,11 @@ export default function HostelDetailContent({
             <h2 className={styles.sectionTitle}>Location</h2>
             <div className={styles.locationContainer}>
               <div className={styles.mapPreview}>
-                {/* Visual Map Placeholder/Background */}
-                <div className={styles.mapBackground}>
-                  <div className={styles.mapOverlay}></div>
-                  <div className={styles.mapPin}>
-                    <div className={styles.pinCircle}>
-                      <IoLocation size={24} color="#fff" />
-                    </div>
-                    <div className={styles.pinPulse}></div>
-                  </div>
-                </div>
+                <MapView
+                  hostels={[hostel]}
+                  center={hostel.latitude && hostel.longitude ? { lat: hostel.latitude, lng: hostel.longitude } : undefined}
+                  zoom={15}
+                />
 
                 {/* Open in Maps Button */}
                 <div className={styles.openMapsOverlay}>
