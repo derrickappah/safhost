@@ -14,10 +14,10 @@ interface ImageCarouselProps {
   onShare: () => void
 }
 
-export default function ImageCarousel({ 
-  images, 
-  hostelName, 
-  isFavorited, 
+export default function ImageCarousel({
+  images,
+  hostelName,
+  isFavorited,
   onToggleFavorite,
   onShare
 }: ImageCarouselProps) {
@@ -39,7 +39,7 @@ export default function ImageCarousel({
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return
-    
+
     const distance = touchStart - touchEnd
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
@@ -50,14 +50,14 @@ export default function ImageCarousel({
     if (isRightSwipe && images.length > 0) {
       setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
     }
-    
+
     setTouchStart(null)
     setTouchEnd(null)
   }
 
   return (
     <div className={styles.imageContainer}>
-      <div 
+      <div
         className={styles.imageCarousel}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -83,10 +83,9 @@ export default function ImageCarousel({
       {images.length > 1 && (
         <div className={styles.imageIndicators}>
           {images.map((_, index) => (
-            <button
+            <div
               key={index}
               className={`${styles.indicator} ${currentImage === index ? styles.indicatorActive : ''}`}
-              onClick={() => setCurrentImage(index)}
             />
           ))}
         </div>
@@ -102,15 +101,15 @@ export default function ImageCarousel({
           <IoArrowBack size={22} color="#ffffff" />
         </button>
         <div className={styles.headerActions}>
-          <button 
-            className={styles.actionButton} 
+          <button
+            className={styles.actionButton}
             onClick={onShare}
             aria-label="Share hostel"
           >
             <IoShareOutline size={20} color="#ffffff" />
           </button>
-          <button 
-            className={styles.actionButton} 
+          <button
+            className={styles.actionButton}
             onClick={onToggleFavorite}
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
