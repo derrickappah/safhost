@@ -38,7 +38,8 @@
 
 .imageIndicators {
   position: absolute;
-  bottom: 50px; /* Moved up a tiny bit from 12px */
+  bottom: 50px;
+  /* Moved up a tiny bit from 12px */
   left: 0;
   right: 0;
   display: flex;
@@ -85,7 +86,7 @@
   flex-shrink: 0;
   min-width: 4px !important;
   min-height: 4px !important;
-  max-width:20px !important;
+  max-width: 20px !important;
   max-height: 16px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -187,10 +188,12 @@
     transform: translateY(-100%);
     opacity: 0;
   }
+
   60% {
     transform: translateY(-5%);
     opacity: 0.8;
   }
+
   100% {
     transform: translateY(0);
     opacity: 1;
@@ -253,6 +256,7 @@
 .stickyActionButton:active {
   transform: translateY(0);
 }
+
 .content {
   padding: var(--container-padding-md);
   margin-top: -32px;
@@ -562,7 +566,8 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border-radius: 0; /* Sharp edges to match the app style */
+  border-radius: 0;
+  /* Sharp edges to match the app style */
   font-weight: 800;
   font-size: 13px;
   text-transform: uppercase;
@@ -621,7 +626,8 @@
   padding: 18px;
   background-color: #fff7ed;
   border: 1px solid #fdba74;
-  border-radius: 0; /* Sharp edges to match architectural style */
+  border-radius: 0;
+  /* Sharp edges to match architectural style */
   color: #c2410c;
   font-weight: 800;
   font-size: 13px;
@@ -701,7 +707,8 @@
 .amenityIcon {
   width: 36px;
   height: 36px;
-  border-radius: 0; /* Sharp edges */
+  border-radius: 0;
+  /* Sharp edges */
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   display: flex;
   align-items: center;
@@ -730,7 +737,8 @@
   align-items: center;
   background: #ffffff;
   padding: var(--padding-lg);
-  border-radius: 0; /* Sharp edges */
+  border-radius: 0;
+  /* Sharp edges */
   margin-bottom: var(--spacing-md);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(226, 232, 240, 0.6);
@@ -776,7 +784,8 @@
   letter-spacing: -0.01em;
   background: #ffffff;
   padding: 24px;
-  border-radius: 0; /* Sharp edges */
+  border-radius: 0;
+  /* Sharp edges */
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   word-wrap: break-word;
@@ -1008,7 +1017,8 @@
 .contactButton {
   width: 48px;
   height: 48px;
-  border-radius: 50%; /* Round action button */
+  border-radius: 50%;
+  /* Round action button */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1041,7 +1051,8 @@
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #fff;
   border: none;
-  border-radius: 50%; /* Round icon button */
+  border-radius: 50%;
+  /* Round icon button */
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
@@ -1063,7 +1074,8 @@
   background-color: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 0; /* Sharp edges */
+  border-radius: 0;
+  /* Sharp edges */
   font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
@@ -1300,6 +1312,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1321,6 +1334,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -1827,6 +1841,7 @@
     max-height: 85vh;
   }
 }
+
 .lockedContactCard {
   background-color: #f8fafc;
   border-radius: 16px;
@@ -1883,4 +1898,122 @@
 .subscribeLinkButton:hover {
   background-color: #1d4ed8;
   transform: translateY(-1px);
+}
+
+/* Location Section */
+.locationContainer {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.mapPreview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 250px;
+  background-color: #f1f5f9;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.mapBackground {
+  width: 100%;
+  height: 100%;
+  background-image: url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/0,0,1,0/600x400?access_token=none');
+  /* Placeholder pattern or use a real static map if key available */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  /* Using a subtle pattern for the "map" feel if no API key is used for static maps */
+  background-color: #e2e8f0;
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.mapOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
+}
+
+.mapPin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+.pinCircle {
+  width: 48px;
+  height: 48px;
+  background-color: #2563eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  border: 3px solid #ffffff;
+  z-index: 10;
+  position: relative;
+}
+
+.pinPulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-color: rgba(37, 99, 235, 0.3);
+  border-radius: 50%;
+  z-index: 1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+.openMapsOverlay {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+.openMapsButton {
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.openMapsButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  background-color: #f8fafc;
+}
+
+.openMapsButton:active {
+  transform: translateY(0);
 }

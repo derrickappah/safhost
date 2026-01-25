@@ -544,6 +544,41 @@ export default function HostelDetailContent({
             </div>
           </section>
 
+          {/* Location Section */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Location</h2>
+            <div className={styles.locationContainer}>
+              <div className={styles.mapPreview}>
+                {/* Visual Map Placeholder/Background */}
+                <div className={styles.mapBackground}>
+                  <div className={styles.mapOverlay}></div>
+                  <div className={styles.mapPin}>
+                    <div className={styles.pinCircle}>
+                      <IoLocation size={24} color="#fff" />
+                    </div>
+                    <div className={styles.pinPulse}></div>
+                  </div>
+                </div>
+
+                {/* Open in Maps Button */}
+                <div className={styles.openMapsOverlay}>
+                  <button
+                    className={styles.openMapsButton}
+                    onClick={() => {
+                      if (hostel.latitude && hostel.longitude) {
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hostel.latitude},${hostel.longitude}`, '_blank')
+                      } else {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hostel.name + ' ' + hostel.address)}`, '_blank')
+                      }
+                    }}
+                  >
+                    Open in Maps
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Reviews */}
           <ReviewsSection
             initialReviews={initialReviews}
