@@ -242,7 +242,18 @@ export default async function LandingPage() {
           </footer>
         </div>
 
-        {/* Sticky Bottom Bar removed */}
+        {/* Sticky Bottom Bar */}
+        <div className={styles.bottomBar}>
+          <div className={styles.bottomBarContent}>
+            <div>
+              <p className={styles.bottomBarTitle}>Ready to find a home?</p>
+              <p className={styles.bottomBarSubtitle}>Join 10k+ students today</p>
+            </div>
+            <Link href="/auth/signup" className={styles.bottomBarCta}>
+              Create Account
+            </Link>
+          </div>
+        </div>
       </div>
     </LandingPageClient>
   )
