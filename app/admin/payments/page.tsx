@@ -5,8 +5,8 @@ import PaymentsList from './PaymentsList'
 import AdminPageHeader from '../AdminPageHeader'
 import styles from './page.module.css'
 
-// Revalidate every 60 seconds
-export const revalidate = 60
+// Admin pages must be dynamic to ensure session isolation
+export const dynamic = "force-dynamic"
 
 interface PageProps {
   searchParams: Promise<{

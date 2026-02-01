@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/auth'
 import styles from './page.module.css'
 
-// Revalidate every 60 seconds for fresh data
-export const revalidate = 60
+// Advertisement page must be dynamic to ensure authentication checks are performed per-request
+export const dynamic = 'force-dynamic'
 
 export default async function AdvertisementPage() {
   // Check authentication

@@ -3,8 +3,8 @@ import { isAdmin } from '@/lib/auth/middleware'
 import { redirect } from 'next/navigation'
 import DashboardContent from './DashboardContent'
 
-// Revalidate every 60 seconds for fresh analytics
-export const revalidate = 60
+// Admin pages must be dynamic to ensure session isolation
+export const dynamic = "force-dynamic"
 
 export default async function AdminDashboard() {
   try {

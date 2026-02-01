@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import styles from './page.module.css'
 import { getUser } from '@/lib/auth'
 import { requireSubscription } from '@/lib/access/guard'
@@ -16,17 +16,17 @@ import RecommendationsLoader from './RecommendationsLoader'
 import RecommendationsSkeleton from './RecommendationsSkeleton'
 
 // Dynamically import non-critical sections to reduce initial bundle size
-const RecentlyViewedSection = dynamic(() => import('./RecentlyViewedSection'), {
+const RecentlyViewedSection = nextDynamic(() => import('./RecentlyViewedSection'), {
   ssr: true
 })
 
 // Quick Actions component (lightweight, can be in bundle)
-const QuickActions = dynamic(() => import('./QuickActions'), {
+const QuickActions = nextDynamic(() => import('./QuickActions'), {
   ssr: true
 })
 
-// Revalidate every 120 seconds (2 minutes) for fresh data - optimized for performance
-export const revalidate = 120
+// Dashboard must be dynamic to prevent cross-user session leakage
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   // Check authentication

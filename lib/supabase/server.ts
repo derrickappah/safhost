@@ -38,38 +38,19 @@ export async function createClient() {
 }
 
 /**
- * Singleton instance of service role client
- * Reused across all requests in the same serverless function instance
- * This prevents connection pool exhaustion when multiple users connect simultaneously
- */
-let serviceRoleClientInstance: SupabaseClient | null = null
-
-/**
  * Create a Supabase client with service role key (bypasses RLS)
  * Use only in server-side API routes that need to bypass RLS
- * 
- * This function implements a singleton pattern to reuse the same client instance
- * across multiple calls, preventing connection pool exhaustion.
  */
 export function createServiceRoleClient(): SupabaseClient {
-  // Return cached instance if it exists
-  if (serviceRoleClientInstance) {
-    return serviceRoleClientInstance
-  }
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  
+
   if (!supabaseServiceKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set')
   }
 
-  // Use regular URL (pooler can cause DNS issues in some environments)
-  // The pooler URL format varies and may not be available in all environments
-  const connectionUrl = supabaseUrl
-  
-  // Create and cache the client instance
-  serviceRoleClientInstance = createSupabaseClient(connectionUrl, supabaseServiceKey, {
+  // Always create a new instance to prevent cross-request pollution
+  return createSupabaseClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -83,6 +64,4 @@ export function createServiceRoleClient(): SupabaseClient {
       },
     },
   })
-
-  return serviceRoleClientInstance
 }

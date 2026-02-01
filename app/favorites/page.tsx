@@ -5,8 +5,8 @@ import { hasActiveSubscription } from '@/lib/actions/subscriptions'
 import FavoritesList from './FavoritesList'
 import styles from './page.module.css'
 
-// Revalidate every 60 seconds for fresh data
-export const revalidate = 60
+// Favorites page must be dynamic to ensure session isolation
+export const dynamic = 'force-dynamic'
 
 export default async function FavoritesPage() {
   // Check authentication

@@ -2,6 +2,10 @@
  * Vercel KV cache utility functions
  * Provides distributed caching across serverless function instances
  * Falls back to in-memory cache if Vercel KV is not configured
+ * 
+ * IMPORTANT: To prevent cross-user session leakage, ALWAYS include user-specific 
+ * identifiers (like userId or subscriptionId) in cache keys for sensitive data.
+ * Example key: `user:profile:${userId}`
  */
 
 let kv: any = null
@@ -47,13 +51,13 @@ export async function getCached<T = any>(key: string): Promise<T | null> {
       if (!entry) {
         return null
       }
-      
+
       // Check if expired
       if (Date.now() > entry.expires) {
         fallbackCache.delete(key)
         return null
       }
-      
+
       return entry.value as T
     }
   } catch (error) {
@@ -89,15 +93,15 @@ export async function getCachedWithStale<T = any>(
       if (!entry) {
         return { value: null, isStale: false }
       }
-      
+
       const now = Date.now()
       const isStale = now > entry.expires && now <= entry.staleExpires
       const isValid = now <= entry.expires
-      
+
       if (isValid || isStale) {
         return { value: entry.value as T, isStale }
       }
-      
+
       // Expired beyond stale period, remove it
       fallbackCache.delete(key)
       return { value: null, isStale: false }
@@ -140,7 +144,7 @@ export async function setCached(
       const expires = now + ttlSeconds * 1000
       const staleExpires = now + (staleTtlSeconds || ttlSeconds) * 1000
       fallbackCache.set(key, { value, expires, staleExpires, tags })
-      
+
       // Update tag index
       if (tags) {
         tags.forEach(tag => {
@@ -150,7 +154,7 @@ export async function setCached(
           tagIndex.get(tag)!.add(key)
         })
       }
-      
+
       // Clean up expired entries periodically
       if (fallbackCache.size > 1000) {
         for (const [k, entry] of fallbackCache.entries()) {

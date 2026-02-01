@@ -8,8 +8,8 @@ import { getUser } from '@/lib/auth'
 import HostelDetailContent from './HostelDetailContent'
 import styles from './page.module.css'
 
-// Enable ISR with on-demand revalidation
-export const revalidate = 600 // Revalidate every 10 minutes - optimized for performance
+// Hostel details must be dynamic because it renders user-specific state (favorited status, subscription access)
+export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ id: string }>

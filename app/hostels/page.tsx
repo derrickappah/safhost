@@ -4,9 +4,8 @@ import { hasActiveSubscription } from '@/lib/actions/subscriptions'
 import { getProfile } from '@/lib/actions/profile'
 import HostelsPageClient from './HostelsPageClient'
 
-// Enable ISR - revalidate every 10 minutes (600 seconds)
-// Optimized for better performance while maintaining reasonable freshness
-export const revalidate = 600
+// Hostels page must be dynamic because it contains user-specific data (favorites, profile, subscription)
+export const dynamic = 'force-dynamic'
 
 interface PageProps {
   searchParams: Promise<{

@@ -3,8 +3,8 @@ import { getAllHostels } from '@/lib/admin/hostels'
 import HostelsList from './HostelsList'
 import styles from './page.module.css'
 
-// Revalidate every 60 seconds
-export const revalidate = 60
+// Admin pages must be dynamic to ensure session isolation
+export const dynamic = "force-dynamic"
 
 export default async function AdminHostelsPage() {
   const { data: hostels } = await getAllHostels(100)

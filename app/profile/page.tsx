@@ -9,8 +9,8 @@ import { getPaymentHistory, getProfile } from '@/lib/actions/profile'
 import { getSchools } from '@/lib/actions/schools'
 import ProfilePageClient from './ProfilePageClient'
 
-// Revalidate every 60 seconds for fresh data
-export const revalidate = 60
+// Profile page must be dynamic to ensure session isolation
+export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage() {
   // Check authentication
@@ -46,7 +46,7 @@ export default async function ProfilePage() {
   const schools = schoolsResult.data || []
   const profile = profileResult.data
   const selectedSchool = profile?.school_id || null
-  
+
   // Check if user is admin
   const isUserAdmin = await isAdmin()
 

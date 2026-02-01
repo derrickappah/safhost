@@ -242,7 +242,10 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
  */
 async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Promise<void> {
   try {
-    const supabase = await createClient()
+    // Use a client that doesn't depend on request cookies for background refreshes
+    // This prevents errors in Next.js 15 when refreshing stale data outside of the main request context
+    const { createClient: createPublicClient } = await import('../supabase/client')
+    const supabase = createPublicClient()
 
     // Build query (same logic as getHostelsImpl)
     let query = supabase
@@ -340,13 +343,13 @@ export const getHostels = cache(getHostelsImpl)
  * Get cached hostels with time-based revalidation (60 seconds)
  * Use this for public pages that don't need real-time data
  */
-export const getCachedHostels = unstable_cache(
-  async (filters: HostelFilters = {}) => {
-    return getHostels(filters)
-  },
-  ['hostels-list'],
-  { revalidate: 60 }
-)
+export async function getCachedHostels(filters: HostelFilters = {}) {
+  return unstable_cache(
+    async () => getHostels(filters),
+    ['hostels-list', JSON.stringify(filters)],
+    { revalidate: 60 }
+  )()
+}
 
 /**
  * Get featured hostels

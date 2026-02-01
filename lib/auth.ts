@@ -8,35 +8,20 @@ export async function getSession() {
 
 export async function getUser() {
   const startTime = Date.now()
-  
-  // Check cache first to avoid redundant API calls
-  const { getCachedUser, setCachedUser } = await import('./cache/user')
-  const cacheStart = Date.now()
-  const cachedUser = await getCachedUser()
-  const cacheTime = Date.now() - cacheStart
-  
-  if (cachedUser !== null) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[getUser] Cache hit in ${cacheTime}ms`)
-    }
-    return cachedUser
-  }
-  
-  // Cache miss - fetch from Supabase
+
+  // Fetch fresh user from Supabase per-request
+  // This ensures session isolation and prevents identity swapping
   const apiStart = Date.now()
   const { createClient } = await import('./supabase/server')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const apiTime = Date.now() - apiStart
-  
-  // Cache the result (even if null, to avoid repeated calls)
-  await setCachedUser(user)
-  
+
   const totalTime = Date.now() - startTime
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[getUser] Cache miss - API call took ${apiTime}ms, total ${totalTime}ms`)
+    console.log(`[getUser] API call took ${apiTime}ms, total ${totalTime}ms`)
   }
-  
+
   return user
 }
 

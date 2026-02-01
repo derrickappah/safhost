@@ -11,24 +11,6 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, s-maxage=60, stale-while-revalidate=300',
-          },
-        ],
-      },
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, s-maxage=30, stale-while-revalidate=60',
-          },
-        ],
-      },
-      {
         source: '/_next/static/:path*',
         headers: [
           {
