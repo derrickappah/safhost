@@ -12,10 +12,9 @@ import { AuthProvider } from '@/components/AuthProvider'
 
 // Constants
 const PREVIEW_HOSTELS_COUNT = 3
-const LANDING_PAGE_REVALIDATE_SECONDS = 3600
 
 // Full static generation - revalidate every hour
-export const revalidate = LANDING_PAGE_REVALIDATE_SECONDS
+export const revalidate = 3600
 
 // Force static generation
 export const dynamic = 'force-static'
