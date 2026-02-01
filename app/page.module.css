@@ -241,6 +241,35 @@
     left: 20px;
     bottom: 20px;
   }
+
+  .bottomBarCta {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+/* Error and Empty States */
+.errorState {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.emptyMessage {
+  color: #64748b;
+  font-size: 16px;
+  margin: 0;
 }
 
 
@@ -417,6 +446,13 @@
   gap: 2px;
   background: none;
   border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seeAllButton:hover {
+  transform: translateX(4px);
 }
 
 .hostelGrid {
@@ -427,6 +463,14 @@
 
 .hostelCard {
   width: 100%;
+  text-decoration: none;
+  display: block;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.hostelCard:hover {
+  transform: translateY(-4px);
 }
 
 .cardImageContainer {
