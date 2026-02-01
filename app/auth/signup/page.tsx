@@ -14,7 +14,7 @@ function SignUpPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
-  
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -26,46 +26,37 @@ function SignUpPageContent() {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value
     setEmail(newEmail)
-    
-    // Real-time email validation
-    if (newEmail && !isValidEmail(newEmail)) {
-      setEmailError(getEmailError(newEmail) || 'Invalid email format')
-    } else {
-      setEmailError('')
-    }
-    
-    // Clear general error when user starts typing
-    if (error) {
-      setError('')
-    }
+
+    // Clear errors when user starts typing
+    if (emailError) setEmailError('')
+    if (error) setError('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setEmailError('')
-    
+
     // Validation
     if (!name || !email || !password) {
       setError('Please fill in all required fields')
       return
     }
-    
+
     // Validate email format
     if (!isValidEmail(email)) {
       const emailErr = getEmailError(email)
       setEmailError(emailErr || 'Please enter a valid email address')
-      setError(emailErr || 'Please enter a valid email address')
       return
     }
-    
+
     if (password.length < 6) {
       setError('Password must be at least 6 characters')
       return
     }
-    
+
     setIsLoading(true)
-    
+
     try {
       const { data, error: signUpError } = await signUp({
         email,
@@ -73,16 +64,17 @@ function SignUpPageContent() {
         phone: phone || undefined,
         name
       })
-      
+
       if (signUpError) {
         setError(signUpError)
         setIsLoading(false)
         return
       }
-      
+
       if (data?.user) {
         // New users should always select a school first
         router.push('/select-school')
+        // Keep loading true while redirecting
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account')

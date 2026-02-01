@@ -217,3 +217,15 @@
 .continueButtonText {
   color: #fff;
 }
+
+.continueButtonDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loaderWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}

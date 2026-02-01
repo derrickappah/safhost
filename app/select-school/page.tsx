@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { IoSchool, IoSearch, IoCloseCircle, IoLocation, IoCheckmark, IoNavigate } from 'react-icons/io5'
 import styles from './page.module.css'
@@ -39,11 +39,11 @@ export default function SelectSchoolPage() {
     loadSchools()
   }, [])
 
-  const filteredSchools = schools.filter(
+  const filteredSchools = useMemo(() => schools.filter(
     (school) =>
       school.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       school.location.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  ), [schools, searchQuery])
 
   const handleSelectSchool = (schoolId: string) => {
     setSelectedSchool(schoolId)
@@ -57,7 +57,6 @@ export default function SelectSchoolPage() {
       const location = await getCurrentLocation()
       if (!location) {
         alert('Unable to detect your location. Please enable location services and try again.')
-        setDetectingLocation(false)
         return
       }
 
@@ -96,43 +95,32 @@ export default function SelectSchoolPage() {
 
   const handleContinue = async () => {
     if (!selectedSchool) return
+    setIsRedirecting(true)
 
     try {
-      setIsRedirecting(true)
-      console.log('[SelectSchool] Starting continue process...')
-
       // Store in localStorage immediately as fallback
       localStorage.setItem('selectedSchool', selectedSchool)
 
-      // Check if user is authenticated (wrap in try-catch to prevent hanging)
-      try {
-        console.log('[SelectSchool] Checking auth...')
-        const { data: userData } = await getCurrentUser()
+      // Check if user is authenticated
+      const { data: userData } = await getCurrentUser()
 
-        if (userData?.user) {
-          console.log('[SelectSchool] User authenticated, updating profile...')
-          // Save school to user profile
-          const { error } = await updateProfile(undefined, undefined, undefined, selectedSchool)
-          if (error) {
-            console.error('[SelectSchool] Error saving school:', error)
-            // Still continue even if save fails
-          } else {
-            console.log('[SelectSchool] Profile updated successfully')
-          }
-        } else {
-          console.log('[SelectSchool] User not authenticated')
+      if (userData?.user) {
+        // Save school to user profile
+        const { error } = await updateProfile(undefined, undefined, undefined, selectedSchool)
+
+        if (error) {
+          // If update fails, show error and stop redirect to prevent loop
+          alert('Failed to save your school selection. Please try again.')
+          setIsRedirecting(false)
+          return
         }
-      } catch (err) {
-        console.error('[SelectSchool] Error updating profile/checking auth:', err)
-        // Continue anyway
       }
 
-      console.log('[SelectSchool] Redirecting to /hostels...')
-      // Use window.location.href to force a full reload
-      window.location.href = '/hostels'
+      // Smooth SPA navigation
+      router.push('/hostels')
     } catch (error) {
-      console.error('[SelectSchool] Critical error in handleContinue:', error)
-      setIsRedirecting(false) // Reset state on error so user can try again
+      console.error('Critical error in handleContinue:', error)
+      setIsRedirecting(false)
       alert('Something went wrong. Please try again.')
     }
   }
@@ -140,7 +128,7 @@ export default function SelectSchoolPage() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className={styles.loaderWrapper}>
           <Loader />
         </div>
       </div>
@@ -236,10 +224,9 @@ export default function SelectSchoolPage() {
       {selectedSchool && (
         <div className={styles.bottomCTA}>
           <button
-            className={styles.continueButton}
+            className={`${styles.continueButton} ${isRedirecting ? styles.continueButtonDisabled : ''}`}
             onClick={handleContinue}
             disabled={isRedirecting}
-            style={{ opacity: isRedirecting ? 0.7 : 1, cursor: isRedirecting ? 'not-allowed' : 'pointer' }}
           >
             <span className={styles.continueButtonText}>
               {isRedirecting ? 'Continuing...' : 'Continue'}

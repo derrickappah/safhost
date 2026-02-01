@@ -14,7 +14,7 @@ function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
-  
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -24,65 +24,70 @@ function LoginPageContent() {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value
     setEmail(newEmail)
-    
-    // Real-time email validation
-    if (newEmail && !isValidEmail(newEmail)) {
-      setEmailError(getEmailError(newEmail) || 'Invalid email format')
-    } else {
-      setEmailError('')
-    }
-    
-    // Clear general error when user starts typing
-    if (error) {
-      setError('')
-    }
+
+    // Clear errors when user starts typing
+    if (emailError) setEmailError('')
+    if (error) setError('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setEmailError('')
-    
+
     // Validation
     if (!email || !password) {
       setError('Please fill in all fields')
       return
     }
-    
+
     // Validate email format
     if (!isValidEmail(email)) {
       const emailErr = getEmailError(email)
       setEmailError(emailErr || 'Please enter a valid email address')
-      setError(emailErr || 'Please enter a valid email address')
       return
     }
-    
+
     setIsLoading(true)
-    
+
     try {
       const { data, error: signInError } = await signIn({
         email,
         password
       })
-      
+
       if (signInError) {
         setError(signInError)
         setIsLoading(false)
         return
       }
-      
+
       if (data?.user) {
         // Check if user has selected a school
-        const { data: profile } = await getProfile()
-        
+        const { data: profile, error: profileError } = await getProfile()
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError)
+          // Determine if we should block or proceed with defaults. 
+          // Safest is to let them in but maybe show a toast or fallback?
+          // Since the issue was about redirection logic, let's play safe:
+          // If we can't get profile, we can't verify school logic.
+          // We can fallback to dashboard or select-school. 
+          // Let's assume safely that if profile fetch fails, we might need setup.
+          // OR, since this is a critical flow, we could just redirect to dashboard
+          // and let the dashboard handle missing profile data.
+          // For now, let's NOT block login, but we should handle the 'undefined' school_id check.
+        }
+
         // If user doesn't have a school_id, redirect to select school
         if (!profile?.school_id) {
           router.push('/select-school')
           return
         }
-        
+
         // Redirect to the intended page or dashboard
         router.push(redirect)
+        // Keep loading true while redirecting
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in')
