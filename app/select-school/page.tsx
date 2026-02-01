@@ -2,21 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { IoSchool, IoSearch, IoCloseCircle, IoLocation, IoCheckmark, IoNavigate } from 'react-icons/io5'
+import { IoSchool, IoSearch, IoCloseCircle, IoLocation, IoCheckmark, IoNavigate, IoWarning } from 'react-icons/io5'
 import styles from './page.module.css'
-import { getSchools } from '@/lib/actions/schools'
+import { getSchools, type School } from '@/lib/actions/schools'
 import { getCurrentLocation, calculateDistance } from '@/lib/location/detect'
 import { updateProfile } from '@/lib/actions/profile'
 import { getCurrentUser } from '@/lib/auth/client'
 import Loader from '@/components/Loader'
 
-interface School {
-  id: string
-  name: string
-  location: string
-  latitude?: number | null
-  longitude?: number | null
-}
+const STORAGE_KEY_SELECTED_SCHOOL = 'selectedSchool'
 
 export default function SelectSchoolPage() {
   const router = useRouter()
@@ -24,17 +18,32 @@ export default function SelectSchoolPage() {
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null)
   const [schools, setSchools] = useState<School[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [detectingLocation, setDetectingLocation] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [nearestSchool, setNearestSchool] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadSchools() {
-      const { data, error } = await getSchools()
-      if (data) {
-        setSchools(data)
+      try {
+        setLoading(true)
+        setError(null)
+        const { data, error: apiError } = await getSchools()
+
+        if (apiError) {
+          throw new Error(apiError)
+        }
+
+        if (data) {
+          setSchools(data)
+        }
+      } catch (err) {
+        console.error('Failed to load schools:', err)
+        setError('Unable to load schools. Please check your connection and try again.')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     loadSchools()
   }, [])
@@ -47,16 +56,18 @@ export default function SelectSchoolPage() {
 
   const handleSelectSchool = (schoolId: string) => {
     setSelectedSchool(schoolId)
+    setActionError(null)
     // Store selected school in localStorage
-    localStorage.setItem('selectedSchool', schoolId)
+    localStorage.setItem(STORAGE_KEY_SELECTED_SCHOOL, schoolId)
   }
 
   const handleUseLocation = async () => {
     setDetectingLocation(true)
+    setActionError(null)
     try {
       const location = await getCurrentLocation()
       if (!location) {
-        alert('Unable to detect your location. Please enable location services and try again.')
+        setActionError('Unable to detect your location. Please enable location services and try again.')
         return
       }
 
@@ -81,13 +92,13 @@ export default function SelectSchoolPage() {
       if (nearest) {
         setSelectedSchool(nearest.school.id)
         setNearestSchool(nearest.school.id)
-        localStorage.setItem('selectedSchool', nearest.school.id)
+        localStorage.setItem(STORAGE_KEY_SELECTED_SCHOOL, nearest.school.id)
       } else {
-        alert('No schools found with location data. Please select a school manually.')
+        setActionError('No schools found with location data. Please select a school manually.')
       }
     } catch (error) {
       console.error('Location error:', error)
-      alert('Failed to detect location. Please select a school manually.')
+      setActionError('Failed to detect location. Please select a school manually.')
     } finally {
       setDetectingLocation(false)
     }
@@ -96,10 +107,11 @@ export default function SelectSchoolPage() {
   const handleContinue = async () => {
     if (!selectedSchool) return
     setIsRedirecting(true)
+    setActionError(null)
 
     try {
       // Store in localStorage immediately as fallback
-      localStorage.setItem('selectedSchool', selectedSchool)
+      localStorage.setItem(STORAGE_KEY_SELECTED_SCHOOL, selectedSchool)
 
       // Check if user is authenticated
       const { data: userData } = await getCurrentUser()
@@ -110,7 +122,7 @@ export default function SelectSchoolPage() {
 
         if (error) {
           // If update fails, show error and stop redirect to prevent loop
-          alert('Failed to save your school selection. Please try again.')
+          setActionError('Failed to save your school selection. Please try again.')
           setIsRedirecting(false)
           return
         }
@@ -121,7 +133,7 @@ export default function SelectSchoolPage() {
     } catch (error) {
       console.error('Critical error in handleContinue:', error)
       setIsRedirecting(false)
-      alert('Something went wrong. Please try again.')
+      setActionError('Something went wrong. Please try again.')
     }
   }
 
@@ -178,9 +190,36 @@ export default function SelectSchoolPage() {
         </button>
       </div>
 
+      {/* Action Error Message */}
+      {actionError && (
+        <div className={styles.errorContainer}>
+          <IoWarning size={20} color="#dc2626" />
+          <span className={styles.errorMessage}>{actionError}</span>
+          <button
+            className={styles.retryButton}
+            onClick={() => setActionError(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* School List */}
       <div className={styles.listContainer}>
-        {filteredSchools.length === 0 ? (
+        {error ? (
+          <div className={styles.errorContainer} style={{ margin: 0 }}>
+            <IoWarning size={24} color="#dc2626" />
+            <div className={styles.errorMessage}>
+              {error}
+            </div>
+            <button
+              className={styles.retryButton}
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : filteredSchools.length === 0 ? (
           <div className={styles.emptyState}>
             <IoSearch size={48} color="#cbd5e1" />
             <h2 className={styles.emptyTitle}>No schools found</h2>

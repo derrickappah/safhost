@@ -23,13 +23,13 @@ export default function HostelsList({
   onToggleSelection,
   hasSubscription
 }: HostelsListProps) {
-  const [hostels, setHostels] = useState(initialHostels)
   const [favoritedHostels, setFavoritedHostels] = useState<Set<string>>(initialFavorited || new Set())
 
-  // Update hostels and favorited when props change (e.g., when filters/sort change)
   useEffect(() => {
-    setHostels(initialHostels)
-  }, [initialHostels])
+    if (initialFavorited) {
+      setFavoritedHostels(initialFavorited)
+    }
+  }, [initialFavorited])
 
   useEffect(() => {
     if (initialFavorited) {
@@ -40,77 +40,66 @@ export default function HostelsList({
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     const isFav = favoritedHostels.has(id)
-    const previousState = favoritedHostels.has(id)
 
     // Optimistic update
-    if (isFav) {
-      setFavoritedHostels(prev => {
-        const next = new Set(prev)
+    setFavoritedHostels(prev => {
+      const next = new Set(prev)
+      if (isFav) {
         next.delete(id)
-        return next
-      })
-    } else {
-      setFavoritedHostels(prev => new Set(prev).add(id))
-    }
+      } else {
+        next.add(id)
+      }
+      return next
+    })
 
     // API call
     try {
       if (isFav) {
         const { error } = await removeFavorite(id)
-        if (error) {
-          // Rollback
-          setFavoritedHostels(prev => {
-            const next = new Set(prev)
-            if (previousState) next.add(id)
-            else next.delete(id)
-            return next
-          })
-          console.error('Failed to remove favorite:', error)
-          alert('Failed to remove from favorites: ' + error)
-        }
+        if (error) throw new Error(error)
       } else {
         const { error } = await addFavorite(id)
-        if (error) {
-          // Rollback
-          setFavoritedHostels(prev => {
-            const next = new Set(prev)
-            if (previousState) next.add(id)
-            else next.delete(id)
-            return next
-          })
-          console.error('Failed to add favorite:', error)
-          if (error === 'Authentication required') {
-            alert('Please log in to save favorites')
-          } else if (error === 'Active subscription required') {
-            alert('An active subscription is required to save favorites')
-          } else {
-            alert('Failed to add to favorites: ' + error)
-          }
-        }
+        if (error) throw new Error(error)
       }
     } catch (error) {
-      // Rollback on unexpected errors
+      // Rollback on error
       setFavoritedHostels(prev => {
         const next = new Set(prev)
-        if (previousState) next.add(id)
-        else next.delete(id)
+        if (isFav) {
+          next.add(id) // It was fav, we tried to remove, so add back
+        } else {
+          next.delete(id) // It wasn't fav, we tried to add, so remove
+        }
         return next
       })
-      alert('An unexpected error occurred')
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('Failed to update favorite:', errorMessage)
+
+      if (errorMessage === 'Authentication required') {
+        alert('Please log in to save favorites')
+      } else if (errorMessage === 'Active subscription required') {
+        alert('An active subscription is required to save favorites')
+      } else {
+        alert('Failed to update favorite: ' + errorMessage)
+      }
     }
   }
 
-  if (hostels.length === 0) {
+  if (initialHostels.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p>No hostels found. Try adjusting your filters.</p>
+      <div className={styles.emptyState}>
+        <h2 className={styles.emptyTitle}>No hostels found</h2>
+        <p className={styles.emptySubtitle}>
+          Try adjusting your filters to see more results
+        </p>
       </div>
     )
   }
 
   return (
     <div className={styles.listContainer}>
-      {hostels.map((hostel) => (
+      {initialHostels.map((hostel) => (
         <HostelCard
           key={hostel.id}
           hostel={hostel}
