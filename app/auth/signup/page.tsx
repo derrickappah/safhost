@@ -38,7 +38,7 @@ function SignUpPageContent() {
     setEmailError('')
 
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       setError('Please fill in all required fields')
       return
     }
@@ -61,7 +61,7 @@ function SignUpPageContent() {
       const { data, error: signUpError } = await signUp({
         email,
         password,
-        phone: phone || undefined,
+        phone,
         name
       })
 
@@ -147,10 +147,11 @@ function SignUpPageContent() {
             />
             <input
               type="tel"
-              placeholder="Phone number (optional)"
+              placeholder="Phone number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className={styles.input}
+              required
             />
           </div>
 
