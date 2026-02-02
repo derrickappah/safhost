@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { IoCloseCircle } from 'react-icons/io5'
 import { updateProfile, getProfile } from '@/lib/actions/profile'
-import { getCurrentUser } from '@/lib/auth/client'
 import styles from './page.module.css'
 
 interface EditProfileModalProps {
@@ -13,7 +12,7 @@ interface EditProfileModalProps {
   initialEmail: string
   profile: any
   selectedSchool: string | null
-  onUpdate: () => void
+  onUpdate: (updatedProfile?: any) => void
 }
 
 export default function EditProfileModal({
@@ -28,6 +27,7 @@ export default function EditProfileModal({
   const [editName, setEditName] = useState(initialName)
   const [editEmail, setEditEmail] = useState(initialEmail)
   const [editing, setEditing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
 
@@ -45,16 +45,26 @@ export default function EditProfileModal({
           onSubmit={async (e) => {
             e.preventDefault()
             setEditing(true)
-            const { error } = await updateProfile(editName, editEmail, profile?.phone, selectedSchool)
-            if (error) {
-              alert('Failed to update profile: ' + error)
-            } else {
-              onUpdate()
-              onClose()
+            setError(null)
+            try {
+              const { error: updateError } = await updateProfile(editName, editEmail, profile?.phone, selectedSchool)
+              if (updateError) {
+                setError(updateError)
+              } else {
+                // Fetch updated profile to pass back
+                const { data: updatedProfile } = await getProfile()
+                onUpdate(updatedProfile || undefined)
+                onClose()
+              }
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+            } finally {
+              setEditing(false)
             }
-            setEditing(false)
           }}
         >
+          {error && <div className={styles.errorBanner}>{error}</div>}
+
           <div className={styles.formGroup}>
             <label>Name</label>
             <input
@@ -62,6 +72,8 @@ export default function EditProfileModal({
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder="Your name"
+              disabled={editing}
+              required
             />
           </div>
           <div className={styles.formGroup}>
@@ -71,6 +83,8 @@ export default function EditProfileModal({
               value={editEmail}
               onChange={(e) => setEditEmail(e.target.value)}
               placeholder="your@email.com"
+              disabled={editing}
+              required
             />
           </div>
           <div className={styles.modalActions}>

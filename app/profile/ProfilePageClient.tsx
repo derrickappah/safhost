@@ -1,7 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { IoPerson, IoCardOutline, IoSchoolOutline, IoNotificationsOutline, IoHelpCircleOutline, IoInformationCircleOutline, IoCreateOutline, IoDiamond, IoChevronForward, IoLogOutOutline, IoCheckmarkCircle, IoCloseCircle, IoHeart, IoEye, IoCall, IoShieldCheckmark } from 'react-icons/io5'
+import { useState, useEffect, useMemo, useRef, memo } from 'react'
+import {
+  IoPerson,
+  IoCardOutline,
+  IoSchoolOutline,
+  IoNotificationsOutline,
+  IoHelpCircleOutline,
+  IoInformationCircleOutline,
+  IoCreateOutline,
+  IoDiamond,
+  IoChevronForward,
+  IoLogOutOutline,
+  IoHeart,
+  IoEye,
+  IoCall,
+  IoShieldCheckmark
+} from 'react-icons/io5'
 import { createClient } from '@/lib/supabase/client'
 import { updateProfile, getProfile } from '@/lib/actions/profile'
 import { getCurrentUser } from '@/lib/auth/client'
@@ -24,6 +39,11 @@ interface ProfilePageClientProps {
   isAdmin?: boolean
 }
 
+// Memoized Modals to prevent unnecessary re-renders
+const MemoizedEditProfileModal = memo(EditProfileModal)
+const MemoizedSchoolSelectionModal = memo(SchoolSelectionModal)
+const MemoizedAboutModal = memo(AboutModal)
+
 export default function ProfilePageClient({
   user,
   subscription,
@@ -42,18 +62,18 @@ export default function ProfilePageClient({
   const [showEditModal, setShowEditModal] = useState(false)
   const [showSchoolModal, setShowSchoolModal] = useState(false)
   const [showAboutModal, setShowAboutModal] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editEmail, setEditEmail] = useState('')
-  const [editing, setEditing] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
-  // Load selected school from localStorage on mount
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync state if initial props change (e.g. from server refresh)
   useEffect(() => {
-    const savedSchool = localStorage.getItem('selectedSchool')
-    if (savedSchool) {
-      setSelectedSchool(savedSchool)
-    }
-  }, [])
+    setProfile(initialProfile)
+  }, [initialProfile])
+
+  useEffect(() => {
+    setSelectedSchool(initialSelectedSchool)
+  }, [initialSelectedSchool])
 
   const handleSignOut = async (e?: React.MouseEvent) => {
     e?.preventDefault()
@@ -89,21 +109,20 @@ export default function ProfilePageClient({
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
     if (!validTypes.includes(file.type)) {
-      alert('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
+      console.error('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
       return
     }
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
-      alert('File size exceeds 5MB limit')
+      console.error('File size exceeds 5MB limit')
       return
     }
 
     setUploadingAvatar(true)
 
     try {
-      // Upload file to API
       const formData = new FormData()
       formData.append('file', file)
       formData.append('folder', 'avatars')
@@ -132,18 +151,15 @@ export default function ProfilePageClient({
         throw new Error(error)
       }
 
-      // Refresh profile data
-      const { data: profileData } = await getProfile()
-      if (profileData) {
-        setProfile(profileData)
-      }
+      // Locally update profile to avoid full re-fetch
+      setProfile((prev: any) => ({ ...prev, avatar_url: data.url }))
     } catch (error) {
       console.error('Avatar upload error:', error)
-      alert(error instanceof Error ? error.message : 'Failed to upload avatar')
     } finally {
       setUploadingAvatar(false)
-      // Reset input so same file can be selected again
-      e.target.value = ''
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
@@ -166,46 +182,26 @@ export default function ProfilePageClient({
     return Math.min(100, Math.max(0, (elapsed / total) * 100))
   }
 
-  const handleMenuItemClick = (itemId: string) => {
-    switch (itemId) {
-      case 'subscription':
-        navigate('/subscribe')
-        break
-      case 'school':
-        setShowSchoolModal(true)
-        break
-      case 'notifications':
-        navigate('/notifications')
-        break
-      case 'help':
-        navigate('/help')
-        break
-      case 'about':
-        setShowAboutModal(true)
-        break
-      default:
-        break
-    }
-  }
-
-  const menuItems = [
+  const menuItems = useMemo(() => [
     {
       id: "subscription",
       icon: IoCardOutline,
       title: "Subscription",
-      subtitle: subscription 
+      subtitle: subscription
         ? `${subscription.status === 'active' ? 'Active' : subscription.status} • ${getSubscriptionDaysLeft() || 0} days left`
         : "No active subscription",
       color: subscription?.status === 'active' ? "#22c55e" : "#64748b",
+      action: () => navigate('/subscribe')
     },
     {
       id: "school",
       icon: IoSchoolOutline,
       title: "My School",
-      subtitle: selectedSchool 
+      subtitle: selectedSchool
         ? schools.find(s => s.id === selectedSchool)?.name || "Not selected"
         : "Not selected",
       color: "#2563eb",
+      action: () => setShowSchoolModal(true)
     },
     {
       id: "notifications",
@@ -213,6 +209,7 @@ export default function ProfilePageClient({
       title: "Notifications",
       subtitle: "Push notifications enabled",
       color: "#f59e0b",
+      action: () => navigate('/notifications')
     },
     {
       id: "help",
@@ -220,6 +217,7 @@ export default function ProfilePageClient({
       title: "Help & Support",
       subtitle: "FAQs, Contact us",
       color: "#8b5cf6",
+      action: () => navigate('/help')
     },
     {
       id: "about",
@@ -227,8 +225,9 @@ export default function ProfilePageClient({
       title: "About",
       subtitle: "Version 1.0.0",
       color: "#64748b",
+      action: () => setShowAboutModal(true)
     },
-  ]
+  ], [subscription, selectedSchool, schools, navigate])
 
   const daysLeft = getSubscriptionDaysLeft()
   const progress = getSubscriptionProgress()
@@ -240,37 +239,38 @@ export default function ProfilePageClient({
         <div className={styles.heroSection}>
           <div className={styles.heroContent}>
             <div className={styles.avatarWrapper}>
-              <label htmlFor="avatar-upload" className={styles.avatarLabel}>
-                <div className={styles.avatar}>
-                  {profile?.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt="Profile" 
-                      className={styles.avatarImage}
-                    />
-                  ) : (
-                    <IoPerson size={36} color="#94a3b8" />
-                  )}
-                  {uploadingAvatar && (
-                    <div className={styles.avatarLoading}>
-                      <div className={styles.avatarSpinner}></div>
-                    </div>
-                  )}
-                </div>
-              </label>
+              <div
+                className={styles.avatar}
+                onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+                style={{ cursor: uploadingAvatar ? 'wait' : 'pointer' }}
+              >
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="Profile"
+                    className={styles.avatarImage}
+                  />
+                ) : (
+                  <IoPerson size={36} color="#94a3b8" />
+                )}
+                {uploadingAvatar && (
+                  <div className={styles.avatarLoading}>
+                    <div className={styles.avatarSpinner}></div>
+                  </div>
+                )}
+              </div>
               <input
                 type="file"
-                id="avatar-upload"
+                ref={fileInputRef}
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={handleAvatarUpload}
                 className={styles.avatarInput}
                 disabled={uploadingAvatar}
+                style={{ display: 'none' }}
               />
-              <button 
+              <button
                 className={styles.editAvatarButton}
-                onClick={() => {
-                  document.getElementById('avatar-upload')?.click()
-                }}
+                onClick={() => fileInputRef.current?.click()}
                 aria-label="Change profile picture"
                 disabled={uploadingAvatar}
               >
@@ -279,50 +279,39 @@ export default function ProfilePageClient({
             </div>
             <h1 className={styles.heroName}>{getUserName()}</h1>
             <p className={styles.heroEmail}>{getUserEmail()}</p>
-            {user?.user_metadata?.phone && (
+            {getUserPhone() !== 'No phone number' && (
               <p className={styles.heroPhone}>{getUserPhone()}</p>
             )}
+            <button
+              className={styles.editProfileButton}
+              onClick={() => setShowEditModal(true)}
+            >
+              Edit Profile
+            </button>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className={styles.statsGrid}>
-          <button 
-            className={styles.statCard}
-            onClick={() => router.push('/favorites')}
-          >
-            <div className={styles.statIcon} style={{ backgroundColor: '#fef2f2' }}>
-              <IoHeart size={20} color="#ef4444" />
-            </div>
-            <div className={styles.statContent}>
-              <span className={styles.statValue}>{favoritesCount}</span>
-              <span className={styles.statLabel}>Saved</span>
-            </div>
-          </button>
-          <button 
-            className={styles.statCard}
-            onClick={() => router.push('/viewed')}
-          >
-            <div className={styles.statIcon} style={{ backgroundColor: '#eff6ff' }}>
-              <IoEye size={20} color="#2563eb" />
-            </div>
-            <div className={styles.statContent}>
-              <span className={styles.statValue}>{viewedCount}</span>
-              <span className={styles.statLabel}>Viewed</span>
-            </div>
-          </button>
-          <button 
-            className={styles.statCard}
-            onClick={() => router.push('/contacted')}
-          >
-            <div className={styles.statIcon} style={{ backgroundColor: '#f0fdf4' }}>
-              <IoCall size={20} color="#22c55e" />
-            </div>
-            <div className={styles.statContent}>
-              <span className={styles.statValue}>{contactedCount}</span>
-              <span className={styles.statLabel}>Contacted</span>
-            </div>
-          </button>
+          {[
+            { id: 'favorites', label: 'Saved', count: favoritesCount, icon: IoHeart, color: '#ef4444', bg: '#fef2f2', path: '/favorites' },
+            { id: 'viewed', label: 'Viewed', count: viewedCount, icon: IoEye, color: '#2563eb', bg: '#eff6ff', path: '/viewed' },
+            { id: 'contacted', label: 'Contacted', count: contactedCount, icon: IoCall, color: '#22c55e', bg: '#f0fdf4', path: '/contacted' }
+          ].map((stat) => (
+            <button
+              key={stat.id}
+              className={stat.id === 'favorites' ? styles.statCard : styles.statCard}
+              onClick={() => navigate(stat.path)}
+            >
+              <div className={styles.statIcon} style={{ backgroundColor: stat.bg }}>
+                <stat.icon size={20} color={stat.color} />
+              </div>
+              <div className={styles.statContent}>
+                <span className={styles.statValue}>{stat.count}</span>
+                <span className={stat.id === 'favorites' ? styles.statLabel : styles.statLabel}>{stat.label}</span>
+              </div>
+            </button>
+          ))}
         </div>
 
         {/* Subscription Card */}
@@ -344,15 +333,15 @@ export default function ProfilePageClient({
               </div>
               <div className={styles.subscriptionProgress}>
                 <div className={styles.progressBar}>
-                  <div 
-                    className={styles.progressFill} 
-                    style={{ width: `${progress}%` }} 
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
-              <button 
+              <button
                 className={styles.subscriptionButton}
-                onClick={() => router.push('/subscribe')}
+                onClick={() => navigate('/subscribe')}
               >
                 Manage Subscription
               </button>
@@ -368,9 +357,9 @@ export default function ProfilePageClient({
                   <p className={styles.subscriptionSubtitle}>Subscribe to unlock all features</p>
                 </div>
               </div>
-              <button 
+              <button
                 className={styles.subscriptionButtonPrimary}
-                onClick={() => router.push('/subscribe')}
+                onClick={() => navigate('/subscribe')}
               >
                 Subscribe Now
               </button>
@@ -379,80 +368,36 @@ export default function ProfilePageClient({
         </div>
 
         {/* Settings Sections */}
-        <div className={styles.settingsSection}>
-          <h2 className={styles.sectionHeader}>Account</h2>
-          <div className={styles.settingsList}>
-            {menuItems.slice(0, 2).map((item) => {
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.id}
-                  className={styles.settingsItem}
-                  onClick={() => handleMenuItemClick(item.id)}
-                >
-                  <div className={styles.settingsIcon} style={{ backgroundColor: `${item.color}15` }}>
-                    <Icon size={20} color={item.color} />
-                  </div>
-                  <div className={styles.settingsContent}>
-                    <span className={styles.settingsTitle}>{item.title}</span>
-                    <span className={styles.settingsSubtitle}>{item.subtitle}</span>
-                  </div>
-                  <IoChevronForward size={18} color="#cbd5e1" />
-                </button>
-              )
-            })}
+        {[
+          { title: "Account", range: [0, 2] },
+          { title: "Preferences", range: [2, 3] },
+          { title: "Support", range: [3, 5] }
+        ].map((section) => (
+          <div key={section.title} className={styles.settingsSection}>
+            <h2 className={styles.sectionHeader}>{section.title}</h2>
+            <div className={styles.settingsList}>
+              {menuItems.slice(section.range[0], section.range[1]).map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.id}
+                    className={styles.settingsItem}
+                    onClick={item.action}
+                  >
+                    <div className={styles.settingsIcon} style={{ backgroundColor: `${item.color}15` }}>
+                      <Icon size={20} color={item.color} />
+                    </div>
+                    <div className={styles.settingsContent}>
+                      <span className={styles.settingsTitle}>{item.title}</span>
+                      <span className={styles.settingsSubtitle}>{item.subtitle}</span>
+                    </div>
+                    <IoChevronForward size={18} color="#cbd5e1" />
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
-
-        <div className={styles.settingsSection}>
-          <h2 className={styles.sectionHeader}>Preferences</h2>
-          <div className={styles.settingsList}>
-            {menuItems.slice(2, 3).map((item) => {
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.id}
-                  className={styles.settingsItem}
-                  onClick={() => handleMenuItemClick(item.id)}
-                >
-                  <div className={styles.settingsIcon} style={{ backgroundColor: `${item.color}15` }}>
-                    <Icon size={20} color={item.color} />
-                  </div>
-                  <div className={styles.settingsContent}>
-                    <span className={styles.settingsTitle}>{item.title}</span>
-                    <span className={styles.settingsSubtitle}>{item.subtitle}</span>
-                  </div>
-                  <IoChevronForward size={18} color="#cbd5e1" />
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className={styles.settingsSection}>
-          <h2 className={styles.sectionHeader}>Support</h2>
-          <div className={styles.settingsList}>
-            {menuItems.slice(3).map((item) => {
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.id}
-                  className={styles.settingsItem}
-                  onClick={() => handleMenuItemClick(item.id)}
-                >
-                  <div className={styles.settingsIcon} style={{ backgroundColor: `${item.color}15` }}>
-                    <Icon size={20} color={item.color} />
-                  </div>
-                  <div className={styles.settingsContent}>
-                    <span className={styles.settingsTitle}>{item.title}</span>
-                    <span className={styles.settingsSubtitle}>{item.subtitle}</span>
-                  </div>
-                  <IoChevronForward size={18} color="#cbd5e1" />
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        ))}
 
         {/* Payment History */}
         {paymentHistory.length > 0 && (
@@ -463,10 +408,10 @@ export default function ProfilePageClient({
                 <div key={payment.id} className={styles.paymentItem}>
                   <div className={styles.paymentInfo}>
                     <span className={styles.paymentDate}>
-                      {new Date(payment.created_at).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
+                      {new Date(payment.created_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
                       })}
                     </span>
                     <span className={styles.paymentAmount}>
@@ -484,9 +429,9 @@ export default function ProfilePageClient({
 
         {/* Admin Panel Button - Only visible to admins */}
         {isAdmin && (
-          <button 
-            className={styles.adminButton} 
-            onClick={() => router.push('/admin')}
+          <button
+            className={styles.adminButton}
+            onClick={() => navigate('/admin')}
           >
             <IoShieldCheckmark size={22} color="#2563eb" />
             <span className={styles.adminButtonText}>Admin Panel</span>
@@ -502,17 +447,18 @@ export default function ProfilePageClient({
         <div style={{ height: '100px' }} />
       </div>
 
-      {/* Edit Profile Modal */}
-      <EditProfileModal
+      <MemoizedEditProfileModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         initialName={getUserName()}
         initialEmail={getUserEmail()}
         profile={profile}
         selectedSchool={selectedSchool}
-        onUpdate={async () => {
-          const { data } = await getCurrentUser()
-          if (data?.user) {
+        onUpdate={async (updatedProfile) => {
+          if (updatedProfile) {
+            setProfile(updatedProfile)
+          } else {
+            // Fallback to fetch if no data returned
             const { data: profileData } = await getProfile()
             if (profileData) {
               setProfile(profileData)
@@ -521,26 +467,32 @@ export default function ProfilePageClient({
         }}
       />
 
-      {/* School Selection Modal */}
-      <SchoolSelectionModal
+      <MemoizedSchoolSelectionModal
         isOpen={showSchoolModal}
         onClose={() => setShowSchoolModal(false)}
         schools={schools}
         selectedSchool={selectedSchool}
         onSelect={async (schoolId: string) => {
+          // Optimistic update
+          const oldSchool = selectedSchool
           setSelectedSchool(schoolId)
-          localStorage.setItem('selectedSchool', schoolId)
-          await updateProfile(profile?.full_name, user?.email, profile?.phone, schoolId)
-          const { data: profileData } = await getProfile()
-          if (profileData) {
-            setProfile(profileData)
+          try {
+            const { error } = await updateProfile(profile?.full_name, user?.email, profile?.phone, schoolId)
+            if (error) throw new Error(error)
+
+            // Sync profile data to get full school object if needed
+            const { data: profileData } = await getProfile()
+            if (profileData) setProfile(profileData)
+
+            setShowSchoolModal(false)
+          } catch (error) {
+            console.error('Failed to update school:', error)
+            setSelectedSchool(oldSchool)
           }
-          setShowSchoolModal(false)
         }}
       />
 
-      {/* About Modal */}
-      <AboutModal
+      <MemoizedAboutModal
         isOpen={showAboutModal}
         onClose={() => setShowAboutModal(false)}
       />
