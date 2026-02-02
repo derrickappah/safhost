@@ -15,26 +15,27 @@ import {
 } from 'react-icons/io5'
 import { signUp } from '@/lib/auth/user'
 import { getCurrentUser } from '@/lib/auth/client'
-import { isValidEmail, getEmailError } from '@/lib/validation'
+import { isValidEmail, getEmailError, validatePhone, isInternalUrl } from '@/lib/validation'
 import styles from '../page.module.css'
 import Loader from '@/components/Loader'
 
 function SignUpPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/dashboard'
+  const redirectParam = searchParams.get('redirect')
+  const redirect = isInternalUrl(redirectParam) ? redirectParam! : '/dashboard'
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
-  const [emailError, setEmailError] = useState('')
-  const [phoneError, setPhoneError] = useState('')
-  const [nameError, setNameError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
@@ -42,44 +43,62 @@ function SignUpPageContent() {
 
   // Auth Guard: Redirect if already logged in
   useEffect(() => {
+    let isMounted = true
     async function checkAuth() {
       try {
         const { data } = await getCurrentUser()
-        if (data?.user) {
-          router.replace(redirect)
-        } else {
-          setIsCheckingAuth(false)
+        if (isMounted) {
+          if (data?.user) {
+            router.replace(redirect)
+          } else {
+            setIsCheckingAuth(false)
+          }
         }
       } catch (err) {
         console.error('Auth guard error:', err)
-        setIsCheckingAuth(false)
+        if (isMounted) setIsCheckingAuth(false)
       }
     }
     checkAuth()
+    return () => { isMounted = false }
   }, [router, redirect])
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEmail = e.target.value
-    setEmail(newEmail)
-    if (emailError) setEmailError('')
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
     if (error) setError('')
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
   }
 
-  const handleInputChange = (setter: (val: string) => void, errorSetter?: (err: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setter(e.target.value)
-    if (error) setError('')
-    if (errorSetter) errorSetter('')
-  }
+  const handleBlur = (field: string) => {
+    const value = formData[field as keyof typeof formData]
+    let fieldError = ''
 
-  const validatePhone = (phone: string) => {
-    // Basic phone validation: digits plus optional + prefix
-    return /^\+?[0-9]{10,15}$/.test(phone.replace(/\s/g, ''))
+    if (field === 'email' && value && !isValidEmail(value)) {
+      fieldError = getEmailError(value) || 'Invalid email format'
+    } else if (field === 'phone' && value && !validatePhone(value)) {
+      fieldError = 'Please enter a valid phone number'
+    } else if (field === 'name' && value && value.length < 2) {
+      fieldError = 'Name is too short'
+    } else if (field === 'confirmPassword' && value && value !== formData.password) {
+      fieldError = 'Passwords do not match'
+    }
+
+    setFieldErrors(prev => ({ ...prev, [field]: fieldError }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setEmailError('')
+    setFieldErrors({})
+
+    const { name, email, phone, password, confirmPassword } = formData
 
     // Validation
     if (!name || !email || !password || !confirmPassword || !phone) {
@@ -88,8 +107,7 @@ function SignUpPageContent() {
     }
 
     if (!isValidEmail(email)) {
-      const emailErr = getEmailError(email)
-      setEmailError(emailErr || 'Please enter a valid email address')
+      setError('Please enter a valid email address')
       return
     }
 
@@ -164,7 +182,7 @@ function SignUpPageContent() {
             </div>
             <h2 className={styles.heroTitle}>Check Your Email</h2>
             <p className={styles.heroSubtitle}>
-              We've sent a confirmation link to <strong>{email}</strong>.
+              We've sent a confirmation link to <strong>{formData.email}</strong>.
               Please click the link to activate your account.
             </p>
           </div>
@@ -198,66 +216,59 @@ function SignUpPageContent() {
             <IoPerson size={20} className={styles.inputIcon} />
             <input
               type="text"
+              name="name"
               placeholder="Full name"
-              value={name}
-              onChange={handleInputChange(setName, setNameError)}
-              onBlur={() => {
-                if (name && name.length < 2) {
-                  setNameError('Name is too short')
-                }
-              }}
-              className={`${styles.input} ${nameError ? styles.inputError : ''}`}
+              value={formData.name}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('name')}
+              className={`${styles.input} ${fieldErrors.name ? styles.inputError : ''}`}
               required
               disabled={isLoading}
             />
-            {nameError && <div className={styles.fieldError}>{nameError}</div>}
+            {fieldErrors.name && <div className={styles.fieldError}>{fieldErrors.name}</div>}
           </div>
 
           <div className={styles.inputGroup}>
             <IoMailOutline size={20} className={styles.inputIcon} />
             <input
               type="email"
+              name="email"
               placeholder="Email address"
-              value={email}
-              onChange={handleEmailChange}
-              onBlur={() => {
-                if (email && !isValidEmail(email)) {
-                  setEmailError(getEmailError(email) || 'Invalid email format')
-                }
-              }}
-              className={`${styles.input} ${emailError ? styles.inputError : ''}`}
+              value={formData.email}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('email')}
+              className={`${styles.input} ${fieldErrors.email ? styles.inputError : ''}`}
               required
               disabled={isLoading}
             />
-            {emailError && <div className={styles.fieldError}>{emailError}</div>}
+            {fieldErrors.email && <div className={styles.fieldError}>{fieldErrors.email}</div>}
           </div>
 
           <div className={styles.inputGroup}>
             <IoCallOutline size={20} className={styles.inputIcon} />
             <input
               type="tel"
+              name="phone"
               placeholder="Phone number"
-              value={phone}
-              onChange={handleInputChange(setPhone, setPhoneError)}
-              onBlur={() => {
-                if (phone && !validatePhone(phone)) {
-                  setPhoneError('Please enter a valid phone number')
-                }
-              }}
-              className={`${styles.input} ${phoneError ? styles.inputError : ''}`}
+              value={formData.phone}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('phone')}
+              className={`${styles.input} ${fieldErrors.phone ? styles.inputError : ''}`}
               required
               disabled={isLoading}
             />
-            {phoneError && <div className={styles.fieldError}>{phoneError}</div>}
+            {fieldErrors.phone && <div className={styles.fieldError}>{fieldErrors.phone}</div>}
           </div>
 
           <div className={styles.inputGroup}>
             <IoLockClosed size={20} className={styles.inputIcon} />
             <input
               type={showPassword ? "text" : "password"}
+              name="password"
               placeholder="Password (min. 6 characters)"
-              value={password}
-              onChange={handleInputChange(setPassword)}
+              value={formData.password}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('password')}
               className={styles.input}
               required
               minLength={6}
@@ -267,6 +278,7 @@ function SignUpPageContent() {
               type="button"
               className={styles.passwordToggle}
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
             </button>
@@ -276,10 +288,12 @@ function SignUpPageContent() {
             <IoLockClosed size={20} className={styles.inputIcon} />
             <input
               type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
               placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={handleInputChange(setConfirmPassword)}
-              className={styles.input}
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('confirmPassword')}
+              className={`${styles.input} ${fieldErrors.confirmPassword ? styles.inputError : ''}`}
               required
               disabled={isLoading}
             />
@@ -287,9 +301,11 @@ function SignUpPageContent() {
               type="button"
               className={styles.passwordToggle}
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
             >
               {showConfirmPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
             </button>
+            {fieldErrors.confirmPassword && <div className={styles.fieldError}>{fieldErrors.confirmPassword}</div>}
           </div>
 
           {error && <div className={styles.errorMessage}>{error}</div>}

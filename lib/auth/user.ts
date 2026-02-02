@@ -15,11 +15,22 @@ export interface SignInInput {
   password: string
 }
 
+export interface User {
+  id: string
+  email?: string
+  phone?: string
+  user_metadata: {
+    name?: string
+    phone?: string
+    [key: string]: any
+  }
+}
+
 /**
  * Sign up a new user
  */
 export async function signUp(input: SignUpInput): Promise<{
-  data: { user: any; hasSession: boolean } | null
+  data: { user: User | null; hasSession: boolean } | null
   error: string | null
 }> {
   try {
