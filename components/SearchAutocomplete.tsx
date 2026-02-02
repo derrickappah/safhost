@@ -39,8 +39,8 @@ export default function SearchAutocomplete({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function SearchAutocomplete({
   const handleSelect = (result: SearchResult) => {
     setQuery('')
     setShowResults(false)
-    
+
     if (onSelect) {
       onSelect(result)
     } else {

@@ -25,11 +25,11 @@ export default function SortMenu({ currentSort }: SortMenuProps) {
     }
 
     if (showMenu) {
-      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('click', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('click', handleClickOutside)
     }
   }, [showMenu])
 
@@ -51,20 +51,20 @@ export default function SortMenu({ currentSort }: SortMenuProps) {
 
   return (
     <div className={styles.sortContainer} ref={menuRef}>
-      <button 
+      <button
         className={styles.sortButton}
         onClick={() => setShowMenu(!showMenu)}
       >
         <span className={styles.sortText}>
           {sortLabels[currentSort]}
         </span>
-        <IoChevronDown 
-          size={16} 
-          color="#2563eb" 
-          style={{ 
+        <IoChevronDown
+          size={16}
+          color="#2563eb"
+          style={{
             transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.3s ease'
-          }} 
+          }}
         />
       </button>
       {showMenu && (
