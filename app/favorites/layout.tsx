@@ -1,5 +1,3 @@
-import FavoritesHeader from './Header'
-
 export default function FavoritesLayout({
   children,
 }: {
@@ -7,7 +5,6 @@ export default function FavoritesLayout({
 }) {
   return (
     <>
-      <FavoritesHeader />
       {children}
     </>
   )
