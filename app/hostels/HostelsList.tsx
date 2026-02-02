@@ -31,11 +31,7 @@ export default function HostelsList({
     }
   }, [initialFavorited])
 
-  useEffect(() => {
-    if (initialFavorited) {
-      setFavoritedHostels(initialFavorited)
-    }
-  }, [initialFavorited])
+
 
   const toggleSave = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()

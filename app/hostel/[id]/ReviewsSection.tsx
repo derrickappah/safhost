@@ -15,9 +15,9 @@ interface ReviewsSectionProps {
   onReviewUpdate: () => void
 }
 
-export default function ReviewsSection({ 
-  initialReviews, 
-  hostelId, 
+export default function ReviewsSection({
+  initialReviews,
+  hostelId,
   userReview: initialUserReview,
   currentUser,
   onReviewUpdate
@@ -38,6 +38,7 @@ export default function ReviewsSection({
     confirmText?: string
     cancelText?: string
   } | null>(null)
+  const [visibleReviews, setVisibleReviews] = useState(5)
 
   const handleOpenReviewModal = () => {
     if (!currentUser) {
@@ -100,7 +101,7 @@ export default function ReviewsSection({
     }
 
     setSubmittingReview(true)
-    
+
     try {
       if (userReview) {
         const { data, error } = await updateReview(userReview.id, reviewRating, reviewComment)
@@ -111,15 +112,15 @@ export default function ReviewsSection({
             type: 'error'
           })
         } else {
-          const { data: reviewsData } = await getHostelReviews(hostelId)
-          if (reviewsData) {
-            setReviews(reviewsData)
-          }
+          // Update local state
           if (data) {
             setUserReview(data)
+            // Update the review in the list
+            setReviews(prev => prev.map(r => r.id === data.id ? data : r))
           }
+
           handleCloseReviewModal()
-          onReviewUpdate()
+          onReviewUpdate() // Optional: keeps parent in sync if it needs to update aggregate stats
           showDialog({
             title: 'Success',
             message: 'Review updated successfully!',
@@ -156,13 +157,13 @@ export default function ReviewsSection({
             })
           }
         } else {
-          const { data: reviewsData } = await getHostelReviews(hostelId)
-          if (reviewsData) {
-            setReviews(reviewsData)
-          }
+          // Update local state
           if (data) {
             setUserReview(data)
+            // Add new review to top of list
+            setReviews(prev => [data, ...prev])
           }
+
           handleCloseReviewModal()
           onReviewUpdate()
           showDialog({
@@ -193,9 +194,11 @@ export default function ReviewsSection({
       onConfirm: async () => {
         const { error } = await deleteReview(reviewId)
         if (!error) {
-          setReviews(reviews.filter(r => r.id !== reviewId))
+          setReviews(prev => prev.filter(r => r.id !== reviewId))
           if (userReview?.id === reviewId) {
             setUserReview(null)
+            setReviewRating(0)
+            setReviewComment('')
           }
           onReviewUpdate()
           showDialog({
@@ -242,59 +245,81 @@ export default function ReviewsSection({
           )}
         </div>
       ) : (
-        reviews.slice(0, 5).map((review) => (
-          <div key={review.id} className={styles.reviewCard}>
-            <div className={styles.reviewHeader}>
-              <div className={styles.reviewUser}>
-                <div className={styles.reviewAvatar}>
-                  {review.user?.avatar_url ? (
-                    <img
-                      src={review.user.avatar_url}
-                      alt={review.user?.email?.split('@')[0] || 'User'}
-                      className={styles.reviewAvatarImage}
-                    />
-                  ) : (
-                    <span className={styles.reviewAvatarText}>
-                      {(review.user?.email || 'U').charAt(0).toUpperCase()}
+        <>
+          {reviews.slice(0, visibleReviews).map((review) => (
+            <div key={review.id} className={styles.reviewCard}>
+              <div className={styles.reviewHeader}>
+                <div className={styles.reviewUser}>
+                  <div className={styles.reviewAvatar}>
+                    {review.user?.avatar_url ? (
+                      <img
+                        src={review.user.avatar_url}
+                        alt={review.user?.email?.split('@')[0] || 'User'}
+                        className={styles.reviewAvatarImage}
+                      />
+                    ) : (
+                      <span className={styles.reviewAvatarText}>
+                        {(review.user?.email || 'U').charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.reviewUserInfo}>
+                    <h4 className={styles.reviewName}>
+                      {review.user?.email?.split('@')[0] || 'Anonymous'}
+                    </h4>
+                    <span className={styles.reviewDate}>
+                      {new Date(review.created_at).toLocaleDateString()}
                     </span>
+                  </div>
+                </div>
+                <div className={styles.reviewActions}>
+                  <div className={styles.reviewRating}>
+                    {[...Array(5)].map((_, i) => (
+                      <IoStar
+                        key={i}
+                        size={16}
+                        color={i < review.rating ? "#fbbf24" : "#e2e8f0"}
+                        fill={i < review.rating ? "#fbbf24" : "none"}
+                      />
+                    ))}
+                  </div>
+                  {currentUser && userReview?.id === review.id && (
+                    <button
+                      className={styles.reviewDeleteButton}
+                      onClick={() => handleDeleteReview(review.id)}
+                      title="Delete review"
+                    >
+                      <IoTrashOutline size={16} color="#ef4444" />
+                    </button>
                   )}
                 </div>
-                <div className={styles.reviewUserInfo}>
-                  <h4 className={styles.reviewName}>
-                    {review.user?.email?.split('@')[0] || 'Anonymous'}
-                  </h4>
-                  <span className={styles.reviewDate}>
-                    {new Date(review.created_at).toLocaleDateString()}
-                  </span>
-                </div>
               </div>
-              <div className={styles.reviewActions}>
-                <div className={styles.reviewRating}>
-                  {[...Array(5)].map((_, i) => (
-                    <IoStar
-                      key={i}
-                      size={16}
-                      color={i < review.rating ? "#fbbf24" : "#e2e8f0"}
-                      fill={i < review.rating ? "#fbbf24" : "none"}
-                    />
-                  ))}
-                </div>
-                {currentUser && userReview?.id === review.id && (
-                  <button
-                    className={styles.reviewDeleteButton}
-                    onClick={() => handleDeleteReview(review.id)}
-                    title="Delete review"
-                  >
-                    <IoTrashOutline size={16} color="#ef4444" />
-                  </button>
-                )}
-              </div>
+              {review.comment && (
+                <p className={styles.reviewComment}>{review.comment}</p>
+              )}
             </div>
-            {review.comment && (
-              <p className={styles.reviewComment}>{review.comment}</p>
-            )}
-          </div>
-        ))
+          ))}
+
+          {reviews.length > visibleReviews && (
+            <button
+              className={styles.showMoreButton}
+              onClick={() => setVisibleReviews(prev => prev + 5)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginTop: '16px',
+                backgroundColor: 'transparent',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                color: '#64748b',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Show More Reviews
+            </button>
+          )}
+        </>
       )}
 
       {/* Review Modal */}
@@ -312,7 +337,7 @@ export default function ReviewsSection({
                 <IoClose size={24} />
               </button>
             </div>
-            
+
             <div className={styles.reviewModalContent}>
               <div className={styles.ratingSelector}>
                 <label className={styles.ratingLabel}>Rating</label>
@@ -405,13 +430,12 @@ export default function ReviewsSection({
                 </button>
               )}
               <button
-                className={`${styles.confirmDialogButton} ${
-                  confirmDialogConfig.type === 'error' 
-                    ? styles.confirmDialogButtonError 
-                    : confirmDialogConfig.type === 'success'
+                className={`${styles.confirmDialogButton} ${confirmDialogConfig.type === 'error'
+                  ? styles.confirmDialogButtonError
+                  : confirmDialogConfig.type === 'success'
                     ? styles.confirmDialogButtonSuccess
                     : styles.confirmDialogButtonPrimary
-                }`}
+                  }`}
                 onClick={handleConfirm}
               >
                 {confirmDialogConfig.confirmText || 'OK'}

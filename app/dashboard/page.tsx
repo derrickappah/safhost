@@ -14,16 +14,10 @@ import FeaturedSection from './FeaturedSection'
 import FavoritesSection from './FavoritesSection'
 import RecommendationsLoader from './RecommendationsLoader'
 import RecommendationsSkeleton from './RecommendationsSkeleton'
+import RecentlyViewedSection from './RecentlyViewedSection'
+import QuickActions from './QuickActions'
 
-// Dynamically import non-critical sections to reduce initial bundle size
-const RecentlyViewedSection = nextDynamic(() => import('./RecentlyViewedSection'), {
-  ssr: true
-})
-
-// Quick Actions component (lightweight, can be in bundle)
-const QuickActions = nextDynamic(() => import('./QuickActions'), {
-  ssr: true
-})
+// Dashboard must be dynamic to prevent cross-user session leakage
 
 // Dashboard must be dynamic to prevent cross-user session leakage
 export const dynamic = 'force-dynamic'
@@ -82,6 +76,8 @@ export default async function DashboardPage() {
     image: hostel.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
   }))
 
+  const favoriteIds = formattedFavorites.map(f => f.id)
+
   const getUserName = () => {
     if (user?.user_metadata?.name) return user.user_metadata.name
     if (user?.email) return user.email.split('@')[0]
@@ -102,7 +98,11 @@ export default async function DashboardPage() {
         <QuickActions />
 
         {/* Featured Section */}
-        <FeaturedSection featuredHostels={formattedFeaturedHostels} hasSubscription={hasSubscription} />
+        <FeaturedSection
+          featuredHostels={formattedFeaturedHostels}
+          hasSubscription={hasSubscription}
+          initialFavoriteIds={favoriteIds}
+        />
 
         {/* Favorites Section */}
         <FavoritesSection favorites={formattedFavorites} hasSubscription={hasSubscription} />

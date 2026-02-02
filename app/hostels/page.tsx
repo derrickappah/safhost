@@ -42,16 +42,14 @@ export default async function HostelsPage({ searchParams }: PageProps) {
     sortBy: (params.sortBy as any) || 'newest'
   }
 
-  // Load hostels, favorites, profile, and subscription in parallel
-  const [hostelsResult, favoritedResult, profileResult, hasSubscription] = await Promise.all([
+  // Load hostels, profile, and subscription in parallel
+  const [hostelsResult, profileResult, hasSubscription] = await Promise.all([
     getHostels(filters).catch(() => ({ data: [], error: null })),
-    areFavorited([]).catch(() => new Set<string>()), // Will be updated with actual IDs
     getProfile().catch(() => ({ data: null, error: null })),
     hasActiveSubscription().catch(() => false)
   ])
 
   const hostels = hostelsResult.data || []
-  const favoritedSet = favoritedResult instanceof Set ? favoritedResult : new Set<string>()
   const defaultSchoolId = profileResult.data?.school_id || null
 
   // Get favorites for loaded hostels

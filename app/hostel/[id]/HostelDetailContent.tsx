@@ -93,15 +93,24 @@ export default function HostelDetailContent({
   }, [hostel.id])
 
   // Handle sticky header on scroll
+  // Handle sticky header on scroll
   useEffect(() => {
+    let lastScrollY = window.scrollY
+    let ticking = false
+
     const handleScroll = () => {
-      const scrollTop = window.scrollY
-      // Show sticky header when scrolled past a reasonable threshold
-      // Use 200px as a good threshold that works across devices
-      setShowStickyHeader(scrollTop > 200)
+      lastScrollY = window.scrollY
+
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setShowStickyHeader(lastScrollY > 200)
+          ticking = false
+        })
+        ticking = true
+      }
     }
 
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -231,8 +240,9 @@ export default function HostelDetailContent({
   }
 
   const handleReviewUpdate = () => {
-    // Refresh hostel data to update rating
-    window.location.reload()
+    // Optionally refresh data or just let the local update in ReviewsSection handle it
+    // We avoid reloading the page to preserve state and scroll position
+    router.refresh() // Soft refresh to update server-side data (like rating) without full reload
   }
 
   const showAvailabilityDialogFunc = (config: {
@@ -295,7 +305,8 @@ export default function HostelDetailContent({
       roomTypes = hostel.room_types
     } else if (typeof hostel.room_types === 'string') {
       try {
-        roomTypes = JSON.parse(hostel.room_types)
+        const parsed = JSON.parse(hostel.room_types)
+        roomTypes = Array.isArray(parsed) ? parsed : []
       } catch (e) {
         console.error('Error parsing room_types:', e)
         roomTypes = []

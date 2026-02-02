@@ -4,8 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
-import { addFavorite, removeFavorite, getFavorites } from '@/lib/actions/favorites'
-import { useState, useEffect } from 'react'
+import { addFavorite, removeFavorite } from '@/lib/actions/favorites'
+import { useState } from 'react'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 
 interface FeaturedHostel {
@@ -20,28 +20,13 @@ interface FeaturedHostel {
 interface FeaturedSectionProps {
   featuredHostels: FeaturedHostel[]
   hasSubscription: boolean
+  initialFavoriteIds: string[]
 }
 
-export default function FeaturedSection({ featuredHostels: initialFeaturedHostels, hasSubscription }: FeaturedSectionProps) {
+export default function FeaturedSection({ featuredHostels: initialFeaturedHostels, hasSubscription, initialFavoriteIds }: FeaturedSectionProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
   const [featuredHostels, setFeaturedHostels] = useState(initialFeaturedHostels)
-  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set())
-
-  // Load favorited hostels on mount
-  useEffect(() => {
-    async function loadFavorites() {
-      try {
-        const { data } = await getFavorites()
-        if (data) {
-          const favoriteIds = new Set(data.map(fav => fav.hostel?.id || fav.hostel_id))
-          setFavoritedIds(favoriteIds)
-        }
-      } catch (error) {
-        console.error('Error loading favorites:', error)
-      }
-    }
-    loadFavorites()
-  }, [])
+  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set(initialFavoriteIds))
 
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()

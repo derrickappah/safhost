@@ -65,14 +65,17 @@ export default function HostelsPageClient({
       setSelectedHostels(new Set())
     }
 
-    // Update URL
+    // Update URL shallowly without triggering server refresh
     const params = new URLSearchParams(searchParams.toString())
     if (newCompareMode) {
       params.set('compare', 'true')
     } else {
       params.delete('compare')
     }
-    router.replace(`/hostels?${params.toString()}`)
+
+    // Use proper history API to update URL without reload
+    const newUrl = `${window.location.pathname}?${params.toString()}`
+    window.history.replaceState(null, '', newUrl)
   }
 
   const toggleHostelSelection = (hostelId: string) => {
