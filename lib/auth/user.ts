@@ -19,12 +19,12 @@ export interface SignInInput {
  * Sign up a new user
  */
 export async function signUp(input: SignUpInput): Promise<{
-  data: { user: any } | null
+  data: { user: any; hasSession: boolean } | null
   error: string | null
 }> {
   try {
     const supabase = await createClient()
-    
+
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
@@ -35,16 +35,18 @@ export async function signUp(input: SignUpInput): Promise<{
         }
       }
     })
-    
+
     if (error) {
-      return { data: null, error: error.message }
+      console.error('Supabase signUp error:', error)
+      return { data: null, error: error.message || 'Failed to create account. Please try again.' }
     }
-    
-    return { data: { user: data.user }, error: null }
+
+    return { data: { user: data.user, hasSession: !!data.session }, error: null }
   } catch (error) {
+    console.error('Unexpected signUp error:', error)
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to sign up'
+      error: error instanceof Error ? error.message : 'An unexpected error occurred during sign up'
     }
   }
 }
@@ -58,16 +60,16 @@ export async function signIn(input: SignInInput): Promise<{
 }> {
   try {
     const supabase = await createClient()
-    
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: input.email,
       password: input.password
     })
-    
+
     if (error) {
       return { data: null, error: error.message }
     }
-    
+
     return { data: { user: data.user }, error: null }
   } catch (error) {
     return {
@@ -85,13 +87,13 @@ export async function signOut(): Promise<{
 }> {
   try {
     const supabase = await createClient()
-    
+
     const { error } = await supabase.auth.signOut()
-    
+
     if (error) {
       return { error: error.message }
     }
-    
+
     return { error: null }
   } catch (error) {
     return {

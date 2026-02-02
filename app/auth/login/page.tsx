@@ -81,7 +81,7 @@ function LoginPageContent() {
 
         // If user doesn't have a school_id, redirect to select school
         if (!profile?.school_id) {
-          router.push('/select-school')
+          router.push(`/select-school?redirect=${encodeURIComponent(redirect)}`)
           return
         }
 

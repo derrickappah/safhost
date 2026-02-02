@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useMemo, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { IoSchool, IoSearch, IoCloseCircle, IoLocation, IoCheckmark, IoNavigate, IoWarning } from 'react-icons/io5'
 import styles from './page.module.css'
 import { getSchools, type School } from '@/lib/actions/schools'
@@ -12,8 +12,11 @@ import Loader from '@/components/Loader'
 
 const STORAGE_KEY_SELECTED_SCHOOL = 'selectedSchool'
 
-export default function SelectSchoolPage() {
+function SelectSchoolContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/dashboard'
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null)
   const [schools, setSchools] = useState<School[]>([])
@@ -128,8 +131,8 @@ export default function SelectSchoolPage() {
         }
       }
 
-      // Smooth SPA navigation
-      router.push('/hostels')
+      // Smooth SPA navigation to intended page or dashboard
+      router.push(redirect)
     } catch (error) {
       console.error('Critical error in handleContinue:', error)
       setIsRedirecting(false)
@@ -275,5 +278,19 @@ export default function SelectSchoolPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function SelectSchoolPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.container}>
+        <div className={styles.loaderWrapper}>
+          <Loader />
+        </div>
+      </div>
+    }>
+      <SelectSchoolContent />
+    </Suspense>
   )
 }

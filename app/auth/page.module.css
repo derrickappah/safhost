@@ -80,7 +80,7 @@
   padding: 12px 12px 12px 44px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  fontSize: 16px;
+  font-size: 16px;
   outline: none;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
@@ -113,11 +113,11 @@
 
 .errorMessage {
   padding: 12px;
-  backgroundColor: #fee2e2;
+  background-color: #fee2e2;
   color: #dc2626;
-  borderRadius: 8px;
-  fontSize: 14px;
-  marginTop: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 8px;
 }
 
 .submitButton {
@@ -180,4 +180,18 @@
 
 .switchLink:hover {
   text-decoration: underline;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
 }
