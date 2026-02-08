@@ -481,11 +481,6 @@ export default function HostelDetailContent({
                 <div key={index} className={styles.roomCard}>
                   <div className={styles.roomInfo}>
                     <h3 className={styles.roomType}>{room.type}</h3>
-                    {room.available !== undefined && (
-                      <span className={styles.roomAvailable}>
-                        {room.available} rooms available
-                      </span>
-                    )}
                   </div>
                   <span className={styles.roomPrice}>GHS {room.price}/sem</span>
                 </div>
