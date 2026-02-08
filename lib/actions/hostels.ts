@@ -56,6 +56,15 @@ export interface Hostel {
     longitude: number | null
     logo_url: string | null
   }
+  additional_schools?: Array<{
+    school_id: string
+    distance: number
+    school: {
+      id: string
+      name: string
+      location: string
+    }
+  }>
 }
 
 /**
@@ -510,7 +519,13 @@ export const getHostelById = cache(async (id: string): Promise<{
         is_available,
         featured,
         categories,
-        school:schools(id, name, location, latitude, longitude, logo_url)
+        categories,
+        school:schools(id, name, location, latitude, longitude, logo_url),
+        additional_schools:hostel_schools(
+          distance,
+          school_id,
+          school:schools(id, name, location)
+        )
       `)
       .eq('id', id)
       .single()
@@ -527,6 +542,11 @@ export const getHostelById = cache(async (id: string): Promise<{
       price_min: Number(data.price_min),
       price_max: data.price_max ? Number(data.price_max) : null,
       rating: Number(data.rating),
+      additional_schools: data.additional_schools?.map((item: any) => ({
+        school_id: item.school_id,
+        distance: Number(item.distance),
+        school: item.school
+      })) || []
     }
 
     return { data: formattedHostel as unknown as Hostel, error: null }

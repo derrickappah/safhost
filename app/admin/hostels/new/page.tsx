@@ -24,6 +24,23 @@ const commonAmenities = [
   'Common Area'
 ]
 
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1)
+  const dLon = deg2rad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const d = R * c // Distance in km
+  return Math.round(d * 10) / 10 // Round to 1 decimal place
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180)
+}
+
 export default function NewHostelPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -63,6 +80,11 @@ export default function NewHostelPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [schoolLogo, setSchoolLogo] = useState('')
 
+  const [additionalSchools, setAdditionalSchools] = useState<Array<{
+    school_id: string
+    distance: string
+  }>>([])
+
   useEffect(() => {
     async function checkAccess() {
       const { data: userData } = await getCurrentUser()
@@ -96,10 +118,65 @@ export default function NewHostelPage() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
 
-      // Update local school logo if school changes
+      setFormData(prev => ({ ...prev, [name]: value }))
+
+      // Auto-calculate distance if school changes or coordinates change
       if (name === 'school_id') {
         const selectedSchool = schools.find(s => s.id === value)
         setSchoolLogo(selectedSchool?.logo_url || '')
+
+        if (selectedSchool?.latitude && selectedSchool?.longitude && formData.latitude && formData.longitude) {
+          const dist = calculateDistance(
+            Number(formData.latitude),
+            Number(formData.longitude),
+            selectedSchool.latitude,
+            selectedSchool.longitude
+          )
+          setFormData(prev => ({ ...prev, [name]: value, distance: String(dist) }))
+          return
+        }
+      }
+
+      if (name === 'latitude' || name === 'longitude') {
+        const newLat = name === 'latitude' ? value : formData.latitude
+        const newLong = name === 'longitude' ? value : formData.longitude
+
+        // Update primary school distance
+        if (formData.school_id && newLat && newLong) {
+          const school = schools.find(s => s.id === formData.school_id)
+          if (school?.latitude && school?.longitude) {
+            const dist = calculateDistance(
+              Number(newLat),
+              Number(newLong),
+              school.latitude,
+              school.longitude
+            )
+            // We need to use functional update to ensure we have latest state, but we are inside one.
+            // However, we can't easily access the 'updated' value of the other field if we just rely on prev.
+            // So we use the specific values we have.
+            // Actually, setFormData is async, so we should just call it once with all updates if possible.
+            // But here we are engaging custom logic.
+            // Let's do a separate setTimeout or just chain the updates.
+            // Easier: just update the distance in the same setFormData call above? 
+            // the 'value' is for the field being changed.
+
+            setFormData(prev => ({ ...prev, [name]: value, distance: String(dist) }))
+
+            // Also update additional schools distances
+            const updatedAdditional = additionalSchools.map(s => {
+              const addSchool = schools.find(sc => sc.id === s.school_id)
+              if (addSchool?.latitude && addSchool?.longitude) {
+                return {
+                  ...s,
+                  distance: String(calculateDistance(Number(newLat), Number(newLong), addSchool.latitude, addSchool.longitude))
+                }
+              }
+              return s
+            })
+            setAdditionalSchools(updatedAdditional)
+            return
+          }
+        }
       }
     }
   }
@@ -177,6 +254,37 @@ export default function NewHostelPage() {
     const updated = [...roomTypes]
     updated[index] = { ...updated[index], [field]: value }
     setRoomTypes(updated)
+  }
+
+  const addAdditionalSchool = () => {
+    setAdditionalSchools([...additionalSchools, { school_id: '', distance: '' }])
+  }
+
+  const removeAdditionalSchool = (index: number) => {
+    setAdditionalSchools(additionalSchools.filter((_, i) => i !== index))
+  }
+
+  const updateAdditionalSchool = (index: number, field: string, value: string) => {
+    const updated = [...additionalSchools]
+    // @ts-ignore
+    updated[index][field] = value
+
+    // Auto-calculate distance if school is selected
+    if (field === 'school_id') {
+      const selectedSchool = schools.find(s => s.id === value)
+      if (selectedSchool?.latitude && selectedSchool?.longitude && formData.latitude && formData.longitude) {
+        const dist = calculateDistance(
+          Number(formData.latitude),
+          Number(formData.longitude),
+          selectedSchool.latitude,
+          selectedSchool.longitude
+        )
+        // @ts-ignore
+        updated[index].distance = String(dist)
+      }
+    }
+
+    setAdditionalSchools(updated)
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -261,6 +369,12 @@ export default function NewHostelPage() {
       categories: formData.categories,
       images: images.length > 0 ? images : undefined,
       room_types: validRoomTypes,
+      additional_schools: additionalSchools
+        .filter(s => s.school_id && s.distance)
+        .map(s => ({
+          school_id: s.school_id,
+          distance: Number(s.distance)
+        })),
     })
 
     if (createError) {
@@ -413,6 +527,60 @@ export default function NewHostelPage() {
               </div>
             </div>
           )}
+
+          <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+            <label className={styles.label}>Additional Schools & Distances</label>
+
+            {additionalSchools.map((school, index) => (
+              <div key={index} className={styles.roomTypeRow} style={{ marginBottom: '10px' }}>
+                <select
+                  value={school.school_id}
+                  onChange={(e) => updateAdditionalSchool(index, 'school_id', e.target.value)}
+                  className={styles.input}
+                  style={{ flex: 2 }}
+                >
+                  <option value="">Select a school</option>
+                  {schools
+                    .filter(s => s.id !== formData.school_id && !additionalSchools.find((as, i) => i !== index && as.school_id === s.id))
+                    .map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))
+                  }
+                </select>
+                <input
+                  type="number"
+                  placeholder="Dist (km)"
+                  value={school.distance}
+                  onChange={(e) => updateAdditionalSchool(index, 'distance', e.target.value)}
+                  className={styles.input}
+                  style={{ flex: 1 }}
+                  step="0.1"
+                  min="0"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeAdditionalSchool(index)}
+                  className={styles.removeButton}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={addAdditionalSchool}
+              className={styles.addButton}
+              style={{ marginTop: '8px' }}
+            >
+              + Add Another School
+            </button>
+            <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+              Add other schools that are close to this hostel. The primary distance is set below in Location section.
+            </p>
+          </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>

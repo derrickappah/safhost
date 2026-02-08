@@ -27,6 +27,10 @@ export interface CreateHostelInput {
     price: number
     available: number
   }>
+  additional_schools?: Array<{
+    school_id: string
+    distance: number
+  }>
 }
 
 /**
@@ -44,26 +48,26 @@ export async function createHostel(input: CreateHostelInput): Promise<{
 
     // Use service role client to bypass RLS (admin status already verified)
     const supabase = createServiceRoleClient()
-    
+
     // Ensure room_types is properly formatted
     const roomTypesData = Array.isArray(input.room_types) && input.room_types.length > 0
       ? input.room_types
-          .filter(rt => rt && typeof rt === 'object')
-          .map(rt => ({
-            type: String(rt.type || '').trim(),
-            price: typeof rt.price === 'number' ? rt.price : Number(rt.price) || 0,
-            available: typeof rt.available === 'number' ? rt.available : Number(rt.available) || 0
-          }))
-          .filter(rt => rt.type.length > 0 && rt.price > 0)
+        .filter(rt => rt && typeof rt === 'object')
+        .map(rt => ({
+          type: String(rt.type || '').trim(),
+          price: typeof rt.price === 'number' ? rt.price : Number(rt.price) || 0,
+          available: typeof rt.available === 'number' ? rt.available : Number(rt.available) || 0
+        }))
+        .filter(rt => rt.type.length > 0 && rt.price > 0)
       : []
-    
+
     console.log('Input room_types:', input.room_types)
     console.log('Formatted room_types for database:', JSON.stringify(roomTypesData))
-    
+
     const { data, error } = await supabase
       .from('hostels')
       .insert({
-        school_id: input.school_id,
+        school_id: input.school_id, // Primary school
         name: input.name,
         description: input.description || null,
         price_min: input.price_min,
@@ -91,6 +95,37 @@ export async function createHostel(input: CreateHostelInput): Promise<{
       return { data: null, error: error.message }
     }
 
+    // Add primary school to hostel_schools
+    const hostelSchools = [{
+      hostel_id: data.id,
+      school_id: input.school_id,
+      distance: input.distance || null
+    }]
+
+    // Add additional schools
+    if (input.additional_schools && input.additional_schools.length > 0) {
+      input.additional_schools.forEach(school => {
+        // Avoid duplicates if primary school is also in additional_schools
+        if (school.school_id !== input.school_id) {
+          hostelSchools.push({
+            hostel_id: data.id,
+            school_id: school.school_id,
+            distance: school.distance
+          })
+        }
+      })
+    }
+
+    if (hostelSchools.length > 0) {
+      const { error: schoolsError } = await supabase
+        .from('hostel_schools')
+        .insert(hostelSchools)
+
+      if (schoolsError) {
+        console.error('Error adding schools to hostel_schools:', schoolsError)
+      }
+    }
+
     // Log audit action
     const { getUser } = await import('../auth')
     const user = await getUser()
@@ -104,8 +139,6 @@ export async function createHostel(input: CreateHostelInput): Promise<{
     }
 
     // Notify all students with active subscriptions for this school
-    // Do this asynchronously to avoid blocking the response
-    // Errors are logged but don't fail the hostel creation
     const { notifyStudentsForNewHostel } = await import('../notifications/create')
     notifyStudentsForNewHostel(input.school_id, data.id, input.name)
       .then(({ count, error }) => {
@@ -146,7 +179,7 @@ export async function updateHostel(
 
     // Use service role client to bypass RLS (admin status already verified)
     const supabase = createServiceRoleClient()
-    
+
     const updateData: any = {}
     if (input.name !== undefined) updateData.name = input.name
     if (input.description !== undefined) updateData.description = input.description
@@ -167,13 +200,13 @@ export async function updateHostel(
       // Ensure room_types is properly formatted
       updateData.room_types = Array.isArray(input.room_types) && input.room_types.length > 0
         ? input.room_types
-            .filter(rt => rt && typeof rt === 'object')
-            .map(rt => ({
-              type: String(rt.type || '').trim(),
-              price: typeof rt.price === 'number' ? rt.price : Number(rt.price) || 0,
-              available: typeof rt.available === 'number' ? rt.available : Number(rt.available) || 0
-            }))
-            .filter(rt => rt.type.length > 0 && rt.price > 0)
+          .filter(rt => rt && typeof rt === 'object')
+          .map(rt => ({
+            type: String(rt.type || '').trim(),
+            price: typeof rt.price === 'number' ? rt.price : Number(rt.price) || 0,
+            available: typeof rt.available === 'number' ? rt.available : Number(rt.available) || 0
+          }))
+          .filter(rt => rt.type.length > 0 && rt.price > 0)
         : []
       console.log('Input room_types for update:', input.room_types)
       console.log('Formatted room_types for database:', JSON.stringify(updateData.room_types))
@@ -190,6 +223,49 @@ export async function updateHostel(
 
     if (error) {
       return { data: null, error: error.message }
+    }
+
+    // Handle hostel_schools update
+    if (input.school_id !== undefined || input.additional_schools !== undefined) {
+      const currentPrimarySchoolId = data.school_id
+      const currentDistance = data.distance
+
+      if (input.additional_schools !== undefined) {
+        // Full sync
+        await supabase.from('hostel_schools').delete().eq('hostel_id', id)
+
+        const hostelSchools: any[] = []
+
+        // Add primary
+        hostelSchools.push({
+          hostel_id: id,
+          school_id: currentPrimarySchoolId,
+          distance: currentDistance
+        })
+
+        // Add additional
+        input.additional_schools.forEach(school => {
+          if (school.school_id !== currentPrimarySchoolId) {
+            hostelSchools.push({
+              hostel_id: id,
+              school_id: school.school_id,
+              distance: school.distance
+            })
+          }
+        })
+
+        if (hostelSchools.length > 0) {
+          await supabase.from('hostel_schools').insert(hostelSchools)
+        }
+
+      } else if (input.school_id !== undefined) {
+        // Upsert new primary
+        await supabase.from('hostel_schools').upsert({
+          hostel_id: id,
+          school_id: currentPrimarySchoolId,
+          distance: currentDistance
+        })
+      }
     }
 
     // Log audit action
@@ -226,7 +302,7 @@ export async function deleteHostel(id: string): Promise<{
 
     // Use service role client to bypass RLS (admin status already verified)
     const supabase = createServiceRoleClient()
-    
+
     const { error } = await supabase
       .from('hostels')
       .delete()
@@ -271,7 +347,7 @@ export async function getAllHostels(limit?: number): Promise<{
 
     // Use service role client to bypass RLS (admin status already verified)
     const supabase = createServiceRoleClient()
-    
+
     let query = supabase
       .from('hostels')
       .select(`
@@ -296,17 +372,17 @@ export async function getAllHostels(limit?: number): Promise<{
         school:schools(id, name, location, latitude, longitude, logo_url)
       `)
       .order('created_at', { ascending: false })
-    
+
     if (limit) {
       query = query.limit(limit)
     }
-    
+
     const { data, error } = await query
-    
+
     if (error) {
       return { data: null, error: error.message }
     }
-    
+
     // Format data
     const formattedData = (data || []).map(hostel => ({
       ...hostel,
@@ -317,7 +393,7 @@ export async function getAllHostels(limit?: number): Promise<{
       rating: Number(hostel.rating),
       school: Array.isArray(hostel.school) ? hostel.school[0] : hostel.school
     }))
-    
+
     return { data: formattedData, error: null }
   } catch (error) {
     return {

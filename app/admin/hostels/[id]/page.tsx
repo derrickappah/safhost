@@ -24,6 +24,23 @@ const commonAmenities = [
   'Common Area'
 ]
 
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1)
+  const dLon = deg2rad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const d = R * c // Distance in km
+  return Math.round(d * 10) / 10 // Round to 1 decimal place
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180)
+}
+
 export default function EditHostelPage() {
   const router = useRouter()
   const params = useParams()
@@ -64,6 +81,11 @@ export default function EditHostelPage() {
 
   const [images, setImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
+
+  const [additionalSchools, setAdditionalSchools] = useState<Array<{
+    school_id: string
+    distance: string
+  }>>([])
 
   useEffect(() => {
     async function loadData() {
@@ -129,6 +151,16 @@ export default function EditHostelPage() {
         )
       }
 
+      // Populate additional schools
+      if (Array.isArray(hostelData.additional_schools)) {
+        setAdditionalSchools(
+          hostelData.additional_schools.map((as: any) => ({
+            school_id: as.school_id,
+            distance: String(as.distance || '')
+          }))
+        )
+      }
+
       setLoading(false)
     }
     loadData()
@@ -141,6 +173,56 @@ export default function EditHostelPage() {
       setFormData(prev => ({ ...prev, [name]: checked }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
+
+      // Auto-calculate distance if school changes or coordinates change
+      if (name === 'school_id') {
+        const selectedSchool = schools.find(s => s.id === value)
+
+        if (selectedSchool?.latitude && selectedSchool?.longitude && formData.latitude && formData.longitude) {
+          const dist = calculateDistance(
+            Number(formData.latitude),
+            Number(formData.longitude),
+            selectedSchool.latitude,
+            selectedSchool.longitude
+          )
+          setFormData(prev => ({ ...prev, [name]: value, distance: String(dist) }))
+          return
+        }
+      }
+
+      if (name === 'latitude' || name === 'longitude') {
+        const newLat = name === 'latitude' ? value : formData.latitude
+        const newLong = name === 'longitude' ? value : formData.longitude
+
+        // Update primary school distance
+        if (formData.school_id && newLat && newLong) {
+          const school = schools.find(s => s.id === formData.school_id)
+          if (school?.latitude && school?.longitude) {
+            const dist = calculateDistance(
+              Number(newLat),
+              Number(newLong),
+              school.latitude,
+              school.longitude
+            )
+
+            setFormData(prev => ({ ...prev, [name]: value, distance: String(dist) }))
+
+            // Also update additional schools distances
+            const updatedAdditional = additionalSchools.map(s => {
+              const addSchool = schools.find(sc => sc.id === s.school_id)
+              if (addSchool?.latitude && addSchool?.longitude) {
+                return {
+                  ...s,
+                  distance: String(calculateDistance(Number(newLat), Number(newLong), addSchool.latitude, addSchool.longitude))
+                }
+              }
+              return s
+            })
+            setAdditionalSchools(updatedAdditional)
+            return
+          }
+        }
+      }
     }
   }
 
@@ -183,6 +265,37 @@ export default function EditHostelPage() {
     const updated = [...roomTypes]
     updated[index] = { ...updated[index], [field]: value }
     setRoomTypes(updated)
+  }
+
+  const addAdditionalSchool = () => {
+    setAdditionalSchools([...additionalSchools, { school_id: '', distance: '' }])
+  }
+
+  const removeAdditionalSchool = (index: number) => {
+    setAdditionalSchools(additionalSchools.filter((_, i) => i !== index))
+  }
+
+  const updateAdditionalSchool = (index: number, field: string, value: string) => {
+    const updated = [...additionalSchools]
+    // @ts-ignore
+    updated[index][field] = value
+
+    // Auto-calculate distance if school is selected
+    if (field === 'school_id') {
+      const selectedSchool = schools.find(s => s.id === value)
+      if (selectedSchool?.latitude && selectedSchool?.longitude && formData.latitude && formData.longitude) {
+        const dist = calculateDistance(
+          Number(formData.latitude),
+          Number(formData.longitude),
+          selectedSchool.latitude,
+          selectedSchool.longitude
+        )
+        // @ts-ignore
+        updated[index].distance = String(dist)
+      }
+    }
+
+    setAdditionalSchools(updated)
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,6 +379,12 @@ export default function EditHostelPage() {
       categories: formData.categories,
       images: images.length > 0 ? images : undefined,
       room_types: validRoomTypes,
+      additional_schools: additionalSchools
+        .filter(s => s.school_id && s.distance)
+        .map(s => ({
+          school_id: s.school_id,
+          distance: Number(s.distance)
+        })),
     })
 
     if (updateError) {
@@ -451,7 +570,63 @@ export default function EditHostelPage() {
         </div>
 
         <div className={styles.formSection}>
-          <h2 className={styles.sectionTitle}>Location</h2>
+          <h2 className={styles.sectionTitle}>Additional Schools</h2>
+          <div className={styles.formGroup}>
+            <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+              Add other schools that are close to this hostel. The primary distance is set in the Location section.
+            </p>
+
+            {additionalSchools.map((school, index) => (
+              <div key={index} className={styles.roomTypeRow} style={{ marginBottom: '10px' }}>
+                <select
+                  value={school.school_id}
+                  onChange={(e) => updateAdditionalSchool(index, 'school_id', e.target.value)}
+                  className={styles.input}
+                  style={{ flex: 2 }}
+                >
+                  <option value="">Select a school</option>
+                  {schools
+                    .filter(s => s.id !== formData.school_id && !additionalSchools.find((as, i) => i !== index && as.school_id === s.id))
+                    .map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))
+                  }
+                </select>
+                <input
+                  type="number"
+                  placeholder="Dist (km)"
+                  value={school.distance}
+                  onChange={(e) => updateAdditionalSchool(index, 'distance', e.target.value)}
+                  className={styles.input}
+                  style={{ flex: 1 }}
+                  step="0.1"
+                  min="0"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeAdditionalSchool(index)}
+                  className={styles.removeButton}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={addAdditionalSchool}
+              className={styles.addButton}
+              style={{ marginTop: '8px' }}
+            >
+              + Add Another School
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h2 className={styles.sectionTitle}>Image Gallery</h2>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>
