@@ -22,7 +22,7 @@ export default async function AdminHostelsPage() {
           </Link>
         </div>
       </div>
-      
+
       <HostelsList hostels={hostels || []} />
     </div>
   )

@@ -369,7 +369,7 @@ export async function getAllHostels(limit?: number): Promise<{
         featured,
         latitude,
         longitude,
-        school:schools(id, name, location, latitude, longitude, logo_url)
+        school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
       `)
       .order('created_at', { ascending: false })
 

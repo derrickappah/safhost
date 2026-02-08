@@ -127,7 +127,7 @@ const getHostelsImpl = async (filters: HostelFilters = {}): Promise<{
         featured,
         latitude,
         longitude,
-        school:schools(id, name, location, latitude, longitude, logo_url)
+        school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
 
@@ -278,7 +278,7 @@ async function refreshHostelsCache(cacheKey: string, filters: HostelFilters): Pr
         featured,
         latitude,
         longitude,
-        school:schools(id, name, location, latitude, longitude, logo_url)
+        school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
 
@@ -422,7 +422,7 @@ export const getFeaturedHostels = cache(async (limit: number = 10): Promise<{
           featured,
           latitude,
           longitude,
-          school:schools(id, name, location, latitude, longitude, logo_url)
+          school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
         `)
         .eq('is_active', true)
         .eq('featured', true)
@@ -518,9 +518,8 @@ export const getHostelById = cache(async (id: string): Promise<{
         gender_restriction,
         is_available,
         featured,
-        categories,
-        categories,
-        school:schools(id, name, location, latitude, longitude, logo_url),
+        categories:categories,
+        school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url),
         additional_schools:hostel_schools(
           distance,
           school_id,
@@ -620,7 +619,7 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
         is_available,
         featured,
         categories,
-        school:schools(id, name, location, latitude, longitude, logo_url)
+        school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
       .neq('id', hostelId)
@@ -660,7 +659,7 @@ export const getSimilarHostels = cache(async (hostelId: string, limit: number = 
         .from('hostels')
         .select(`
           *,
-          school:schools(id, name, location, latitude, longitude, logo_url)
+          school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
         `)
         .eq('is_active', true)
         .eq('featured', true)
@@ -740,7 +739,7 @@ export const getPublicHostelPreviews = cache(async (limit: number = 10): Promise
         featured,
         latitude,
         longitude,
-        school:schools(id, name, location, latitude, longitude, logo_url)
+        school:schools!hostels_school_id_fkey(id, name, location, latitude, longitude, logo_url)
       `)
       .eq('is_active', true)
       .eq('featured', true)
@@ -809,7 +808,7 @@ export const autocompleteSearch = cache(async (
         id,
         name,
         address,
-        school:schools(location)
+        school:schools!hostels_school_id_fkey(location)
       `)
       .eq('is_active', true)
       .or(`name.ilike.%${query}%,address.ilike.%${query}%`)
