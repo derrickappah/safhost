@@ -28,7 +28,7 @@ export default function EditHostelPage() {
   const router = useRouter()
   const params = useParams()
   const hostelId = params.id as string
-  
+
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -72,19 +72,19 @@ export default function EditHostelPage() {
         router.push('/auth/login')
         return
       }
-      
+
       const admin = await isAdmin()
       if (!admin) {
         router.push('/')
         return
       }
-      
+
       // Load schools
       const { data: schoolsData } = await getSchools()
       if (schoolsData) {
         setSchools(schoolsData)
       }
-      
+
       // Load hostel data
       const { data: hostelData, error: hostelError } = await getHostelById(hostelId)
       if (hostelError || !hostelData) {
@@ -128,7 +128,7 @@ export default function EditHostelPage() {
           }))
         )
       }
-      
+
       setLoading(false)
     }
     loadData()
@@ -162,8 +162,10 @@ export default function EditHostelPage() {
     return roomTypes
       .filter(rt => {
         const hasType = rt.type && rt.type.trim().length > 0
-        const hasPrice = rt.price && !isNaN(Number(rt.price)) && Number(rt.price) > 0
-        const hasAvailable = rt.available && !isNaN(Number(rt.available)) && Number(rt.available) >= 0
+        const priceNum = Number(rt.price)
+        const availableNum = Number(rt.available)
+        const hasPrice = !isNaN(priceNum) && priceNum > 0
+        const hasAvailable = !isNaN(availableNum) && availableNum >= 0
         return hasType && hasPrice && hasAvailable
       })
       .map(rt => ({
@@ -255,7 +257,7 @@ export default function EditHostelPage() {
       latitude: formData.latitude ? Number(formData.latitude) : undefined,
       longitude: formData.longitude ? Number(formData.longitude) : undefined,
       distance: formData.distance ? Number(formData.distance) : undefined,
-      gender_restriction: (formData.gender_restriction && ['male', 'female', 'mixed'].includes(formData.gender_restriction)) 
+      gender_restriction: (formData.gender_restriction && ['male', 'female', 'mixed'].includes(formData.gender_restriction))
         ? (formData.gender_restriction as 'male' | 'female' | 'mixed')
         : undefined,
       is_available: formData.is_available,
@@ -329,7 +331,7 @@ export default function EditHostelPage() {
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Images</h2>
-          
+
           <div className={styles.imageUploadArea}>
             <input
               type="file"
@@ -366,7 +368,7 @@ export default function EditHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Basic Information</h2>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label}>
               School <span className={styles.required}>*</span>
@@ -450,7 +452,7 @@ export default function EditHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Location</h2>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label}>
               Address <span className={styles.required}>*</span>
@@ -511,7 +513,7 @@ export default function EditHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Hostel Manager Information</h2>
-          
+
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.label}>
@@ -547,7 +549,7 @@ export default function EditHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Room Types</h2>
-          
+
           {roomTypes.map((roomType, index) => (
             <div key={index} className={styles.roomTypeRow}>
               <input
@@ -585,7 +587,7 @@ export default function EditHostelPage() {
               )}
             </div>
           ))}
-          
+
           <button
             type="button"
             onClick={addRoomType}
@@ -597,7 +599,7 @@ export default function EditHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Additional Information</h2>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label}>Gender Restriction</label>
             <select

@@ -70,19 +70,19 @@ export default function NewHostelPage() {
         router.push('/auth/login')
         return
       }
-      
+
       const admin = await isAdmin()
       if (!admin) {
         router.push('/')
         return
       }
-      
+
       // Load schools
       const { data: schoolsData } = await getSchools()
       if (schoolsData) {
         setSchools(schoolsData)
       }
-      
+
       setLoading(false)
     }
     checkAccess()
@@ -95,7 +95,7 @@ export default function NewHostelPage() {
       setFormData(prev => ({ ...prev, [name]: checked }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
-      
+
       // Update local school logo if school changes
       if (name === 'school_id') {
         const selectedSchool = schools.find(s => s.id === value)
@@ -128,7 +128,7 @@ export default function NewHostelPage() {
 
       const result = await response.json()
       setSchoolLogo(result.url)
-      
+
       // Immediately update school in DB
       await updateSchool(formData.school_id, { logo_url: result.url })
     } catch (err) {
@@ -156,8 +156,10 @@ export default function NewHostelPage() {
     return roomTypes
       .filter(rt => {
         const hasType = rt.type && rt.type.trim().length > 0
-        const hasPrice = rt.price && !isNaN(Number(rt.price)) && Number(rt.price) > 0
-        const hasAvailable = rt.available && !isNaN(Number(rt.available)) && Number(rt.available) >= 0
+        const priceNum = Number(rt.price)
+        const availableNum = Number(rt.available)
+        const hasPrice = !isNaN(priceNum) && priceNum > 0
+        const hasAvailable = !isNaN(availableNum) && availableNum >= 0
         return hasType && hasPrice && hasAvailable
       })
       .map(rt => ({
@@ -237,7 +239,7 @@ export default function NewHostelPage() {
     console.log('Original room types from form:', roomTypes)
     console.log('Valid room types after filtering:', validRoomTypes)
     console.log('Submitting hostel with room types:', validRoomTypes)
-    
+
     const { data, error: createError } = await createHostel({
       school_id: formData.school_id,
       name: formData.name,
@@ -250,7 +252,7 @@ export default function NewHostelPage() {
       latitude: formData.latitude ? Number(formData.latitude) : undefined,
       longitude: formData.longitude ? Number(formData.longitude) : undefined,
       distance: formData.distance ? Number(formData.distance) : undefined,
-      gender_restriction: (formData.gender_restriction && ['male', 'female', 'mixed'].includes(formData.gender_restriction)) 
+      gender_restriction: (formData.gender_restriction && ['male', 'female', 'mixed'].includes(formData.gender_restriction))
         ? (formData.gender_restriction as 'male' | 'female' | 'mixed')
         : undefined,
       is_available: formData.is_available,
@@ -308,7 +310,7 @@ export default function NewHostelPage() {
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Images</h2>
-          
+
           <div className={styles.imageUploadArea}>
             <input
               type="file"
@@ -345,7 +347,7 @@ export default function NewHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Basic Information</h2>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label}>
               School <span className={styles.required}>*</span>
@@ -371,10 +373,10 @@ export default function NewHostelPage() {
               <label className={styles.label} style={{ fontSize: '12px', color: '#64748b' }}>School Logo</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
                 {schoolLogo ? (
-                  <img 
-                    src={schoolLogo} 
-                    alt="School logo" 
-                    style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #e2e8f0' }} 
+                  <img
+                    src={schoolLogo}
+                    alt="School logo"
+                    style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #e2e8f0' }}
                   />
                 ) : (
                   <div style={{ width: '48px', height: '48px', backgroundColor: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
@@ -390,9 +392,9 @@ export default function NewHostelPage() {
                     style={{ display: 'none' }}
                     disabled={uploadingLogo}
                   />
-                  <label 
-                    htmlFor="school-logo-upload" 
-                    style={{ 
+                  <label
+                    htmlFor="school-logo-upload"
+                    style={{
                       display: 'inline-block',
                       padding: '6px 12px',
                       backgroundColor: '#f8fafc',
@@ -475,7 +477,7 @@ export default function NewHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Location</h2>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label}>
               Address <span className={styles.required}>*</span>
@@ -536,7 +538,7 @@ export default function NewHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Hostel Manager Information</h2>
-          
+
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label className={styles.label}>
@@ -572,7 +574,7 @@ export default function NewHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Room Types</h2>
-          
+
           {roomTypes.map((roomType, index) => (
             <div key={index} className={styles.roomTypeRow}>
               <input
@@ -610,7 +612,7 @@ export default function NewHostelPage() {
               )}
             </div>
           ))}
-          
+
           <button
             type="button"
             onClick={addRoomType}
@@ -622,7 +624,7 @@ export default function NewHostelPage() {
 
         <div className={styles.formSection}>
           <h2 className={styles.sectionTitle}>Additional Information</h2>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label}>Gender Restriction</label>
             <select
