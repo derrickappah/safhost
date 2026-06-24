@@ -34,10 +34,8 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
     }
   }, [isOpen])
 
-  if (!isOpen) return null
-
   return (
-    <>
+    <div className={`${styles.drawerWrapper} ${isOpen ? styles.drawerWrapperActive : ''}`}>
       {/* Backdrop */}
       <div 
         className={styles.drawerBackdrop}
@@ -47,7 +45,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
       
       {/* Drawer */}
       <aside 
-        className={`${styles.mobileDrawer} ${styles.drawerOpen}`}
+        className={styles.mobileDrawer}
         aria-label="Navigation menu"
         role="navigation"
       >
@@ -155,6 +153,6 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
           </Link>
         </nav>
       </aside>
-    </>
+    </div>
   )
 }

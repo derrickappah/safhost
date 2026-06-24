@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { IoArrowBack } from 'react-icons/io5'
 import styles from './AdminPageHeader.module.css'
 
@@ -11,9 +11,13 @@ interface AdminPageHeaderProps {
 
 export default function AdminPageHeader({ title, actions }: AdminPageHeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
+
+  const pathSegments = pathname.split('/').filter(Boolean)
+  const isSubpage = pathSegments.length > 2
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${isSubpage ? styles.stickyHeader : styles.staticHeader}`}>
       <button 
         className={styles.backButton} 
         onClick={() => router.back()}

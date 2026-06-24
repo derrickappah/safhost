@@ -727,31 +727,40 @@ export default function EditHostelPage() {
 
           {roomTypes.map((roomType, index) => (
             <div key={index} className={styles.roomTypeRow}>
-              <input
-                type="text"
-                placeholder="Room type (e.g., Single Room)"
-                value={roomType.type}
-                onChange={(e) => updateRoomType(index, 'type', e.target.value)}
-                className={styles.input}
-              />
-              <input
-                type="number"
-                placeholder="Price (GHS)"
-                value={roomType.price}
-                onChange={(e) => updateRoomType(index, 'price', e.target.value)}
-                className={styles.input}
-                step="0.01"
-                min="0"
-              />
-              <input
-                type="number"
-                placeholder="Available"
-                value={roomType.available}
-                onChange={(e) => updateRoomType(index, 'available', e.target.value)}
-                className={styles.input}
-                min="0"
-              />
-              {roomTypes.length > 1 && (
+              <div className={styles.roomTypeField}>
+                <label className={styles.roomTypeMobileLabel}>Room Type #{index + 1}</label>
+                <input
+                  type="text"
+                  placeholder="Room type (e.g., Single Room)"
+                  value={roomType.type}
+                  onChange={(e) => updateRoomType(index, 'type', e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.roomTypeField}>
+                <label className={styles.roomTypeMobileLabel}>Price (GHS)</label>
+                <input
+                  type="number"
+                  placeholder="Price (GHS)"
+                  value={roomType.price}
+                  onChange={(e) => updateRoomType(index, 'price', e.target.value)}
+                  className={styles.input}
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+              <div className={styles.roomTypeField}>
+                <label className={styles.roomTypeMobileLabel}>Available</label>
+                <input
+                  type="number"
+                  placeholder="Available"
+                  value={roomType.available}
+                  onChange={(e) => updateRoomType(index, 'available', e.target.value)}
+                  className={styles.input}
+                  min="0"
+                />
+              </div>
+              {roomTypes.length > 1 ? (
                 <button
                   type="button"
                   onClick={() => removeRoomType(index)}
@@ -759,6 +768,8 @@ export default function EditHostelPage() {
                 >
                   Remove
                 </button>
+              ) : (
+                <div className={styles.removePlaceholder} />
               )}
             </div>
           ))}

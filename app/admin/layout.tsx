@@ -2,8 +2,7 @@ import { redirect } from 'next/navigation'
 import { isAdmin } from '@/lib/auth/middleware'
 import Link from 'next/link'
 import Image from 'next/image'
-import MobileNav from './MobileNav'
-import MobileHeader from './MobileHeader'
+import AdminLayoutClient from './AdminLayoutClient'
 import styles from './layout.module.css'
 
 export default async function AdminLayout({
@@ -71,12 +70,8 @@ export default async function AdminLayout({
         </nav>
       </aside>
       
-      {/* Mobile Header & Navigation */}
-      <MobileHeader />
-      
-      <main className={styles.main}>
-        {children}
-      </main>
+      {/* Client wrapper handles mobile header & responsive main padding */}
+      <AdminLayoutClient>{children}</AdminLayoutClient>
     </div>
   )
 }
