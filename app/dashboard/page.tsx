@@ -9,15 +9,16 @@ import { getFavorites } from '@/lib/actions/favorites'
 import { getRecentlyViewed } from '@/lib/actions/views'
 import { getUnreadCount } from '@/lib/notifications/get'
 import { getFeaturedHostels } from '@/lib/actions/hostels'
+import { getProfile } from '@/lib/actions/profile'
+import { getSchools } from '@/lib/actions/schools'
 import DashboardHeader from './DashboardHeader'
+import DashboardSearchBar from './DashboardSearchBar'
 import FeaturedSection from './FeaturedSection'
 import FavoritesSection from './FavoritesSection'
 import RecommendationsLoader from './RecommendationsLoader'
 import RecommendationsSkeleton from './RecommendationsSkeleton'
 import RecentlyViewedSection from './RecentlyViewedSection'
 import QuickActions from './QuickActions'
-
-// Dashboard must be dynamic to prevent cross-user session leakage
 
 // Dashboard must be dynamic to prevent cross-user session leakage
 export const dynamic = 'force-dynamic'
@@ -38,7 +39,9 @@ export default async function DashboardPage() {
     favoritesResult,
     unreadCountResult,
     recentlyViewedResult,
-    featuredHostelsResult
+    featuredHostelsResult,
+    profileResult,
+    schoolsResult
   ] = await Promise.all([
     getFavorites().catch(() => ({ data: null, error: null })),
     getUnreadCount().catch(() => ({ data: 0, error: null })),
@@ -46,14 +49,17 @@ export default async function DashboardPage() {
     getFeaturedHostels(10).catch((error) => {
       console.error('[Dashboard] Error fetching featured hostels:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Unknown error' }
-    })
+    }),
+    getProfile().catch(() => ({ data: null, error: null })),
+    getSchools().catch(() => ({ data: null, error: null }))
   ])
-
 
   const favorites = favoritesResult.data || []
   const unreadNotifications = unreadCountResult.data || 0
   const recentlyViewed = recentlyViewedResult.data || []
   const featuredHostels = featuredHostelsResult.data || []
+  const profile = profileResult.data
+  const schools = schoolsResult.data || []
 
   // Format favorites for display
   const formattedFavorites = favorites.map(fav => ({
@@ -78,21 +84,20 @@ export default async function DashboardPage() {
 
   const favoriteIds = formattedFavorites.map(f => f.id)
 
-  const getUserName = () => {
-    if (user?.user_metadata?.name) return user.user_metadata.name
-    if (user?.email) return user.email.split('@')[0]
-    return 'User'
-  }
-
   return (
     <div className={styles.container}>
       <div className={styles.scrollContent}>
         {/* Header */}
         <DashboardHeader
-          userName={getUserName()}
+          user={user}
+          profile={profile}
+          schools={schools}
           unreadNotifications={unreadNotifications}
           subscription={subscription}
         />
+
+        {/* Search Bar */}
+        <DashboardSearchBar schools={schools} />
 
         {/* Quick Actions */}
         <QuickActions />

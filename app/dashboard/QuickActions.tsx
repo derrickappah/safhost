@@ -11,13 +11,13 @@ export default function QuickActions() {
     {
       href: "/hostels",
       icon: IoSearch,
-      label: "Browse",
+      label: "Browse Hostels",
       className: styles.iconBlue
     },
     {
       href: "/hostels/map",
       icon: IoMap,
-      label: "Map",
+      label: "Map View",
       className: styles.iconGreen
     },
     {
@@ -41,7 +41,7 @@ export default function QuickActions() {
   ]
 
   return (
-    <div className={styles.quickActions}>
+    <div className={styles.quickActions} role="navigation" aria-label="Quick action hub">
       {actions.map((action, index) => {
         const Icon = action.icon
         return (
