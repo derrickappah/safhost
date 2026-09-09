@@ -12,42 +12,57 @@ import {
 } from 'react-icons/io5'
 import styles from './page.module.css'
 
-interface Subscription {
+export interface Subscription {
   id: string
   status: string
+  plan_type?: 'monthly' | 'semester'
   expires_at: string | null
-  created_at: string
+  created_at?: string
+  updated_at?: string
 }
 
-interface SubscriptionCardProps {
+export interface SubscriptionCardProps {
   subscription: Subscription | null
 }
 
 export default function SubscriptionCard({ subscription }: SubscriptionCardProps) {
   const router = useRouter()
 
-  const getSubscriptionDaysLeft = () => {
+  const getSubscriptionDaysLeft = (): number | null => {
     if (!subscription?.expires_at) return null
     const expiresAt = new Date(subscription.expires_at)
+    if (isNaN(expiresAt.getTime())) return null
     const now = new Date()
     const diffTime = expiresAt.getTime() - now.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays > 0 ? diffDays : 0
   }
 
-  const getSubscriptionProgress = () => {
-    if (!subscription?.expires_at) return 0
+  const getSubscriptionProgress = (): number => {
+    if (!subscription?.expires_at) return 100
     const expiresAt = new Date(subscription.expires_at)
-    const created = new Date(subscription.created_at)
+    if (isNaN(expiresAt.getTime())) return 100
+    const createdAt = subscription.created_at
+      ? new Date(subscription.created_at)
+      : new Date(expiresAt.getTime() - 30 * 86400000)
+    if (isNaN(createdAt.getTime())) return 100
     const now = new Date()
-    const total = expiresAt.getTime() - created.getTime()
-    const elapsed = now.getTime() - created.getTime()
-    return Math.min(100, Math.max(0, (elapsed / total) * 100))
+    const total = expiresAt.getTime() - createdAt.getTime()
+    if (total <= 0) return 100
+    const elapsed = now.getTime() - createdAt.getTime()
+    const pct = (elapsed / total) * 100
+    return Math.min(100, Math.max(0, pct))
   }
 
   const daysLeft = getSubscriptionDaysLeft()
   const progress = getSubscriptionProgress()
-  const isActive = subscription && subscription.status === 'active'
+  const isActive = Boolean(subscription && subscription.status === 'active')
+
+  const planTierLabel = subscription?.plan_type === 'semester'
+    ? 'Semester Pass'
+    : subscription?.plan_type === 'monthly'
+    ? 'Monthly Pass'
+    : 'Student Pass'
 
   if (isActive) {
     return (
@@ -55,27 +70,40 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
         <div className={styles.subscriptionHeaderRow}>
           <div className={styles.subscriptionStatusBadge}>
             <IoCheckmarkCircle size={16} color="#16a34a" />
-            <span className={styles.subscriptionStatusText}>Student Pass Active</span>
+            <span className={styles.subscriptionStatusText}>{planTierLabel} Active</span>
           </div>
-          {daysLeft !== null && (
+          {daysLeft !== null ? (
             <div className={styles.subscriptionDaysLeft}>
               <IoTimeOutline size={14} />
               <span>{daysLeft} days remaining</span>
             </div>
+          ) : (
+            <div className={styles.subscriptionDaysLeft}>
+              <span>Active</span>
+            </div>
           )}
         </div>
 
-        <div className={styles.subscriptionProgressBar}>
+        <div className={styles.progressBar}>
           <div
-            className={styles.subscriptionProgressFill}
+            className={styles.progressFill}
             style={{ width: `${Math.max(5, progress)}%` }}
           />
         </div>
 
         <div className={styles.subscriptionPerksList}>
-          <span className={styles.subscriptionPerkItem}>✓ Direct WhatsApp & Calls</span>
-          <span className={styles.subscriptionPerkItem}>✓ Precise Campus Distance</span>
-          <span className={styles.subscriptionPerkItem}>✓ Verified Locations</span>
+          <span className={styles.subscriptionPerkItem}>
+            <IoLogoWhatsapp size={14} className={styles.whatsappIconActive} />
+            <span>Direct Manager WhatsApp Unlocked</span>
+          </span>
+          <span className={styles.subscriptionPerkItem}>
+            <IoCallOutline size={14} />
+            <span>Direct Phone Contact Unlocked</span>
+          </span>
+          <span className={styles.subscriptionPerkItem}>
+            <IoShieldCheckmark size={14} />
+            <span>Verified Hostels Access</span>
+          </span>
         </div>
 
         <div className={styles.subscriptionActionsRow}>
@@ -84,7 +112,7 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
             className={styles.subscriptionManageBtn}
             onClick={() => router.push('/subscribe')}
           >
-            <span>Manage Subscription</span>
+            <span>Renew / Manage Pass</span>
             <IoArrowForward size={14} />
           </button>
         </div>
@@ -97,18 +125,20 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
       <div className={styles.upgradeContent}>
         <div className={styles.upgradeHeaderBadge}>
           <IoSparkles size={14} />
-          <span>Unlock Direct Access</span>
+          <span>Student Access Pass</span>
         </div>
-        <h3 className={styles.upgradeTitle}>Direct Hostel Contacts & WhatsApp</h3>
+        <h3 className={styles.upgradeTitle}>
+          Unlock Direct Manager WhatsApp & Contact Numbers
+        </h3>
         <p className={styles.upgradeSubtitle}>
-          Connect directly with verified hostel administrations. Skip fake agents, eliminate viewing
-          fees, and secure your room early.
+          Connect directly with verified hostel managers. Skip unverified agents, eliminate viewing
+          fees, and secure your campus accommodation early.
         </p>
 
         <div className={styles.upgradePerksRow}>
           <div className={styles.upgradePerk}>
             <IoLogoWhatsapp size={15} className={styles.whatsappIcon} />
-            <span>Direct WhatsApp</span>
+            <span>Direct Manager WhatsApp</span>
           </div>
           <div className={styles.upgradePerk}>
             <IoCallOutline size={15} />
@@ -116,7 +146,7 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
           </div>
           <div className={styles.upgradePerk}>
             <IoShieldCheckmark size={15} />
-            <span>100% Inspected</span>
+            <span>100% Inspected Hostels</span>
           </div>
         </div>
       </div>

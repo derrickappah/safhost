@@ -1,21 +1,14 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward, IoShieldCheckmark } from 'react-icons/io5'
+import { IoArrowForward } from 'react-icons/io5'
 import styles from './page.module.css'
 import { addFavorite, removeFavorite } from '@/lib/actions/favorites'
 import { useState } from 'react'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import DashboardHostelCard, { HostelCardData } from './DashboardHostelCard'
 
-interface FeaturedHostel {
-  id: string
-  name: string
-  price: number
-  rating: number
-  distance: number | null
-  image: string
-}
+export interface FeaturedHostel extends HostelCardData {}
 
 interface FeaturedSectionProps {
   featuredHostels: FeaturedHostel[]
@@ -23,15 +16,19 @@ interface FeaturedSectionProps {
   initialFavoriteIds: string[]
 }
 
-export default function FeaturedSection({ featuredHostels: initialFeaturedHostels, hasSubscription, initialFavoriteIds }: FeaturedSectionProps) {
-  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
-  const [featuredHostels, setFeaturedHostels] = useState(initialFeaturedHostels)
+export default function FeaturedSection({
+  featuredHostels: initialFeaturedHostels,
+  hasSubscription,
+  initialFavoriteIds
+}: FeaturedSectionProps) {
+  const { navigate } = useInstantNavigation()
+  const [featuredHostels] = useState(initialFeaturedHostels)
   const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set(initialFavoriteIds))
 
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!hasSubscription) {
-      navigate('/subscribe')
+      window.location.href = '/subscribe'
       return
     }
     const isFavorited = favoritedIds.has(hostelId)
@@ -106,72 +103,16 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
         </Link>
       </div>
       <div className={styles.horizontalScroll}>
-        {featuredHostels.map((hostel) => {
-          const imageUrl = hostel.image && hostel.image.trim() !== ''
-            ? hostel.image
-            : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
-          const isFavorited = favoritedIds.has(hostel.id)
-
-          const hostelUrl = `/hostel/${hostel.id}`
-          return (
-            <div
-              key={hostel.id}
-              className={styles.favoriteCard}
-              onTouchStart={() => hasSubscription ? handleTouchStart(hostelUrl) : undefined}
-              onClick={(e) => {
-                if (!hasSubscription) {
-                  navigate('/subscribe')
-                } else {
-                  navigate(hostelUrl)
-                }
-              }}
-            >
-              {imageUrl && (
-                <div className={styles.favoriteImageContainer}>
-                  <Image
-                    src={imageUrl}
-                    alt={hostel.name || 'Hostel'}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                    className={styles.favoriteImage}
-                    priority={hostel.id === featuredHostels[0]?.id}
-                    quality={90}
-                  />
-                  <div className={styles.cardVerifiedBadge}>
-                    <IoShieldCheckmark size={11} />
-                    <span>Verified</span>
-                  </div>
-                </div>
-              )}
-              <div className={styles.favoriteContent}>
-                <h3 className={styles.favoriteName}>{hostel.name}</h3>
-                <div className={styles.favoriteRow}>
-                  <div className={styles.ratingSmall}>
-                    <IoStar size={12} color="#fbbf24" />
-                    <span className={styles.ratingSmallText}>{Number(hostel.rating || 0).toFixed(1)}</span>
-                  </div>
-                  {hostel.distance !== null && hostel.distance !== undefined && (
-                    <span className={styles.distanceSmall}>
-                      <IoLocation size={12} color="#64748b" />
-                      {Number(hostel.distance).toFixed(1)}km
-                    </span>
-                  )}
-                </div>
-                <span className={styles.favoritePrice}>GH₵ {(hostel.price || 0).toLocaleString()} / sem</span>
-              </div>
-              <button
-                className={styles.heartButton}
-                onClick={(e) => handleToggleFavorite(hostel.id, e)}
-              >
-                {isFavorited ? (
-                  <IoHeart size={20} color="#ef4444" />
-                ) : (
-                  <IoHeartOutline size={20} color="#fff" />
-                )}
-              </button>
-            </div>
-          )
-        })}
+        {featuredHostels.map((hostel, index) => (
+          <DashboardHostelCard
+            key={hostel.id}
+            hostel={hostel}
+            isFavorite={favoritedIds.has(hostel.id)}
+            onToggleFavorite={(id, e) => handleToggleFavorite(id, e)}
+            priority={index === 0}
+            variant="carousel"
+          />
+        ))}
       </div>
     </section>
   )

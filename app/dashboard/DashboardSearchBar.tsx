@@ -65,7 +65,7 @@ export default function DashboardSearchBar({
 
   // Dismiss dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false)
         setSelectedIndex(-1)
@@ -73,11 +73,17 @@ export default function DashboardSearchBar({
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside, { passive: true })
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
   }, [])
 
   // 250ms debounced autocomplete query
   useEffect(() => {
+    let isCurrent = true
+    let active = true
     const trimmed = query.slice(0, 100).trim()
 
     if (trimmed.length < 2) {
@@ -93,6 +99,7 @@ export default function DashboardSearchBar({
     const timeoutId = setTimeout(async () => {
       try {
         const { data, error } = await autocompleteSearch(trimmed, 6)
+        if (!isCurrent || !active) return
         if (data && !error) {
           setResults(data)
           setIsOpen(true)
@@ -101,16 +108,23 @@ export default function DashboardSearchBar({
           setIsOpen(true)
         }
       } catch {
+        if (!isCurrent || !active) return
         setResults([])
         setIsOpen(true)
       } finally {
-        setLoading(false)
-        setHasSearched(true)
-        setSelectedIndex(-1)
+        if (isCurrent && active) {
+          setLoading(false)
+          setHasSearched(true)
+          setSelectedIndex(-1)
+        }
       }
     }, 250)
 
-    return () => clearTimeout(timeoutId)
+    return () => {
+      isCurrent = false
+      active = false
+      clearTimeout(timeoutId)
+    }
   }, [query])
 
   // Categorize suggestions
@@ -206,7 +220,7 @@ export default function DashboardSearchBar({
       role="search"
       aria-label="Student hostel search"
     >
-      <form onSubmit={handleSubmit} className={styles.searchBar} role="searchbox">
+      <form onSubmit={handleSubmit} className={styles.searchBar}>
         <div className={styles.searchIcon} aria-hidden="true">
           <IoSearchOutline size={20} />
         </div>

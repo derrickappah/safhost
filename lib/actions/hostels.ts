@@ -797,6 +797,11 @@ export const autocompleteSearch = cache(async (
       return { data: [], error: null }
     }
 
+    const cleanQuery = query.replace(/[,()]/g, ' ').trim()
+    if (!cleanQuery || cleanQuery.length < 2) {
+      return { data: [], error: null }
+    }
+
     const supabase = await createClient()
     const results: AutocompleteResult[] = []
 
@@ -811,7 +816,7 @@ export const autocompleteSearch = cache(async (
         school:schools!hostels_school_id_fkey(location)
       `)
       .eq('is_active', true)
-      .or(`name.ilike.%${query}%,address.ilike.%${query}%`)
+      .or(`name.ilike.%${cleanQuery}%,address.ilike.%${cleanQuery}%`)
       .limit(hostelLimit)
 
     if (!hostelError && hostels) {
@@ -831,7 +836,7 @@ export const autocompleteSearch = cache(async (
       const { data: schools, error: schoolError } = await supabase
         .from('schools')
         .select('id, name, location')
-        .or(`name.ilike.%${query}%,location.ilike.%${query}%`)
+        .or(`name.ilike.%${cleanQuery}%,location.ilike.%${cleanQuery}%`)
         .limit(schoolLimit)
 
       if (!schoolError && schools) {

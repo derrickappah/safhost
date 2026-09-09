@@ -67,9 +67,14 @@ export default async function DashboardPage() {
     id: fav.hostel?.id || fav.hostel_id,
     name: fav.hostel?.name || 'Unknown',
     price: fav.hostel?.price_min || 0,
+    price_min: fav.hostel?.price_min || 0,
     rating: fav.hostel?.rating || 0,
-    distance: null,
+    review_count: fav.hostel?.review_count || 0,
+    distance: fav.hostel?.distance ?? null,
     image: fav.hostel?.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400',
+    images: fav.hostel?.images || [],
+    amenities: fav.hostel?.amenities || [],
+    school: fav.hostel?.school,
     favoriteId: fav.id
   }))
 
@@ -78,9 +83,14 @@ export default async function DashboardPage() {
     id: hostel.id,
     name: hostel.name,
     price: hostel.price_min || 0,
+    price_min: hostel.price_min || 0,
     rating: hostel.rating || 0,
-    distance: hostel.distance,
-    image: hostel.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
+    review_count: hostel.review_count || 0,
+    distance: hostel.distance ?? null,
+    image: hostel.images?.[0] || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400',
+    images: hostel.images || [],
+    amenities: hostel.amenities || [],
+    school: hostel.school
   }))
 
   const favoriteIds = formattedFavorites.map(f => f.id)
@@ -121,10 +131,8 @@ export default async function DashboardPage() {
           <RecommendationsLoader />
         </Suspense>
 
-        {/* Recently Viewed */}
-        {recentlyViewed.length > 0 && (
-          <RecentlyViewedSection recentlyViewed={recentlyViewed} hasSubscription={hasSubscription} />
-        )}
+        {/* Recently Viewed - handles both recentlyViewed.length > 0 and empty state */}
+        <RecentlyViewedSection recentlyViewed={recentlyViewed} hasSubscription={hasSubscription} />
       </div>
     </div>
   )

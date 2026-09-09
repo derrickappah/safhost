@@ -2,29 +2,56 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoLocation, IoArrowForward } from 'react-icons/io5'
+import { IoStar, IoLocation, IoArrowForward, IoTimeOutline, IoCompassOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import { formatCediPrice, formatRatingBadge, formatDistance } from '@/lib/formatters'
 
-interface RecentlyViewedHostel {
+export interface RecentlyViewedHostel {
   id: string
   name: string
-  price_min: number
-  rating: number
-  distance: number | null
-  images: string[]
+  price_min?: number
+  price?: number
+  rating?: number
+  review_count?: number
+  distance?: number | null
+  images?: string[]
+  image?: string
 }
 
 interface RecentlyViewedSectionProps {
   recentlyViewed: RecentlyViewedHostel[]
-  hasSubscription: boolean
+  hasSubscription?: boolean
 }
 
-export default function RecentlyViewedSection({ recentlyViewed, hasSubscription }: RecentlyViewedSectionProps) {
+export default function RecentlyViewedSection({ recentlyViewed }: RecentlyViewedSectionProps) {
   const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
 
   if (recentlyViewed.length === 0) {
-    return null
+    return (
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Recently Viewed</h2>
+        </div>
+        <div className={styles.emptyStateCard}>
+          <div className={styles.emptyStateIcon}>
+            <IoTimeOutline size={28} />
+          </div>
+          <p className={styles.emptyStateTitle}>No recently viewed hostels</p>
+          <p className={styles.emptyStateSubtitle}>
+            Hostels you check out will appear here for fast, one-tap access.
+          </p>
+          <button
+            type="button"
+            className={styles.emptyStateCta}
+            onClick={() => navigate('/hostels')}
+          >
+            <IoCompassOutline size={16} />
+            <span>Browse Hostels</span>
+          </button>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -37,48 +64,50 @@ export default function RecentlyViewedSection({ recentlyViewed, hasSubscription 
       </div>
       <div className={styles.hostelList}>
         {recentlyViewed.map((hostel) => {
-          const mainImage = hostel.images && hostel.images.length > 0
-            ? hostel.images[0]
+          const rawImage = (hostel.images && hostel.images.length > 0 ? hostel.images[0] : null) || hostel.image || ''
+          const mainImage = rawImage && rawImage.trim() !== ''
+            ? rawImage
             : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
 
           const hostelUrl = `/hostel/${hostel.id}`
+          const priceValue = hostel.price_min ?? hostel.price ?? 0
+          const formattedPrice = formatCediPrice(priceValue)
+          const { ratingText, reviewCountText } = formatRatingBadge(hostel.rating, hostel.review_count)
+          const distanceFormatted = formatDistance(hostel.distance)
+
           return (
             <button
               key={hostel.id}
               className={styles.recentCard}
-              onTouchStart={() => hasSubscription ? handleTouchStart(hostelUrl) : undefined}
-              onClick={(e) => {
-                if (!hasSubscription) {
-                  navigate('/subscribe')
-                } else {
-                  navigate(hostelUrl)
-                }
-              }}
+              onMouseEnter={() => handleMouseEnter(hostelUrl)}
+              onTouchStart={() => handleTouchStart(hostelUrl)}
+              onClick={() => navigate(hostelUrl)}
             >
               <div className={styles.recentImageContainer}>
-                {mainImage && (
-                  <Image
-                    src={mainImage}
-                    alt={hostel.name || 'Hostel'}
-                    fill
-                    sizes="90px"
-                    className={styles.recentImage}
-                    quality={90}
-                  />
-                )}
+                <Image
+                  src={mainImage}
+                  alt={hostel.name || 'Hostel'}
+                  fill
+                  sizes="90px"
+                  className={styles.recentImage}
+                  quality={90}
+                />
               </div>
               <div className={styles.recentContent}>
                 <h3 className={styles.recentName}>{hostel.name}</h3>
-                <div className={styles.recentPrice}>GH₵ {(hostel.price_min || 0).toLocaleString()} / sem</div>
+                <div className={styles.recentPrice}>{formattedPrice}</div>
                 <div className={styles.recentMeta}>
                   <div className={styles.rating}>
-                    <IoStar size={14} color="#fbbf24" />
-                    <span>{Number(hostel.rating || 0).toFixed(1)}</span>
+                    <IoStar size={14} color="#f59e0b" />
+                    <span>{ratingText}</span>
+                    {hostel.review_count !== undefined && (
+                      <span className={styles.reviewCountText}>{reviewCountText}</span>
+                    )}
                   </div>
-                  {hostel.distance && (
+                  {distanceFormatted && (
                     <div className={styles.distance}>
                       <IoLocation size={14} color="#64748b" />
-                      <span>{hostel.distance}km</span>
+                      <span>{distanceFormatted}</span>
                     </div>
                   )}
                 </div>

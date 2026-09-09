@@ -49,3 +49,8 @@ out/
 build/
 dist/
 
+# Android native
+android/
+
+# Subagent artifacts
+.agents/

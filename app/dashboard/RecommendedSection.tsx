@@ -1,19 +1,13 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoLocation, IoArrowForward, IoShieldCheckmark } from 'react-icons/io5'
+import { IoArrowForward, IoSparklesOutline, IoCompassOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 import Loader from '@/components/Loader'
+import DashboardHostelCard, { HostelCardData } from './DashboardHostelCard'
 
-interface RecommendedHostel {
-  id: string
-  name: string
-  price_min: number
-  rating: number
-  distance: number | null
-  images: string[]
+export interface RecommendedHostel extends HostelCardData {
   recommendationReasons?: string[]
 }
 
@@ -23,7 +17,7 @@ interface RecommendedSectionProps {
 }
 
 export default function RecommendedSection({ recommendedHostels, loading }: RecommendedSectionProps) {
-  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
+  const { navigate } = useInstantNavigation()
 
   if (loading) {
     return (
@@ -42,7 +36,35 @@ export default function RecommendedSection({ recommendedHostels, loading }: Reco
   }
 
   if (recommendedHostels.length === 0) {
-    return null
+    return (
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Recommended for You</h2>
+            <span className={styles.sectionSubtitle}>
+              Personalized accommodation picks
+            </span>
+          </div>
+        </div>
+        <div className={styles.emptyStateCard}>
+          <div className={styles.emptyStateIcon}>
+            <IoSparklesOutline size={28} />
+          </div>
+          <p className={styles.emptyStateTitle}>No recommendations yet</p>
+          <p className={styles.emptyStateSubtitle}>
+            Explore and view hostels around your campus to get tailored recommendations.
+          </p>
+          <button
+            type="button"
+            className={styles.emptyStateCta}
+            onClick={() => navigate('/hostels')}
+          >
+            <IoCompassOutline size={16} />
+            <span>Browse Hostels</span>
+          </button>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -59,58 +81,13 @@ export default function RecommendedSection({ recommendedHostels, loading }: Reco
         </Link>
       </div>
       <div className={styles.hostelGrid}>
-        {recommendedHostels.map((hostel) => {
-          const mainImage = hostel.images && hostel.images.length > 0 
-            ? hostel.images[0] 
-            : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
-          
-          const hostelUrl = `/hostel/${hostel.id}`
-          return (
-            <button
-              key={hostel.id}
-              className={styles.hostelCard}
-              onClick={() => navigate(hostelUrl)}
-              onMouseEnter={() => handleMouseEnter(hostelUrl)}
-              onTouchStart={() => handleTouchStart(hostelUrl)}
-            >
-              <div className={styles.hostelImageContainer}>
-                <Image
-                  src={mainImage}
-                  alt={hostel.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className={styles.hostelImage}
-                  quality={90}
-                />
-                <div className={styles.cardVerifiedBadge}>
-                  <IoShieldCheckmark size={11} />
-                  <span>Verified</span>
-                </div>
-              </div>
-              <div className={styles.hostelInfo}>
-                <h3 className={styles.hostelName}>{hostel.name}</h3>
-                {hostel.recommendationReasons && hostel.recommendationReasons.length > 0 && (
-                  <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', textAlign: 'left' }}>
-                    {hostel.recommendationReasons[0]}
-                  </p>
-                )}
-                <div className={styles.hostelMeta}>
-                  <div className={styles.rating}>
-                    <IoStar size={12} color="#fbbf24" />
-                    <span>{Number(hostel.rating || 0).toFixed(1)}</span>
-                  </div>
-                  {hostel.distance && (
-                    <div className={styles.distance}>
-                      <IoLocation size={12} color="#64748b" />
-                      <span>{hostel.distance}km</span>
-                    </div>
-                  )}
-                </div>
-                <div className={styles.hostelPrice}>GH₵ {(hostel.price_min || 0).toLocaleString()} / sem</div>
-              </div>
-            </button>
-          )
-        })}
+        {recommendedHostels.map((hostel) => (
+          <DashboardHostelCard
+            key={hostel.id}
+            hostel={hostel}
+            variant="grid"
+          />
+        ))}
       </div>
     </section>
   )

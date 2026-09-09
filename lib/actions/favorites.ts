@@ -16,9 +16,15 @@ export interface Favorite {
     name: string
     price_min: number
     rating: number
+    review_count?: number
+    distance?: number | null
     images: string[]
     amenities?: string[]
     address?: string
+    school?: {
+      id: string
+      name: string
+    }
   }
 }
 
@@ -48,7 +54,18 @@ export const getFavorites = cache(async (): Promise<{
       .from('favorites')
       .select(`
         *,
-        hostel:hostels(id, name, price_min, rating, images, amenities, address)
+        hostel:hostels(
+          id,
+          name,
+          price_min,
+          rating,
+          review_count,
+          distance,
+          images,
+          amenities,
+          address,
+          school:schools!hostels_school_id_fkey(id, name)
+        )
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -116,7 +133,18 @@ export async function addFavorite(
       .insert(favoriteData)
       .select(`
         *,
-        hostel:hostels(id, name, price_min, rating, images, amenities, address)
+        hostel:hostels(
+          id,
+          name,
+          price_min,
+          rating,
+          review_count,
+          distance,
+          images,
+          amenities,
+          address,
+          school:schools!hostels_school_id_fkey(id, name)
+        )
       `)
       .single()
     

@@ -1,36 +1,30 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward, IoShieldCheckmark, IoCompassOutline } from 'react-icons/io5'
+import { IoHeartOutline, IoArrowForward, IoCompassOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { removeFavorite, addFavorite } from '@/lib/actions/favorites'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
+import DashboardHostelCard, { HostelCardData } from './DashboardHostelCard'
 
-interface Favorite {
-  id: string
-  name: string
-  price: number
-  rating: number
-  distance: string | null
-  image: string
-  favoriteId: string
+export interface FavoriteHostel extends HostelCardData {
+  favoriteId?: string
 }
 
 interface FavoritesSectionProps {
-  favorites: Favorite[]
+  favorites: FavoriteHostel[]
   hasSubscription: boolean
 }
 
 export default function FavoritesSection({ favorites: initialFavorites, hasSubscription }: FavoritesSectionProps) {
-  const { navigate, handleMouseEnter, handleTouchStart } = useInstantNavigation()
+  const { navigate } = useInstantNavigation()
   const [favorites, setFavorites] = useState(initialFavorites)
 
   const handleToggleFavorite = async (hostelId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!hasSubscription) {
-      navigate('/subscribe')
+      window.location.href = '/subscribe'
       return
     }
     const favorite = favorites.find(f => f.id === hostelId)
@@ -55,8 +49,6 @@ export default function FavoritesSection({ favorites: initialFavorites, hasSubsc
       }
     } else {
       // Add to favorites (edge case - shouldn't normally happen in FavoritesSection)
-      // Since we don't have hostel data, we can't add optimistically
-      // Skip the expensive getFavorites() call - just attempt the add
       try {
         const { error } = await addFavorite(hostelId)
         if (error) {
@@ -68,7 +60,6 @@ export default function FavoritesSection({ favorites: initialFavorites, hasSubsc
             alert('Failed to add to favorites: ' + error)
           }
         }
-        // Note: Adding to FavoritesSection is rare - page refresh will show it
       } catch (error) {
         alert('An unexpected error occurred')
       }
@@ -95,7 +86,7 @@ export default function FavoritesSection({ favorites: initialFavorites, hasSubsc
             onClick={() => navigate('/hostels')}
           >
             <IoCompassOutline size={16} />
-            <span>Explore Hostels</span>
+            <span>Browse Hostels</span>
           </button>
         </div>
       </section>
@@ -111,70 +102,15 @@ export default function FavoritesSection({ favorites: initialFavorites, hasSubsc
         </Link>
       </div>
       <div className={styles.horizontalScroll}>
-        {favorites.map((hostel) => {
-          const imageUrl = hostel.image && hostel.image.trim() !== ''
-            ? hostel.image
-            : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400'
-
-          return (
-            <div
-              key={hostel.id}
-              className={styles.favoriteCard}
-              onTouchStart={() => hasSubscription ? handleTouchStart(`/hostel/${hostel.id}`) : undefined}
-              onClick={(e) => {
-                if (!hasSubscription) {
-                  navigate('/subscribe')
-                } else {
-                  navigate(`/hostel/${hostel.id}`)
-                }
-              }}
-            >
-              {imageUrl && (
-                <div className={styles.favoriteImageContainer}>
-                  <Image
-                    src={imageUrl}
-                    alt={hostel.name || 'Hostel'}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                    className={styles.favoriteImage}
-                    priority={hostel.id === favorites[0]?.id}
-                    quality={90}
-                  />
-                  <div className={styles.cardVerifiedBadge}>
-                    <IoShieldCheckmark size={11} />
-                    <span>Verified</span>
-                  </div>
-                </div>
-              )}
-              <div className={styles.favoriteContent}>
-                <h3 className={styles.favoriteName}>{hostel.name}</h3>
-                <div className={styles.favoriteRow}>
-                  <div className={styles.ratingSmall}>
-                    <IoStar size={12} color="#fbbf24" />
-                    <span className={styles.ratingSmallText}>{Number(hostel.rating || 0).toFixed(1)}</span>
-                  </div>
-                  {hostel.distance && (
-                    <span className={styles.distanceSmall}>
-                      <IoLocation size={12} color="#64748b" />
-                      {hostel.distance}
-                    </span>
-                  )}
-                </div>
-                <span className={styles.favoritePrice}>GH₵ {(hostel.price || 0).toLocaleString()} / sem</span>
-              </div>
-              <button
-                className={styles.heartButton}
-                onClick={(e) => handleToggleFavorite(hostel.id, e)}
-              >
-                <IoHeart
-                  size={18}
-                  color="#ef4444"
-                  fill="#ef4444"
-                />
-              </button>
-            </div>
-          )
-        })}
+        {favorites.map((hostel) => (
+          <DashboardHostelCard
+            key={hostel.id}
+            hostel={hostel}
+            isFavorite={true}
+            onToggleFavorite={(id, e) => handleToggleFavorite(id, e)}
+            variant="carousel"
+          />
+        ))}
       </div>
     </section>
   )
