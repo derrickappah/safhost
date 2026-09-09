@@ -1,7 +1,15 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { IoCheckmarkCircle, IoArrowForward } from 'react-icons/io5'
+import {
+  IoCheckmarkCircle,
+  IoArrowForward,
+  IoShieldCheckmark,
+  IoCallOutline,
+  IoLogoWhatsapp,
+  IoSparkles,
+  IoTimeOutline,
+} from 'react-icons/io5'
 import styles from './page.module.css'
 
 interface Subscription {
@@ -39,46 +47,87 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
 
   const daysLeft = getSubscriptionDaysLeft()
   const progress = getSubscriptionProgress()
+  const isActive = subscription && subscription.status === 'active'
 
-  if (subscription && subscription.status === 'active') {
+  if (isActive) {
     return (
-      <div className={styles.subscriptionCard}>
-        <div className={styles.subscriptionHeader}>
-          <div className={styles.subscriptionBadge}>
-            <IoCheckmarkCircle size={16} color="#22c55e" />
-            <span className={styles.subscriptionStatus}>Active</span>
+      <div className={styles.subscriptionCardActive}>
+        <div className={styles.subscriptionHeaderRow}>
+          <div className={styles.subscriptionStatusBadge}>
+            <IoCheckmarkCircle size={16} color="#16a34a" />
+            <span className={styles.subscriptionStatusText}>Student Pass Active</span>
           </div>
-          <span className={styles.daysLeft}>
-            {daysLeft !== null ? `${daysLeft} days left` : 'Active'}
-          </span>
+          {daysLeft !== null && (
+            <div className={styles.subscriptionDaysLeft}>
+              <IoTimeOutline size={14} />
+              <span>{daysLeft} days remaining</span>
+            </div>
+          )}
         </div>
-        <div className={styles.progressBar}>
-          <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+
+        <div className={styles.subscriptionProgressBar}>
+          <div
+            className={styles.subscriptionProgressFill}
+            style={{ width: `${Math.max(5, progress)}%` }}
+          />
         </div>
-        <button 
-          className={styles.renewButton}
-          onClick={() => router.push('/subscribe')}
-        >
-          <span className={styles.renewButtonText}>Renew Subscription</span>
-          <IoArrowForward size={16} color="#2563eb" />
-        </button>
+
+        <div className={styles.subscriptionPerksList}>
+          <span className={styles.subscriptionPerkItem}>✓ Direct WhatsApp & Calls</span>
+          <span className={styles.subscriptionPerkItem}>✓ Precise Campus Distance</span>
+          <span className={styles.subscriptionPerkItem}>✓ Verified Locations</span>
+        </div>
+
+        <div className={styles.subscriptionActionsRow}>
+          <button
+            type="button"
+            className={styles.subscriptionManageBtn}
+            onClick={() => router.push('/subscribe')}
+          >
+            <span>Manage Subscription</span>
+            <IoArrowForward size={14} />
+          </button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className={styles.subscriptionCard} style={{ backgroundColor: '#fef2f2' }}>
-      <div className={styles.subscriptionHeader}>
-        <div className={styles.subscriptionBadge} style={{ backgroundColor: '#fee2e2' }}>
-          <span className={styles.subscriptionStatus} style={{ color: '#dc2626' }}>No Subscription</span>
+    <div className={styles.subscriptionUpgradeBanner}>
+      <div className={styles.upgradeContent}>
+        <div className={styles.upgradeHeaderBadge}>
+          <IoSparkles size={14} />
+          <span>Unlock Direct Access</span>
+        </div>
+        <h3 className={styles.upgradeTitle}>Direct Hostel Contacts & WhatsApp</h3>
+        <p className={styles.upgradeSubtitle}>
+          Connect directly with verified hostel administrations. Skip fake agents, eliminate viewing
+          fees, and secure your room early.
+        </p>
+
+        <div className={styles.upgradePerksRow}>
+          <div className={styles.upgradePerk}>
+            <IoLogoWhatsapp size={15} className={styles.whatsappIcon} />
+            <span>Direct WhatsApp</span>
+          </div>
+          <div className={styles.upgradePerk}>
+            <IoCallOutline size={15} />
+            <span>Verified Phone</span>
+          </div>
+          <div className={styles.upgradePerk}>
+            <IoShieldCheckmark size={15} />
+            <span>100% Inspected</span>
+          </div>
         </div>
       </div>
-      <button 
-        className={styles.renewButton}
+
+      <button
+        type="button"
+        className={styles.upgradeCtaButton}
         onClick={() => router.push('/subscribe')}
       >
-        <span className={styles.renewButtonText}>Subscribe Now</span>
-        <IoArrowForward size={16} color="#2563eb" />
+        <span>Get Access Pass</span>
+        <IoArrowForward size={16} />
       </button>
     </div>
   )

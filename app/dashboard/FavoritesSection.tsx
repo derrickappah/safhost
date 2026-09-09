@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoHeart, IoLocation, IoArrowForward } from 'react-icons/io5'
+import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward, IoShieldCheckmark, IoCompassOutline } from 'react-icons/io5'
 import styles from './page.module.css'
 import { removeFavorite, addFavorite } from '@/lib/actions/favorites'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
@@ -81,22 +81,21 @@ export default function FavoritesSection({ favorites: initialFavorites, hasSubsc
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Your Favorites</h2>
         </div>
-        <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
-            No favorites yet
+        <div className={styles.emptyStateCard}>
+          <div className={styles.emptyStateIcon}>
+            <IoHeartOutline size={28} />
+          </div>
+          <p className={styles.emptyStateTitle}>No saved hostels yet</p>
+          <p className={styles.emptyStateSubtitle}>
+            Tap the heart icon on any hostel listing to save and compare your top accommodation choices.
           </p>
           <button
+            type="button"
+            className={styles.emptyStateCta}
             onClick={() => navigate('/hostels')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: 'var(--color-primary)',
-              color: '#fff',
-              borderRadius: '9999px',
-              fontSize: '14px',
-              fontWeight: 600
-            }}
           >
-            Browse Hostels
+            <IoCompassOutline size={16} />
+            <span>Explore Hostels</span>
           </button>
         </div>
       </section>
@@ -141,20 +140,27 @@ export default function FavoritesSection({ favorites: initialFavorites, hasSubsc
                     priority={hostel.id === favorites[0]?.id}
                     quality={90}
                   />
+                  <div className={styles.cardVerifiedBadge}>
+                    <IoShieldCheckmark size={11} />
+                    <span>Verified</span>
+                  </div>
                 </div>
               )}
               <div className={styles.favoriteContent}>
                 <h3 className={styles.favoriteName}>{hostel.name}</h3>
                 <div className={styles.favoriteRow}>
                   <div className={styles.ratingSmall}>
-                    <IoStar size={10} color="#fbbf24" />
+                    <IoStar size={12} color="#fbbf24" />
                     <span className={styles.ratingSmallText}>{Number(hostel.rating || 0).toFixed(1)}</span>
                   </div>
                   {hostel.distance && (
-                    <span className={styles.distanceSmall}>{hostel.distance}</span>
+                    <span className={styles.distanceSmall}>
+                      <IoLocation size={12} color="#64748b" />
+                      {hostel.distance}
+                    </span>
                   )}
                 </div>
-                <span className={styles.favoritePrice}>GHS {hostel.price || 0}/sem</span>
+                <span className={styles.favoritePrice}>GH₵ {(hostel.price || 0).toLocaleString()} / sem</span>
               </div>
               <button
                 className={styles.heartButton}

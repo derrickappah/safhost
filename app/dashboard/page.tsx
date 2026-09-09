@@ -19,6 +19,7 @@ import RecommendationsLoader from './RecommendationsLoader'
 import RecommendationsSkeleton from './RecommendationsSkeleton'
 import RecentlyViewedSection from './RecentlyViewedSection'
 import QuickActions from './QuickActions'
+import SubscriptionCard from './SubscriptionCard'
 
 // Dashboard must be dynamic to prevent cross-user session leakage
 export const dynamic = 'force-dynamic'
@@ -102,6 +103,9 @@ export default async function DashboardPage() {
         {/* Quick Actions */}
         <QuickActions />
 
+        {/* Subscription / Student Pass Banner */}
+        <SubscriptionCard subscription={subscription} />
+
         {/* Featured Section */}
         <FeaturedSection
           featuredHostels={formattedFeaturedHostels}
@@ -121,8 +125,6 @@ export default async function DashboardPage() {
         {recentlyViewed.length > 0 && (
           <RecentlyViewedSection recentlyViewed={recentlyViewed} hasSubscription={hasSubscription} />
         )}
-
-        <div style={{ height: '120px' }} />
       </div>
     </div>
   )

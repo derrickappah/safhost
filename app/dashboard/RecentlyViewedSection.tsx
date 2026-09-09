@@ -69,7 +69,7 @@ export default function RecentlyViewedSection({ recentlyViewed, hasSubscription 
               </div>
               <div className={styles.recentContent}>
                 <h3 className={styles.recentName}>{hostel.name}</h3>
-                <div className={styles.recentPrice}>GHS {hostel.price_min || 0}/sem</div>
+                <div className={styles.recentPrice}>GH₵ {(hostel.price_min || 0).toLocaleString()} / sem</div>
                 <div className={styles.recentMeta}>
                   <div className={styles.rating}>
                     <IoStar size={14} color="#fbbf24" />

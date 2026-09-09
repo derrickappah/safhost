@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward } from 'react-icons/io5'
+import { IoStar, IoHeart, IoHeartOutline, IoLocation, IoArrowForward, IoShieldCheckmark } from 'react-icons/io5'
 import styles from './page.module.css'
 import { addFavorite, removeFavorite } from '@/lib/actions/favorites'
 import { useState } from 'react'
@@ -137,23 +137,27 @@ export default function FeaturedSection({ featuredHostels: initialFeaturedHostel
                     priority={hostel.id === featuredHostels[0]?.id}
                     quality={90}
                   />
+                  <div className={styles.cardVerifiedBadge}>
+                    <IoShieldCheckmark size={11} />
+                    <span>Verified</span>
+                  </div>
                 </div>
               )}
               <div className={styles.favoriteContent}>
                 <h3 className={styles.favoriteName}>{hostel.name}</h3>
                 <div className={styles.favoriteRow}>
                   <div className={styles.ratingSmall}>
-                    <IoStar size={10} color="#fbbf24" />
+                    <IoStar size={12} color="#fbbf24" />
                     <span className={styles.ratingSmallText}>{Number(hostel.rating || 0).toFixed(1)}</span>
                   </div>
-                  {hostel.distance && (
+                  {hostel.distance !== null && hostel.distance !== undefined && (
                     <span className={styles.distanceSmall}>
-                      <IoLocation size={10} color="#6b7280" />
-                      {hostel.distance.toFixed(1)}km
+                      <IoLocation size={12} color="#64748b" />
+                      {Number(hostel.distance).toFixed(1)}km
                     </span>
                   )}
                 </div>
-                <span className={styles.favoritePrice}>GHS {hostel.price || 0}/sem</span>
+                <span className={styles.favoritePrice}>GH₵ {(hostel.price || 0).toLocaleString()} / sem</span>
               </div>
               <button
                 className={styles.heartButton}

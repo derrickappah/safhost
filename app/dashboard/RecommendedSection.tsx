@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { IoStar, IoLocation, IoArrowForward } from 'react-icons/io5'
+import { IoStar, IoLocation, IoArrowForward, IoShieldCheckmark } from 'react-icons/io5'
 import styles from './page.module.css'
 import { useInstantNavigation } from '@/lib/hooks/useInstantNavigation'
 import Loader from '@/components/Loader'
@@ -82,6 +82,10 @@ export default function RecommendedSection({ recommendedHostels, loading }: Reco
                   className={styles.hostelImage}
                   quality={90}
                 />
+                <div className={styles.cardVerifiedBadge}>
+                  <IoShieldCheckmark size={11} />
+                  <span>Verified</span>
+                </div>
               </div>
               <div className={styles.hostelInfo}>
                 <h3 className={styles.hostelName}>{hostel.name}</h3>
@@ -102,7 +106,7 @@ export default function RecommendedSection({ recommendedHostels, loading }: Reco
                     </div>
                   )}
                 </div>
-                <div className={styles.hostelPrice}>GHS {hostel.price_min || 0}/sem</div>
+                <div className={styles.hostelPrice}>GH₵ {(hostel.price_min || 0).toLocaleString()} / sem</div>
               </div>
             </button>
           )
