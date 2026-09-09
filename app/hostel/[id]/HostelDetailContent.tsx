@@ -67,12 +67,13 @@ export default function HostelDetailContent({
   hasAccess
 }: HostelDetailContentProps) {
   const { navigate, router } = useInstantNavigation()
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const [isSaved, setIsSaved] = useState(initialIsFavorited)
   const [showContactModal, setShowContactModal] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
   const [reportTarget, setReportTarget] = useState<'hostel' | string>('hostel')
   const [showStickyHeader, setShowStickyHeader] = useState(false)
+  const [isImageCovered, setIsImageCovered] = useState(false)
   const [showAvailabilityDialog, setShowAvailabilityDialog] = useState(false)
   const [availabilityDialogConfig, setAvailabilityDialogConfig] = useState<{
     title: string
@@ -92,18 +93,21 @@ export default function HostelDetailContent({
     })
   }, [hostel.id])
 
-  // Handle sticky header on scroll
-  // Handle sticky header on scroll
+  // Handle sticky header and title transition when product details slide over image
   useEffect(() => {
-    let lastScrollY = window.scrollY
     let ticking = false
 
     const handleScroll = () => {
-      lastScrollY = window.scrollY
-
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setShowStickyHeader(lastScrollY > 200)
+          if (contentRef.current) {
+            const rect = contentRef.current.getBoundingClientRect()
+            // When product details have slid over the image to reach the top header bar (64px)
+            // the product image is no longer visible
+            const covered = rect.top <= 64
+            setIsImageCovered(covered)
+            setShowStickyHeader(covered)
+          }
           ticking = false
         })
         ticking = true
@@ -111,6 +115,8 @@ export default function HostelDetailContent({
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -344,6 +350,17 @@ export default function HostelDetailContent({
         >
           <IoArrowBack size={22} color="#1e293b" />
         </button>
+
+        {/* Product Title in Navigation Area (appears when image is covered) */}
+        <div className={`${styles.stickyTitleWrapper} ${isImageCovered ? styles.stickyTitleWrapperVisible : ''}`}>
+          <h2 className={styles.stickyTitle}>{hostel.name}</h2>
+          {hostel.price_min > 0 && (
+            <span className={styles.stickyPrice}>
+              GH₵ {hostel.price_min.toLocaleString()} / sem
+            </span>
+          )}
+        </div>
+
         <div className={styles.stickyHeaderActions}>
           <button
             className={styles.stickyActionButton}
@@ -376,8 +393,9 @@ export default function HostelDetailContent({
           onShare={handleShare}
         />
 
-        {/* Content */}
-        <div className={styles.content}>
+        {/* Content (slides over the sticky product image) */}
+        <div ref={contentRef} className={styles.content}>
+          <div className={styles.contentHandle} aria-hidden="true" />
           {/* Header */}
           <div className={styles.hostelHeader}>
             <div className={styles.headerLeft}>
